@@ -1,0 +1,285 @@
+/* Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Basic reset and global styles */
+:host {
+  display: block;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Main layout */
+.app-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 280px;
+  background-color: #ffffff;
+  color: #202124;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar-title {
+  font-size: 20px;
+  font-weight: 500;
+  padding: 16px 24px 8px;
+  margin: 0;
+  color: #3c4043;
+}
+
+/* Search Bar */
+.search-bar {
+  padding: 0 16px 12px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+/* List of sites */
+.site-list {
+  list-style-type: none;
+  padding: 0 8px;
+  margin: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.site-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 16px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+  color: #3c4043;
+  position: relative;
+}
+
+.site-list li:hover {
+  background-color: #f1f3f4;
+}
+
+/* Common style for both favicon and fallback */
+.site-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 12px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+/* Specific style for the letter fallback */
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* עיגול מושלם */
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  /* background-color is applied dynamically via [ngStyle] */
+}
+
+.site-list li .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-list li.active {
+  background-color: #e8f0fe;
+  color: #1967d2;
+}
+
+.remove-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  margin-right: -8px;
+}
+
+.site-list li:hover .remove-btn {
+  display: block;
+}
+
+.remove-btn:hover {
+  color: #202124;
+}
+
+/* Sidebar footer for add button */
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.add-channel-btn {
+  width: 100%;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  padding: 8px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.add-channel-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #d2e3fc;
+}
+
+/* Main content area */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  background-color: #ffffff;
+}
+
+.iframe-container {
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.placeholder {
+  color: #5f6368;
+  font-size: 1.2rem;
+}
+
+/* --- Dialog Styles --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-box {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  color: #202124;
+}
+
+.dialog-content {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialog-content p {
+  margin: 0;
+  color: #5f6368;
+}
+
+.dialog-content input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+}
+
+.dialog-content input:focus {
+  outline: none;
+  border: 2px solid #1a73e8;
+  padding: 9px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-actions button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #1a73e8;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #185abc;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+}
+.btn-secondary:hover {
+  background-color: #f1f3f4;
+}
+
+.btn-danger {
+  background-color: #d93025;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #a50e0e;
+}

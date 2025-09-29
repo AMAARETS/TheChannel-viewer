@@ -1,0 +1,86 @@
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <h1 class="sidebar-title">ערוצים</h1>
+
+    <!-- שדה חיפוש -->
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
+    </div>
+
+    <ul class="site-list">
+      <li
+        *ngFor="let site of filteredSites"
+        (click)="selectSite(site)"
+        [class.active]="site.name === activeSiteName"
+        title="{{ site.url }}">
+
+        <!-- הצגת Favicon אם לא הייתה שגיאה -->
+        <img *ngIf="!hasFaviconError(site)"
+             [src]="getFaviconUrl(site.url)"
+             (error)="onFaviconError(site)"
+             class="site-icon"
+             alt="Favicon">
+
+        <!-- הצגת Fallback עם האות הראשונה אם הייתה שגיאה -->
+        <div *ngIf="hasFaviconError(site)"
+             class="site-icon fallback-icon"
+             [ngStyle]="{'background-color': getColorForSite(site.name)}">
+          {{ getFirstLetter(site.name) }}
+        </div>
+
+        <span class="site-name">{{ site.name }}</span>
+        <button class="remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+      </li>
+    </ul>
+
+    <!-- כפתור לפתיחת דיאלוג הוספה -->
+    <div class="sidebar-footer">
+      <button class="add-channel-btn" (click)="openAddSiteDialog()">הוסף ערוץ +</button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <div class="iframe-container">
+      <iframe
+        *ngIf="selectedSiteUrl"
+        [src]="selectedSiteUrl"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+      <div *ngIf="!selectedSiteUrl" class="placeholder">
+        <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- דיאלוג להוספת ערוץ חדש -->
+<div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+    <div class="dialog-content">
+      <input #siteName type="text" placeholder="שם הערוץ" (keyup.enter)="addSite(siteName, siteUrl)">
+      <input #siteUrl type="text" placeholder="כתובת (URL)" (keyup.enter)="addSite(siteName, siteUrl)">
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeAddSiteDialog()">ביטול</button>
+      <button class="btn-primary" (click)="addSite(siteName, siteUrl)">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- דיאלוג לאישור מחיקה -->
+<div class="dialog-overlay" *ngIf="isConfirmDeleteDialogVisible" (click)="closeConfirmDeleteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">אישור מחיקה</h2>
+    <div class="dialog-content">
+      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ siteToDelete?.name }}"?</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeConfirmDeleteDialog()">ביטול</button>
+      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
+    </div>
+  </div>
+</div>
