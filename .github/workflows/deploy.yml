@@ -41,10 +41,10 @@ jobs:
         run: npm install
 
       # 4. בניית פרויקט האנגולר עבור GitHub Pages
-      #    שים לב לפרמטר base-href שחייב להכיל את שם המאגר שלך
+      #    השורה הזו היא השורה המתוקנת. היא משתמשת ב-npm run build
       - name: Build Angular App
-        run: ng build --configuration production --base-href /the-channel-app/
-        # ⬆️ החלף את 'the-channel-app' בשם המאגר שלך ב-GitHub!
+        run: npm run build -- --configuration production --base-href /the-channel-app/
+        # ⬆️ ודא ש-'the-channel-app' הוא שם המאגר שלך ב-GitHub!
 
       # 5. הכנת קבצי הבנייה להעלאה (Artifact)
       #    הנתיב צריך להיות 'dist/<project-name>/browser'
