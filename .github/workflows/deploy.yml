@@ -1,0 +1,61 @@
+# שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
+name: Deploy Angular App to GitHub Pages
+
+# מתי להפעיל את ה-Workflow
+on:
+  # הפעלה אוטומטית בכל דחיפה (push) לענף main
+  push:
+    branches:
+      - main
+  
+  # מאפשר הפעלה ידנית מה-UI של GitHub
+  workflow_dispatch:
+
+# הרשאות נדרשות כדי לאפשר ל-Action לכתוב לדפי GitHub
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# הגדרת עבודות (Jobs) שירוצו
+jobs:
+  build-and-deploy:
+    # על איזו מערכת הפעלה להריץ את העבודה
+    runs-on: ubuntu-latest
+    
+    # שלבי העבודה
+    steps:
+      # 1. הורדת הקוד מהמאגר
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Node.js (גרסה 20 היא גרסה יציבה וטובה)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm' # שימוש במטמון (cache) כדי לזרז התקנות עתידיות
+
+      # 3. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: npm install
+
+      # 4. בניית פרויקט האנגולר עבור GitHub Pages
+      #    שים לב לפרמטר base-href שחייב להכיל את שם המאגר שלך
+      - name: Build Angular App
+        run: ng build --configuration production --base-href /the-channel-app/
+        # ⬆️ החלף את 'the-channel-app' בשם המאגר שלך ב-GitHub!
+
+      # 5. הכנת קבצי הבנייה להעלאה (Artifact)
+      #    הנתיב צריך להיות 'dist/<project-name>/browser'
+      #    שם הפרויקט שלך הוא "The-channel" לפי angular.json
+      - name: Upload production-build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist/The-channel/browser/
+          # ⬆️ ודא ששם התיקייה 'The-channel' תואם לשם הפרויקט שלך
+
+      # 6. פריסת ה-Artifact ל-GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
