@@ -54,8 +54,3 @@ jobs:
         with:
           path: ./dist/The-channel/browser/
           # ⬆️ ודא ששם התיקייה 'The-channel' תואם לשם הפרויקט שלך
-
-      # 6. פריסת ה-Artifact ל-GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
