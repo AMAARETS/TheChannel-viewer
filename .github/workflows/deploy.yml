@@ -1,5 +1,5 @@
 # שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
-name: Deploy Angular App to GitHub Pages
+name: Build and Deploy to gh-pages branch
 
 # מתי להפעיל את ה-Workflow
 on:
@@ -11,11 +11,9 @@ on:
   # מאפשר הפעלה ידנית מה-UI של GitHub
   workflow_dispatch:
 
-# הרשאות נדרשות כדי לאפשר ל-Action לכתוב לדפי GitHub
+# הרשאות נדרשות כדי לאפשר ל-Action לדחוף קוד למאגר
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 # הגדרת עבודות (Jobs) שירוצו
 jobs:
@@ -25,32 +23,33 @@ jobs:
     
     # שלבי העבודה
     steps:
-      # 1. הורדת הקוד מהמאגר
+      # 1. הורדת הקוד מהמאגר (מהענף main)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. התקנת Node.js (גרסה 20 היא גרסה יציבה וטובה)
+      # 2. התקנת Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm' # שימוש במטמון (cache) כדי לזרז התקנות עתידיות
+          cache: 'npm'
 
       # 3. התקנת התלויות של הפרויקט
       - name: Install dependencies
         run: npm install
 
-      # 4. בניית פרויקט האנגולר עבור GitHub Pages
-      #    השורה הזו היא השורה המתוקנת. היא משתמשת ב-npm run build
+      # 4. בניית פרויקט האנגולר
+      #    שים לב: base-href חייב להיות שם המאגר שלך ב-GitHub
       - name: Build Angular App
-        run: npm run build -- --configuration production --base-href /the-channel-app/
-        # ⬆️ ודא ש-'the-channel-app' הוא שם המאגר שלך ב-GitHub!
+        run: npm run build -- --configuration production --base-href /TheChannel--viewer/
+        # ⬆️ ודא ש-'TheChannel--viewer' הוא שם המאגר המדויק שלך!
 
-      # 5. הכנת קבצי הבנייה להעלאה (Artifact)
-      #    הנתיב צריך להיות 'dist/<project-name>/browser'
-      #    שם הפרויקט שלך הוא "The-channel" לפי angular.json
-      - name: Upload production-build artifact
-        uses: actions/upload-pages-artifact@v3
+      # 5. פריסת קבצי הבנייה לענף gh-pages
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: ./dist/The-channel/browser/
-          # ⬆️ ודא ששם התיקייה 'The-channel' תואם לשם הפרויקט שלך
+          # טוקן שנוצר אוטומטית עם הרשאות כתיבה למאגר
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # התיקייה שמכילה את תוצר הבנייה (index.html וכו')
+          publish_dir: ./dist/The-channel/browser/
+          # ⬆️ ודא שהנתיב הזה תואם לתיקיית הפלט של הבנייה שלך
