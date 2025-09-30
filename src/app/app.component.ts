@@ -9,10 +9,14 @@ export interface Site {
   url: string;
 }
 
+export interface AvailableSite extends Site {
+  description: string;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, NgStyle], // הוספת NgStyle עבור עיצוב דינמי
+  imports: [CommonModule, NgStyle],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -20,6 +24,7 @@ export class AppComponent implements OnInit {
   title = 'Channel Viewer';
   sites: Site[] = [];
   filteredSites: Site[] = [];
+  availableSites: AvailableSite[] = [];
   selectedSiteUrl: SafeResourceUrl | null = null;
   activeSiteName: string | null = null;
 
@@ -27,7 +32,6 @@ export class AppComponent implements OnInit {
   isConfirmDeleteDialogVisible = false;
   siteToDelete: Site | null = null;
 
-  // סט לאחסון כתובות של אייקונים שנכשלו בטעינה
   faviconErrorUrls = new Set<string>();
 
   private readonly storageKey = 'userSites';
@@ -38,6 +42,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSites();
+    this.loadAvailableSites();
   }
 
   private loadSites(): void {
@@ -54,6 +59,12 @@ export class AppComponent implements OnInit {
         this.selectInitialSite();
       });
     }
+  }
+
+  private loadAvailableSites(): void {
+    this.http.get<AvailableSite[]>('assets/available-sites.json').subscribe(data => {
+      this.availableSites = data;
+    });
   }
 
   private selectInitialSite(): void {
@@ -95,13 +106,11 @@ export class AppComponent implements OnInit {
       const siteUrl = new URL(url);
       return `${siteUrl.origin}/favicon.ico`;
     } catch (e) {
-      // אם ה-URL לא תקין, הטיפול בשגיאה יתפוס זאת ויציג fallback
       return '';
     }
   }
 
   onFaviconError(site: Site): void {
-    // הוספת ה-URL של האתר לסט השגיאות
     this.faviconErrorUrls.add(site.url);
   }
 
@@ -113,7 +122,6 @@ export class AppComponent implements OnInit {
     return name ? name.charAt(0).toUpperCase() : '';
   }
 
-  // מחזיר צבע קבוע עבור שם נתון
   getColorForSite(name: string): string {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
@@ -141,15 +149,40 @@ export class AppComponent implements OnInit {
         url = 'https://' + url;
       }
 
+      // Check if site already exists
+      if (this.sites.some(site => site.url === url)) {
+        alert('הערוץ כבר קיים ברשימה.');
+        return;
+      }
+
       const newSite: Site = { name, url };
       this.sites.push(newSite);
       this.saveSites();
       this.filterSites();
 
-      this.closeAddSiteDialog();
+      // Clear inputs only after successful manual add
       nameInput.value = '';
       urlInput.value = '';
     }
+  }
+
+  // New method to add a site from the available list
+  addSiteFromAvailable(siteToAdd: Site): void {
+    // Check if site already exists
+    if (this.sites.some(site => site.url === siteToAdd.url)) {
+        alert('הערוץ כבר קיים ברשימה.');
+        return;
+    }
+
+    this.sites.push(siteToAdd);
+    this.saveSites();
+    this.filterSites();
+  }
+
+  // New method to filter the available sites list against existing sites
+  getFilteredAvailableSites(): AvailableSite[] {
+    const existingUrls = new Set(this.sites.map(s => s.url));
+    return this.availableSites.filter(as => !existingUrls.has(as.url));
   }
 
   openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
@@ -166,9 +199,7 @@ export class AppComponent implements OnInit {
   confirmRemoveSite(): void {
     if (!this.siteToDelete) return;
 
-    // הסרת ה-URL מסט השגיאות אם קיים
     this.faviconErrorUrls.delete(this.siteToDelete.url);
-
     this.sites = this.sites.filter(site => site.url !== this.siteToDelete!.url);
     this.saveSites();
     this.filterSites();

@@ -65,7 +65,6 @@
 
 .site-list li {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 6px 16px;
   border-radius: 16px;
@@ -114,25 +113,44 @@
   color: #1967d2;
 }
 
-.remove-btn {
+/* Container for action buttons on hover */
+.site-actions {
   display: none;
+  align-items: center;
+  margin-right: -8px; /* Offset padding */
+}
+
+.site-list li:hover .site-actions {
+  display: flex;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: #5f6368;
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
-  padding: 0 4px;
-  margin-right: -8px;
+  padding: 4px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  transition: background-color 0.2s;
+  text-decoration: none; /* For <a> tag */
 }
 
-.site-list li:hover .remove-btn {
-  display: block;
-}
-
-.remove-btn:hover {
+.action-btn:hover {
+  background-color: #e0e0e0;
   color: #202124;
 }
+
+.remove-btn {
+  font-weight: bold;
+}
+
 
 /* Sidebar footer for add button */
 .sidebar-footer {
@@ -207,7 +225,8 @@ iframe {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 500px; /* Increased width */
+  max-height: 80vh; /* Added max-height */
   display: flex;
   flex-direction: column;
 }
@@ -218,8 +237,15 @@ iframe {
   color: #202124;
 }
 
+.dialog-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3c4043;
+  margin: 16px 0 8px;
+}
+
 .dialog-content {
-  margin-bottom: 24px;
+  overflow-y: auto; /* Allow scrolling for content */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -244,10 +270,18 @@ iframe {
   padding: 9px;
 }
 
+.dialog-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 16px 0;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .dialog-actions button {
@@ -282,4 +316,71 @@ iframe {
 }
 .btn-danger:hover {
   background-color: #a50e0e;
+}
+
+/* Available sites list in dialog */
+.available-sites-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.available-sites-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s;
+}
+
+.available-sites-list li:last-child {
+  border-bottom: none;
+}
+
+.available-sites-list li:hover {
+  background-color: #f8f9fa;
+}
+
+.site-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-details .site-name {
+  font-weight: 500;
+  color: #202124;
+}
+
+.site-details .site-description {
+  font-size: 0.8rem;
+  color: #5f6368;
+}
+
+.btn-add-from-list {
+  background-color: #e8f0fe;
+  color: #1967d2;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-add-from-list:hover {
+  background-color: #d2e3fc;
 }

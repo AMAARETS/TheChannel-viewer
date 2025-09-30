@@ -45,6 +45,8 @@ The content is organized as follows:
 
 <directory_structure>
 .editorconfig
+.github/workflows/ci.yaml
+.github/workflows/deploy.yml
 .gitignore
 angular.json
 package.json
@@ -69,213 +71,6 @@ tsconfig.spec.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="public/assets/sites.json">
-[
-  {
-    "name": "החתול השחור",
-    "url": "https://black-cat.thechats.click/"
-  },
-  {
-    "name": "ויקי נטפרי",
-    "url": "https://wiki.netfree.link/"
-  },
-  {
-    "name": "באזר המציאות",
-    "url": "https://aliexpress.thechats.click/"
-  },
-  {
-    "name": "הערוץ",
-    "url": "https://amaarets.d-sadna.co.il/"
-  }
-]
-</file>
-
-<file path="src/app/app.component.css">
-/* Google Fonts for a modern look */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-/* Basic reset and global styles */
-:host {
-  display: block;
-  height: 100vh;
-  font-family: 'Roboto', sans-serif;
-  background-color: #f0f2f5;
-}
-
-/* Main layout using Flexbox for robustness */
-.app-layout {
-  display: flex;
-  height: 100%;
-  width: 100%;
-}
-
-/* Sidebar styling */
-.sidebar {
-  width: 280px;
-  background-color: #ffffff; /* Dark background like modern chat apps */
-  color: #1b1919;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0; /* Prevents sidebar from shrinking */
-  padding: 12px;
-  box-sizing: border-box;
-}
-.sidebar :hover {
-  background-color: #e5e8ed;
-}
-
-.sidebar-title {
-  font-size: 20px;
-  font-weight: 500;
-  padding: 8px 16px;
-  margin: 0 0 10px;
-  color: #060606;
-}
-
-/* List of sites */
-.site-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  overflow-y: auto; /* Add scroll if list is long */
-}
-
-.site-list li {
-  padding: 4px 18px;
-  border-radius: 8px;
-  margin-bottom: 2px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: 500;
-}
-
-.site-list li:hover {
-  background-color: #c5d3eb;
-
-}
-
-/* Style for the currently active site */
-.site-list li.active {
-  background-color: #cbd6e2; /* A nice blue for selection */
-  color: #2d85ea;
-}
-
-/* Main content area */
-.main-content {
-  flex-grow: 1; /* Takes up all remaining space */
-  display: flex;
-  flex-direction: column;
-  background-color: #ffffff;
-}
-
-.iframe-container {
-  flex-grow: 1; /* Container grows to fill space */
-  position: relative;
-}
-
-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-</file>
-
-<file path="src/app/app.component.html">
-<div class="app-layout">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <h1 class="sidebar-title">ערוצים</h1>
-    <ul class="site-list">
-      <li
-        *ngFor="let site of sites"
-        (click)="selectSite(site)"
-        [class.active]="site.name === activeSiteName">
-        {{ site.name }}
-      </li>
-    </ul>
-  </nav>
-
-  <!-- Main Content Area -->
-  <main class="main-content">
-    <div class="iframe-container">
-      <iframe
-        *ngIf="selectedSiteUrl"
-        [src]="selectedSiteUrl"
-        frameborder="0"
-        allowfullscreen>
-      </iframe>
-    </div>
-  </main>
-</div>
-</file>
-
-<file path="src/app/app.component.ts">
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common'; // <-- ייבוא הכרחי עבור ngFor/ngIf
-
-// הגדרת מבנה האובייקט עבור כל אתר
-export interface Site {
-  name: string;
-  url: string;
-}
-
-@Component({
-  selector: 'app-root',
-  standalone: true, // <-- הגדרת הרכיב כעצמאי
-  imports: [CommonModule], // <-- ייבוא מודולים נדרשים (CommonModule עבור ngFor/ngIf)
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
-})
-export class AppComponent implements OnInit {
-  title = 'Channel Viewer';
-  sites: Site[] = [];
-  selectedSiteUrl: SafeResourceUrl | null = null;
-  activeSiteName: string | null = null;
-
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
-
-  ngOnInit(): void {
-    this.http.get<Site[]>('assets/sites.json').subscribe(data => {
-      this.sites = data;
-      if (this.sites.length > 0) {
-        this.selectSite(this.sites[0]);
-      }
-    });
-  }
-
-  selectSite(site: Site): void {
-    this.selectedSiteUrl = this.sanitizer.bypassSecurityTrustResourceUrl(site.url);
-    this.activeSiteName = site.name;
-  }
-}
-</file>
-
-<file path="src/assets/sites.json">
-[
-  {
-    "name": "פורום נטפרי",
-    "url": "https://forum.netfree.link/"
-  },
-  {
-    "name": "ויקי נטפרי",
-    "url": "https://wiki.netfree.link/"
-  },
-  {
-    "name": "אתר קהילתי",
-    "url": "https://netfree.link/"
-  },
-  {
-    "name": "דוגמה נוספת",
-    "url": "https://example.com"
-  }
-]
-</file>
-
 <file path=".editorconfig">
 # Editor configuration, see https://editorconfig.org
 root = true
@@ -294,6 +89,57 @@ ij_typescript_use_double_quotes = false
 [*.md]
 max_line_length = off
 trim_trailing_whitespace = false
+</file>
+
+<file path=".github/workflows/ci.yaml">
+# שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
+name: Build and Deploy to GitHub Pages
+
+# מתי להפעיל את ה-Workflow
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# הרשאות נדרשות כדי לאפשר ל-Action לפרוס ל-Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. הורדת הקוד מהמאגר
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: npm install
+
+      # 4. בניית פרויקט האנגולר
+      - name: Build Angular App
+        run: npm run build -- --configuration production --base-href /TheChannel--viewer/
+
+      # 5. הכנת קבצי הבנייה להעלאה (Artifact)
+      - name: Upload production-build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist/The-channel/browser/
+
+      # 6. פריסת ה-Artifact ל-GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
 </file>
 
 <file path=".gitignore">
@@ -339,149 +185,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-</file>
-
-<file path="angular.json">
-{
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-  "version": 1,
-  "newProjectRoot": "projects",
-  "projects": {
-    "The-channel": {
-      "projectType": "application",
-      "schematics": {},
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:application",
-          "options": {
-            "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
-            "tsConfig": "tsconfig.app.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ]
-          },
-          "configurations": {
-            "production": {
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "The-channel:build:production"
-            },
-            "development": {
-              "buildTarget": "The-channel:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular/build:extract-i18n"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "tsConfig": "tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ]
-          }
-        }
-      }
-    }
-  }
-}
-</file>
-
-<file path="package.json">
-{
-  "name": "the-channel",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/animations": "^20.3.1",
-    "@angular/common": "^20.3.0",
-    "@angular/compiler": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "@angular/forms": "^20.3.0",
-    "@angular/platform-browser": "^20.3.0",
-    "@angular/router": "^20.3.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "^0.15.1"
-  },
-  "devDependencies": {
-    "@angular/build": "^20.3.2",
-    "@angular/cli": "^20.3.2",
-    "@angular/compiler-cli": "^20.3.0",
-    "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.9.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.9.2"
-  }
-}
 </file>
 
 <file path="README.md">
@@ -544,6 +247,568 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+</file>
+
+<file path="src/app/app.component.css">
+/* Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Basic reset and global styles */
+:host {
+  display: block;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Main layout */
+.app-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 280px;
+  background-color: #ffffff;
+  color: #202124;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar-title {
+  font-size: 20px;
+  font-weight: 500;
+  padding: 16px 24px 8px;
+  margin: 0;
+  color: #3c4043;
+}
+
+/* Search Bar */
+.search-bar {
+  padding: 0 16px 12px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+/* List of sites */
+.site-list {
+  list-style-type: none;
+  padding: 0 8px;
+  margin: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.site-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 16px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+  color: #3c4043;
+  position: relative;
+}
+
+.site-list li:hover {
+  background-color: #f1f3f4;
+}
+
+/* Common style for both favicon and fallback */
+.site-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 12px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+/* Specific style for the letter fallback */
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* עיגול מושלם */
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  /* background-color is applied dynamically via [ngStyle] */
+}
+
+.site-list li .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-list li.active {
+  background-color: #e8f0fe;
+  color: #1967d2;
+}
+
+.remove-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  margin-right: -8px;
+}
+
+.site-list li:hover .remove-btn {
+  display: block;
+}
+
+.remove-btn:hover {
+  color: #202124;
+}
+
+/* Sidebar footer for add button */
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.add-channel-btn {
+  width: 100%;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  padding: 8px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.add-channel-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #d2e3fc;
+}
+
+/* Main content area */
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  background-color: #ffffff;
+}
+
+.iframe-container {
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.placeholder {
+  color: #5f6368;
+  font-size: 1.2rem;
+}
+
+/* --- Dialog Styles --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dialog-box {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  color: #202124;
+}
+
+.dialog-content {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialog-content p {
+  margin: 0;
+  color: #5f6368;
+}
+
+.dialog-content input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+}
+
+.dialog-content input:focus {
+  outline: none;
+  border: 2px solid #1a73e8;
+  padding: 9px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-actions button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #1a73e8;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #185abc;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+}
+.btn-secondary:hover {
+  background-color: #f1f3f4;
+}
+
+.btn-danger {
+  background-color: #d93025;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #a50e0e;
+}
+</file>
+
+<file path="src/app/app.component.html">
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <h1 class="sidebar-title">ערוצים</h1>
+
+    <!-- שדה חיפוש -->
+    <div class="search-bar">
+      <input type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
+    </div>
+
+    <ul class="site-list">
+      <li
+        *ngFor="let site of filteredSites"
+        (click)="selectSite(site)"
+        [class.active]="site.name === activeSiteName"
+        title="{{ site.url }}">
+
+        <!-- הצגת Favicon אם לא הייתה שגיאה -->
+        <img *ngIf="!hasFaviconError(site)"
+             [src]="getFaviconUrl(site.url)"
+             (error)="onFaviconError(site)"
+             class="site-icon"
+             alt="Favicon">
+
+        <!-- הצגת Fallback עם האות הראשונה אם הייתה שגיאה -->
+        <div *ngIf="hasFaviconError(site)"
+             class="site-icon fallback-icon"
+             [ngStyle]="{'background-color': getColorForSite(site.name)}">
+          {{ getFirstLetter(site.name) }}
+        </div>
+
+        <span class="site-name">{{ site.name }}</span>
+        <button class="remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+      </li>
+    </ul>
+
+    <!-- כפתור לפתיחת דיאלוג הוספה -->
+    <div class="sidebar-footer">
+      <button class="add-channel-btn" (click)="openAddSiteDialog()">הוסף ערוץ +</button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <div class="iframe-container">
+      <iframe
+        *ngIf="selectedSiteUrl"
+        [src]="selectedSiteUrl"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+      <div *ngIf="!selectedSiteUrl" class="placeholder">
+        <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- דיאלוג להוספת ערוץ חדש -->
+<div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+    <div class="dialog-content">
+      <input #siteName type="text" placeholder="שם הערוץ" (keyup.enter)="addSite(siteName, siteUrl)">
+      <input #siteUrl type="text" placeholder="כתובת (URL)" (keyup.enter)="addSite(siteName, siteUrl)">
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeAddSiteDialog()">ביטול</button>
+      <button class="btn-primary" (click)="addSite(siteName, siteUrl)">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- דיאלוג לאישור מחיקה -->
+<div class="dialog-overlay" *ngIf="isConfirmDeleteDialogVisible" (click)="closeConfirmDeleteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">אישור מחיקה</h2>
+    <div class="dialog-content">
+      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ siteToDelete?.name }}"?</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeConfirmDeleteDialog()">ביטול</button>
+      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
+    </div>
+  </div>
+</div>
+</file>
+
+<file path="src/app/app.component.ts">
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CommonModule, NgStyle } from '@angular/common';
+
+// הגדרת מבנה האובייקט עבור כל אתר
+export interface Site {
+  name: string;
+  url: string;
+}
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, NgStyle], // הוספת NgStyle עבור עיצוב דינמי
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit {
+  title = 'Channel Viewer';
+  sites: Site[] = [];
+  filteredSites: Site[] = [];
+  selectedSiteUrl: SafeResourceUrl | null = null;
+  activeSiteName: string | null = null;
+
+  isAddSiteDialogVisible = false;
+  isConfirmDeleteDialogVisible = false;
+  siteToDelete: Site | null = null;
+
+  // סט לאחסון כתובות של אייקונים שנכשלו בטעינה
+  faviconErrorUrls = new Set<string>();
+
+  private readonly storageKey = 'userSites';
+  private searchTerm = '';
+  private colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'];
+
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+
+  ngOnInit(): void {
+    this.loadSites();
+  }
+
+  private loadSites(): void {
+    const savedSites = localStorage.getItem(this.storageKey);
+    if (savedSites) {
+      this.sites = JSON.parse(savedSites);
+      this.filterSites();
+      this.selectInitialSite();
+    } else {
+      this.http.get<Site[]>('assets/sites.json').subscribe(data => {
+        this.sites = data;
+        this.saveSites();
+        this.filterSites();
+        this.selectInitialSite();
+      });
+    }
+  }
+
+  private selectInitialSite(): void {
+    if (this.filteredSites.length > 0) {
+      this.selectSite(this.filteredSites[0]);
+    } else {
+      this.selectedSiteUrl = null;
+      this.activeSiteName = null;
+    }
+  }
+
+  private saveSites(): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.sites));
+  }
+
+  selectSite(site: Site): void {
+    this.selectedSiteUrl = this.sanitizer.bypassSecurityTrustResourceUrl(site.url);
+    this.activeSiteName = site.name;
+  }
+
+  onSearch(event: Event): void {
+    this.searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filterSites();
+  }
+
+  private filterSites(): void {
+    if (!this.searchTerm) {
+      this.filteredSites = [...this.sites];
+    } else {
+      this.filteredSites = this.sites.filter(site =>
+        site.name.toLowerCase().includes(this.searchTerm)
+      );
+    }
+  }
+
+  // --- לוגיקת Favicon ו-Fallback ---
+  getFaviconUrl(url: string): string {
+    try {
+      const siteUrl = new URL(url);
+      return `${siteUrl.origin}/favicon.ico`;
+    } catch (e) {
+      // אם ה-URL לא תקין, הטיפול בשגיאה יתפוס זאת ויציג fallback
+      return '';
+    }
+  }
+
+  onFaviconError(site: Site): void {
+    // הוספת ה-URL של האתר לסט השגיאות
+    this.faviconErrorUrls.add(site.url);
+  }
+
+  hasFaviconError(site: Site): boolean {
+    return this.faviconErrorUrls.has(site.url);
+  }
+
+  getFirstLetter(name: string): string {
+    return name ? name.charAt(0).toUpperCase() : '';
+  }
+
+  // מחזיר צבע קבוע עבור שם נתון
+  getColorForSite(name: string): string {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash % this.colorPalette.length);
+    return this.colorPalette[index];
+  }
+
+  // --- לוגיקת דיאלוגים ---
+  openAddSiteDialog(): void {
+    this.isAddSiteDialogVisible = true;
+  }
+
+  closeAddSiteDialog(): void {
+    this.isAddSiteDialogVisible = false;
+  }
+
+  addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement): void {
+    const name = nameInput.value.trim();
+    let url = urlInput.value.trim();
+
+    if (name && url) {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      const newSite: Site = { name, url };
+      this.sites.push(newSite);
+      this.saveSites();
+      this.filterSites();
+
+      this.closeAddSiteDialog();
+      nameInput.value = '';
+      urlInput.value = '';
+    }
+  }
+
+  openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
+    event.stopPropagation();
+    this.siteToDelete = site;
+    this.isConfirmDeleteDialogVisible = true;
+  }
+
+  closeConfirmDeleteDialog(): void {
+    this.isConfirmDeleteDialogVisible = false;
+    this.siteToDelete = null;
+  }
+
+  confirmRemoveSite(): void {
+    if (!this.siteToDelete) return;
+
+    // הסרת ה-URL מסט השגיאות אם קיים
+    this.faviconErrorUrls.delete(this.siteToDelete.url);
+
+    this.sites = this.sites.filter(site => site.url !== this.siteToDelete!.url);
+    this.saveSites();
+    this.filterSites();
+
+    if (this.activeSiteName === this.siteToDelete.name) {
+      this.selectInitialSite();
+    }
+
+    this.closeConfirmDeleteDialog();
+  }
+}
 </file>
 
 <file path="src/app/app.config.ts">
@@ -942,34 +1207,6 @@ export class App {
 }
 </file>
 
-<file path="src/index.html">
-<!doctype html>
-<html lang="he" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>ChannelViewer</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
-</html>
-</file>
-
-<file path="src/main.ts">
-import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { provideHttpClient } from '@angular/common/http'; // <-- דרך מודרנית לספק HttpClient
-
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideHttpClient() // <-- רישום שירות ה-HttpClient עבור האפליקציה
-  ]
-}).catch(err => console.error(err));
-</file>
-
 <file path="src/styles.css">
 /* You can add global styles to this file, and also import other style files */
 </file>
@@ -1044,6 +1281,269 @@ bootstrapApplication(AppComponent, {
     "src/**/*.ts"
   ]
 }
+</file>
+
+<file path="package.json">
+{
+  "name": "the-channel",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^20.3.1",
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.2",
+    "@angular/cli": "^20.3.2",
+    "@angular/compiler-cli": "^20.3.0",
+    "@types/jasmine": "~5.1.0",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.9.2"
+  }
+}
+</file>
+
+<file path="public/assets/sites.json">
+[
+  {
+    "name": "החתול השחור",
+    "url": "https://black-cat.thechats.click/"
+  },
+  {
+    "name": "באזר המציאות",
+    "url": "https://aliexpress.thechats.click/"
+  },
+  {
+    "name": "הערוץ",
+    "url": "https://amaarets.d-sadna.co.il/"
+  }
+]
+</file>
+
+<file path="src/assets/sites.json">
+[
+  {
+    "name": "פורום נטפרי",
+    "url": "https://forum.netfree.link/"
+  },
+  {
+    "name": "אתר קהילתי",
+    "url": "https://netfree.link/"
+  },
+  {
+    "name": "דוגמה נוספת",
+    "url": "https://example.com"
+  }
+]
+</file>
+
+<file path="src/index.html">
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>ChannelViewer</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+</file>
+
+<file path="src/main.ts">
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { provideHttpClient } from '@angular/common/http'; // <-- דרך מודרנית לספק HttpClient
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideHttpClient() // <-- רישום שירות ה-HttpClient עבור האפליקציה
+  ]
+}).catch(err => console.error(err));
+</file>
+
+<file path="angular.json">
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "The-channel": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "19kB",
+                  "maximumError": "25kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "The-channel:build:production"
+            },
+            "development": {
+              "buildTarget": "The-channel:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+</file>
+
+<file path=".github/workflows/deploy.yml">
+# שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
+name: Build and Deploy to gh-pages branch
+
+# מתי להפעיל את ה-Workflow
+on:
+  # הפעלה אוטומטית בכל דחיפה (push) לענף main
+  push:
+    branches:
+      - main
+  
+  # מאפשר הפעלה ידנית מה-UI של GitHub
+  workflow_dispatch:
+
+# הרשאות נדרשות כדי לאפשר ל-Action לדחוף קוד למאגר
+permissions:
+  contents: write
+
+# הגדרת עבודות (Jobs) שירוצו
+jobs:
+  build-and-deploy:
+    # על איזו מערכת הפעלה להריץ את העבודה
+    runs-on: ubuntu-latest
+    
+    # שלבי העבודה
+    steps:
+      # 1. הורדת הקוד מהמאגר (מהענף main)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: npm install
+
+      # 4. בניית פרויקט האנגולר
+      #    שים לב: base-href חייב להיות שם המאגר שלך ב-GitHub
+      - name: Build Angular App
+        run: npm run build -- --configuration production --base-href /TheChannel--viewer/
+        # ⬆️ ודא ש-'TheChannel--viewer' הוא שם המאגר המדויק שלך!
+
+      # 5. פריסת קבצי הבנייה לענף gh-pages
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # טוקן שנוצר אוטומטית עם הרשאות כתיבה למאגר
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # התיקייה שמכילה את תוצר הבנייה (index.html וכו')
+          publish_dir: ./dist/The-channel/browser/
+          # ⬆️ ודא שהנתיב הזה תואם לתיקיית הפלט של הבנייה שלך
 </file>
 
 </files>

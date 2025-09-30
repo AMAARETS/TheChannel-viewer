@@ -15,14 +15,12 @@
         [class.active]="site.name === activeSiteName"
         title="{{ site.url }}">
 
-        <!-- הצגת Favicon אם לא הייתה שגיאה -->
+        <!-- Favicon / Fallback -->
         <img *ngIf="!hasFaviconError(site)"
              [src]="getFaviconUrl(site.url)"
              (error)="onFaviconError(site)"
              class="site-icon"
              alt="Favicon">
-
-        <!-- הצגת Fallback עם האות הראשונה אם הייתה שגיאה -->
         <div *ngIf="hasFaviconError(site)"
              class="site-icon fallback-icon"
              [ngStyle]="{'background-color': getColorForSite(site.name)}">
@@ -30,11 +28,17 @@
         </div>
 
         <span class="site-name">{{ site.name }}</span>
-        <button class="remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+
+        <!-- כפתורים שמופיעים בריחוף -->
+        <div class="site-actions">
+          <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה">
+            <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+          </a>
+          <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+        </div>
       </li>
     </ul>
 
-    <!-- כפתור לפתיחת דיאלוג הוספה -->
     <div class="sidebar-footer">
       <button class="add-channel-btn" (click)="openAddSiteDialog()">הוסף ערוץ +</button>
     </div>
@@ -47,7 +51,8 @@
         *ngIf="selectedSiteUrl"
         [src]="selectedSiteUrl"
         frameborder="0"
-        allowfullscreen>
+        allowfullscreen
+        allow="clipboard-read; clipboard-write">
       </iframe>
       <div *ngIf="!selectedSiteUrl" class="placeholder">
         <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
@@ -60,13 +65,37 @@
 <div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
   <div class="dialog-box" (click)="$event.stopPropagation()">
     <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+
     <div class="dialog-content">
+      <!-- הוספה מרשימה קיימת -->
+      <h3 class="dialog-subtitle">הוספה מרשימה</h3>
+      <ul class="available-sites-list">
+        <li *ngFor="let site of getFilteredAvailableSites()" (click)="addSiteFromAvailable(site)">
+          <div class="site-info">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="Favicon">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
+              {{ getFirstLetter(site.name) }}
+            </div>
+            <div class="site-details">
+              <span class="site-name">{{ site.name }}</span>
+              <span class="site-description">{{ site.description }}</span>
+            </div>
+          </div>
+          <button class="btn-add-from-list">+</button>
+        </li>
+      </ul>
+
+      <hr class="dialog-divider">
+
+      <!-- הוספה ידנית -->
+      <h3 class="dialog-subtitle">הוספה ידנית</h3>
       <input #siteName type="text" placeholder="שם הערוץ" (keyup.enter)="addSite(siteName, siteUrl)">
       <input #siteUrl type="text" placeholder="כתובת (URL)" (keyup.enter)="addSite(siteName, siteUrl)">
     </div>
+
     <div class="dialog-actions">
-      <button class="btn-secondary" (click)="closeAddSiteDialog()">ביטול</button>
-      <button class="btn-primary" (click)="addSite(siteName, siteUrl)">שמור</button>
+      <button class="btn-secondary" (click)="closeAddSiteDialog()">סגור</button>
+      <button class="btn-primary" (click)="addSite(siteName, siteUrl)">שמור ערוץ ידני</button>
     </div>
   </div>
 </div>

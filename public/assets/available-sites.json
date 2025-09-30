@@ -1,0 +1,27 @@
+[
+  {
+    "name": "פורום נטפרי",
+    "url": "https://forum.netfree.link/",
+    "description": "הפורום הרשמי של קהילת משתמשי נטפרי."
+  },
+  {
+    "name": "אתר קהילתי נטפרי",
+    "url": "https://netfree.link/",
+    "description": "מידע, כלים ושירותים ללקוחות סינון נטפרי."
+  },
+  {
+    "name": "ויקיפדיה העברית",
+    "url": "https://he.wikipedia.org/",
+    "description": "האנציקלופדיה החופשית שכולם יכולים לערוך."
+  },
+  {
+    "name": "בנק הדואר",
+    "url": "https://www.bankhadoar.co.il/",
+    "description": "שירותים בנקאיים מקוונים של בנק הדואר."
+  },
+  {
+    "name": "GitHub",
+    "url": "https://github.com/",
+    "description": "פלטפורמה לאירוח וניהול גרסאות קוד."
+  }
+]
