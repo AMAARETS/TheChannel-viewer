@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule, NgStyle } from '@angular/common';
 
-// הגדרת מבנה האובייקט עבור כל אתר
+// Interfaces
 export interface Site {
   name: string;
   url: string;
@@ -21,19 +21,26 @@ export interface AvailableSite extends Site {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'Channel Viewer';
+  // Properties
   sites: Site[] = [];
   filteredSites: Site[] = [];
   availableSites: AvailableSite[] = [];
   selectedSiteUrl: SafeResourceUrl | null = null;
   activeSiteName: string | null = null;
 
+  // Dialog visibility state
   isAddSiteDialogVisible = false;
   isConfirmDeleteDialogVisible = false;
   siteToDelete: Site | null = null;
 
+  // Sidebar state
+  isSidebarCollapsed = false;
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+
+  // Favicon error handling
   faviconErrorUrls = new Set<string>();
 
+  // Private constants
   private readonly storageKey = 'userSites';
   private searchTerm = '';
   private colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'];
@@ -45,20 +52,32 @@ export class AppComponent implements OnInit {
     this.loadAvailableSites();
   }
 
+  // --- Sidebar Logic ---
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  expandAndFocusSearch(): void {
+    this.isSidebarCollapsed = false;
+    // Use a timeout to ensure the element is visible and rendered before focusing
+    setTimeout(() => {
+      this.searchInput.nativeElement.focus();
+    }, 0);
+  }
+
+  // --- Site Data Handling ---
   private loadSites(): void {
     const savedSites = localStorage.getItem(this.storageKey);
     if (savedSites) {
       this.sites = JSON.parse(savedSites);
-      this.filterSites();
-      this.selectInitialSite();
     } else {
       this.http.get<Site[]>('assets/sites.json').subscribe(data => {
         this.sites = data;
         this.saveSites();
-        this.filterSites();
-        this.selectInitialSite();
       });
     }
+    this.filterSites();
+    this.selectInitialSite();
   }
 
   private loadAvailableSites(): void {
@@ -91,16 +110,12 @@ export class AppComponent implements OnInit {
   }
 
   private filterSites(): void {
-    if (!this.searchTerm) {
-      this.filteredSites = [...this.sites];
-    } else {
-      this.filteredSites = this.sites.filter(site =>
-        site.name.toLowerCase().includes(this.searchTerm)
-      );
-    }
+    this.filteredSites = this.searchTerm
+      ? this.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
+      : [...this.sites];
   }
 
-  // --- לוגיקת Favicon ו-Fallback ---
+  // --- Favicon & Fallback Logic ---
   getFaviconUrl(url: string): string {
     try {
       const siteUrl = new URL(url);
@@ -131,7 +146,7 @@ export class AppComponent implements OnInit {
     return this.colorPalette[index];
   }
 
-  // --- לוגיקת דיאלוגים ---
+  // --- Dialog Logic ---
   openAddSiteDialog(): void {
     this.isAddSiteDialogVisible = true;
   }
@@ -143,43 +158,34 @@ export class AppComponent implements OnInit {
   addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement): void {
     const name = nameInput.value.trim();
     let url = urlInput.value.trim();
+    if (!name || !url) return;
 
-    if (name && url) {
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-      }
-
-      // Check if site already exists
-      if (this.sites.some(site => site.url === url)) {
-        alert('הערוץ כבר קיים ברשימה.');
-        return;
-      }
-
-      const newSite: Site = { name, url };
-      this.sites.push(newSite);
-      this.saveSites();
-      this.filterSites();
-
-      // Clear inputs only after successful manual add
-      nameInput.value = '';
-      urlInput.value = '';
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
     }
+
+    if (this.sites.some(site => site.url === url)) {
+      alert('הערוץ כבר קיים ברשימה.');
+      return;
+    }
+
+    this.sites.push({ name, url });
+    this.saveSites();
+    this.filterSites();
+    nameInput.value = '';
+    urlInput.value = '';
   }
 
-  // New method to add a site from the available list
   addSiteFromAvailable(siteToAdd: Site): void {
-    // Check if site already exists
     if (this.sites.some(site => site.url === siteToAdd.url)) {
-        alert('הערוץ כבר קיים ברשימה.');
-        return;
+      alert('הערוץ כבר קיים ברשימה.');
+      return;
     }
-
     this.sites.push(siteToAdd);
     this.saveSites();
     this.filterSites();
   }
 
-  // New method to filter the available sites list against existing sites
   getFilteredAvailableSites(): AvailableSite[] {
     const existingUrls = new Set(this.sites.map(s => s.url));
     return this.availableSites.filter(as => !existingUrls.has(as.url));
@@ -207,7 +213,6 @@ export class AppComponent implements OnInit {
     if (this.activeSiteName === this.siteToDelete.name) {
       this.selectInitialSite();
     }
-
     this.closeConfirmDeleteDialog();
   }
 }
