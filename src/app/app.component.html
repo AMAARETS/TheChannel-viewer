@@ -20,12 +20,17 @@
       </ng-template>
     </div>
 
-    <ul class="site-list">
-      <li
+    <ul class="site-list" (dragend)="onDragEnd($event)">
+      <li #listItem
         *ngFor="let site of filteredSites"
         (click)="selectSite(site)"
         [class.active]="site.name === activeSiteName"
-        [title]="site.name">
+        [title]="site.name"
+        draggable="true"
+        (dragstart)="onDragStart($event, site)"
+        (dragover)="onDragOver($event, listItem)"
+        (dragleave)="onDragLeave($event, listItem)"
+        (drop)="onDrop($event, site)">
 
         <!-- Favicon / Fallback -->
         <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
@@ -44,6 +49,23 @@
         </div>
       </li>
     </ul>
+
+    <!-- NEW: Available sites matching search -->
+    <div class="available-sites-container" *ngIf="searchTerm && filteredAvailableSites.length > 0">
+      <h4 class="available-sites-header">הוספה מהירה</h4>
+      <ul class="available-site-list">
+        <li *ngFor="let site of filteredAvailableSites" (click)="addSiteFromAvailable(site)" [title]="site.description">
+          <!-- Favicon / Fallback -->
+          <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
+            {{ getFirstLetter(site.name) }}
+          </div>
+          <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
+          <button class="action-btn add-btn" *ngIf="!isSidebarCollapsed" title="הוסף ערוץ">+</button>
+        </li>
+      </ul>
+    </div>
+
 
     <!-- כפתור לפתיחת דיאלוג הוספה -->
     <div class="sidebar-footer">

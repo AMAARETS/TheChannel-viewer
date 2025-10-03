@@ -113,12 +113,13 @@
   border-radius: 16px;
   margin-bottom: 2px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, border-top 0.2s ease; /* Added border-top transition */
   font-weight: 500;
   color: #3c4043;
   position: relative; /* Crucial for absolute positioning of actions */
   height: 36px; /* Fixed height */
   box-sizing: border-box;
+  border-top: 2px solid transparent; /* Placeholder for drag-over */
 }
 
 .site-list li:hover {
@@ -180,10 +181,64 @@
 }
 .remove-btn { font-weight: bold; }
 
+/* --- NEW: Drag and Drop Styles --- */
+.site-list li.dragging {
+  opacity: 0.5;
+  background: #cce5ff;
+}
+.site-list li.drag-over {
+  border-top: 2px solid #1a73e8;
+}
+
+/* --- NEW: Available Sites in Search Styles --- */
+.available-sites-container {
+  padding: 0 8px;
+  margin-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+.available-sites-header {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5f6368;
+  margin: 8px 16px;
+  padding: 0;
+  text-align: right;
+}
+.available-site-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.available-site-list li {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+}
+.available-site-list li:hover {
+  background-color: #f1f3f4;
+}
+.available-site-list .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #3c4043;
+}
+.available-site-list .add-btn {
+  font-size: 24px;
+  margin-right: -4px; /* Align with other action buttons */
+}
+
 
 /* Sidebar footer */
 .sidebar-footer {
   padding: 16px;
+  margin-top: auto; /* Push footer to the bottom */
   border-top: 1px solid #e0e0e0;
 }
 
@@ -228,6 +283,11 @@
 
 .sidebar.collapsed .site-icon {
   margin: 0; /* Remove margin when there's no text */
+}
+
+/* Hide new available sites section when collapsed */
+.sidebar.collapsed .available-sites-container {
+  display: none;
 }
 
 .sidebar.collapsed .add-channel-btn {

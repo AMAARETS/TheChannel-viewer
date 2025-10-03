@@ -25,8 +25,10 @@ export class AppComponent implements OnInit {
   sites: Site[] = [];
   filteredSites: Site[] = [];
   availableSites: AvailableSite[] = [];
+  filteredAvailableSites: AvailableSite[] = []; // For available sites search results
   selectedSiteUrl: SafeResourceUrl | null = null;
   activeSiteName: string | null = null;
+  searchTerm = ''; // <--- התיקון: הוסר 'private'
 
   // Dialog visibility state
   isAddSiteDialogVisible = false;
@@ -40,9 +42,11 @@ export class AppComponent implements OnInit {
   // Favicon error handling
   faviconErrorUrls = new Set<string>();
 
+  // Drag and Drop state
+  private draggedSite: Site | null = null;
+
   // Private constants
   private readonly storageKey = 'userSites';
-  private searchTerm = '';
   private colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'];
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
@@ -110,9 +114,20 @@ export class AppComponent implements OnInit {
   }
 
   private filterSites(): void {
+    // Filter user's added sites
     this.filteredSites = this.searchTerm
       ? this.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
       : [...this.sites];
+
+    // Filter available sites that are not already added
+    if (this.searchTerm) {
+        const existingUrls = new Set(this.sites.map(s => s.url));
+        this.filteredAvailableSites = this.availableSites.filter(as =>
+            !existingUrls.has(as.url) && as.name.toLowerCase().includes(this.searchTerm)
+        );
+    } else {
+        this.filteredAvailableSites = [];
+    }
   }
 
   // --- Favicon & Fallback Logic ---
@@ -169,9 +184,13 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.sites.push({ name, url });
+    const newSite = { name, url };
+    this.sites.push(newSite);
     this.saveSites();
-    this.filterSites();
+    this.filterSites(); // Re-filter to update both lists
+    if (this.filteredSites.length === 1) { // If it was the first site added
+      this.selectSite(newSite);
+    }
     nameInput.value = '';
     urlInput.value = '';
   }
@@ -183,7 +202,7 @@ export class AppComponent implements OnInit {
     }
     this.sites.push(siteToAdd);
     this.saveSites();
-    this.filterSites();
+    this.filterSites(); // Re-filter lists after adding
   }
 
   getFilteredAvailableSites(): AvailableSite[] {
@@ -214,5 +233,54 @@ export class AppComponent implements OnInit {
       this.selectInitialSite();
     }
     this.closeConfirmDeleteDialog();
+  }
+
+  // --- Drag and Drop Logic ---
+  onDragStart(event: DragEvent, site: Site): void {
+    this.draggedSite = site;
+    // Add a class to the dragged element for styling
+    (event.target as HTMLElement).classList.add('dragging');
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent, targetElement: HTMLElement): void {
+    event.preventDefault(); // Necessary to allow dropping
+    targetElement.classList.add('drag-over');
+  }
+
+  onDragLeave(event: DragEvent, targetElement: HTMLElement): void {
+    event.preventDefault();
+    targetElement.classList.remove('drag-over');
+  }
+
+  onDragEnd(event: DragEvent): void {
+    // Clean up 'dragging' class from the source element
+    (event.target as HTMLElement).classList.remove('dragging');
+    // Clean up any lingering 'drag-over' classes
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    this.draggedSite = null;
+  }
+
+  onDrop(event: DragEvent, targetSite: Site): void {
+    event.preventDefault();
+    if (!this.draggedSite || this.draggedSite === targetSite) {
+      return;
+    }
+
+    const draggedIndex = this.sites.findIndex(s => s.url === this.draggedSite!.url);
+    const targetIndex = this.sites.findIndex(s => s.url === targetSite.url);
+
+    if (draggedIndex > -1 && targetIndex > -1) {
+      // Remove the dragged site from its original position
+      const [removedSite] = this.sites.splice(draggedIndex, 1);
+      // Insert it at the target position
+      this.sites.splice(targetIndex, 0, removedSite);
+
+      // Persist the new order and update the view
+      this.saveSites();
+      this.filterSites();
+    }
   }
 }
