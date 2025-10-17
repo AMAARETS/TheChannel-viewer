@@ -1,94 +1,89 @@
 <div class="app-layout">
-  <!-- Sidebar -->
-  <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
-    <div class="sidebar-header">
-      <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
-      <button class="toggle-sidebar-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
-      </button>
-    </div>
-
-    <!-- שדה חיפוש או אייקון חיפוש -->
-    <div class="search-bar">
-      <ng-container *ngIf="!isSidebarCollapsed; else searchIcon">
-        <input #searchInput type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
-      </ng-container>
-      <ng-template #searchIcon>
-        <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+  <!-- This new container holds the sidebar and the iframe area -->
+  <div class="main-container">
+    <!-- Sidebar -->
+    <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
+      <div class="sidebar-header">
+        <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
+        <button class="toggle-sidebar-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
         </button>
-      </ng-template>
-    </div>
+      </div>
 
-    <ul class="site-list" (dragend)="onDragEnd($event)">
-      <li #listItem
-        *ngFor="let site of filteredSites"
-        (click)="selectSite(site)"
-        [class.active]="site.name === activeSiteName"
-        [title]="site.name"
-        draggable="true"
-        (dragstart)="onDragStart($event, site)"
-        (dragover)="onDragOver($event, listItem)"
-        (dragleave)="onDragLeave($event, listItem)"
-        (drop)="onDrop($event, site)">
+      <!-- Search -->
+      <div class="search-bar">
+        <ng-container *ngIf="!isSidebarCollapsed; else searchIcon">
+          <input #searchInput type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
+        </ng-container>
+        <ng-template #searchIcon>
+          <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+          </button>
+        </ng-template>
+      </div>
 
-        <!-- Favicon / Fallback -->
-        <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-        <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
-          {{ getFirstLetter(site.name) }}
-        </div>
-
-        <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
-
-        <!-- כפתורים שמופיעים בריחוף (רק במצב מורחב) -->
-        <div class="site-actions" *ngIf="!isSidebarCollapsed">
-          <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה">
-            <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-          </a>
-          <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
-        </div>
-      </li>
-    </ul>
-
-    <!-- NEW: Available sites matching search -->
-    <div class="available-sites-container" *ngIf="searchTerm && filteredAvailableSites.length > 0">
-      <h4 class="available-sites-header">הוספה מהירה</h4>
-      <ul class="available-site-list">
-        <li *ngFor="let site of filteredAvailableSites" (click)="addSiteFromAvailable(site)" [title]="site.description">
-          <!-- Favicon / Fallback -->
+      <ul class="site-list" (dragend)="onDragEnd($event)">
+        <li #listItem
+          *ngFor="let site of filteredSites"
+          (click)="selectSite(site)"
+          [class.active]="site.name === activeSiteName"
+          [title]="site.name"
+          draggable="true"
+          (dragstart)="onDragStart($event, site)"
+          (dragover)="onDragOver($event, listItem)"
+          (dragleave)="onDragLeave($event, listItem)"
+          (drop)="onDrop($event, site)">
           <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
-            {{ getFirstLetter(site.name) }}
-          </div>
+          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
           <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
-          <button class="action-btn add-btn" *ngIf="!isSidebarCollapsed" title="הוסף ערוץ">+</button>
+          <div class="site-actions" *ngIf="!isSidebarCollapsed">
+            <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה"><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></a>
+            <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+          </div>
         </li>
       </ul>
-    </div>
 
-
-    <!-- כפתור לפתיחת דיאלוג הוספה -->
-    <div class="sidebar-footer">
-      <button class="add-channel-btn" (click)="openAddSiteDialog()">
-        <span *ngIf="!isSidebarCollapsed">הוסף ערוץ </span>
-        <span>+</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Main Content Area -->
-  <main class="main-content">
-    <div class="iframe-container">
-      <iframe *ngIf="selectedSiteUrl" [src]="selectedSiteUrl" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
-      <div *ngIf="!selectedSiteUrl" class="placeholder">
-        <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+      <!-- Available sites matching search -->
+      <div class="available-sites-container" *ngIf="searchTerm && filteredAvailableSites.length > 0">
+        <h4 class="available-sites-header">הוספה מהירה</h4>
+        <ul class="available-site-list">
+          <li *ngFor="let site of filteredAvailableSites" (click)="addSiteFromAvailable(site)" [title]="site.description">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+            <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
+            <button class="action-btn add-btn" *ngIf="!isSidebarCollapsed" title="הוסף ערוץ">+</button>
+          </li>
+        </ul>
       </div>
-    </div>
-  </main>
+
+      <!-- Add Channel Button -->
+      <div class="sidebar-footer">
+        <button class="add-channel-btn" (click)="openAddSiteDialog()">
+          <span *ngIf="!isSidebarCollapsed">הוסף ערוץ </span>
+          <span>+</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="iframe-container">
+        <iframe *ngIf="selectedSiteUrl" [src]="selectedSiteUrl" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
+        <div *ngIf="!selectedSiteUrl" class="placeholder">
+          <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Advertisement Footer -->
+  <footer class="ad-container" *ngIf="safeAdContent" [style.height]="adHeight">
+    <div class="ad-content-wrapper" [innerHTML]="safeAdContent"></div>
+  </footer>
 </div>
 
-<!-- Dialogs remain unchanged... -->
-<!-- דיאלוג להוספת ערוץ חדש -->
+
+<!-- Dialogs remain unchanged -->
 <div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
   <div class="dialog-box" (click)="$event.stopPropagation()">
     <h2 class="dialog-title">הוספת ערוץ חדש</h2>
@@ -98,9 +93,7 @@
         <li *ngFor="let site of getFilteredAvailableSites()" (click)="addSiteFromAvailable(site)">
           <div class="site-info">
             <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
-              {{ getFirstLetter(site.name) }}
-            </div>
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
             <div class="site-details">
               <span class="site-name">{{ site.name }}</span>
               <span class="site-description">{{ site.description }}</span>
@@ -120,7 +113,6 @@
     </div>
   </div>
 </div>
-<!-- דיאלוג לאישור מחיקה -->
 <div class="dialog-overlay" *ngIf="isConfirmDeleteDialogVisible" (click)="closeConfirmDeleteDialog()">
   <div class="dialog-box" (click)="$event.stopPropagation()">
     <h2 class="dialog-title">אישור מחיקה</h2>

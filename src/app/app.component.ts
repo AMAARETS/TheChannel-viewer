@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser'; // Import SafeHtml
 import { CommonModule, NgStyle } from '@angular/common';
 
 // Interfaces
@@ -11,6 +11,11 @@ export interface Site {
 
 export interface AvailableSite extends Site {
   description: string;
+}
+
+export interface Advertisement {
+  height: string;
+  htmlContent: string;
 }
 
 @Component({
@@ -25,10 +30,14 @@ export class AppComponent implements OnInit {
   sites: Site[] = [];
   filteredSites: Site[] = [];
   availableSites: AvailableSite[] = [];
-  filteredAvailableSites: AvailableSite[] = []; // For available sites search results
+  filteredAvailableSites: AvailableSite[] = [];
   selectedSiteUrl: SafeResourceUrl | null = null;
   activeSiteName: string | null = null;
-  searchTerm = ''; // <--- התיקון: הוסר 'private'
+  searchTerm = '';
+
+  // Advertisement properties
+  safeAdContent: SafeHtml | null = null;
+  adHeight = '0px';
 
   // Dialog visibility state
   isAddSiteDialogVisible = false;
@@ -54,6 +63,21 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.loadSites();
     this.loadAvailableSites();
+    this.loadAdvertisement(); // <-- Load ad content
+  }
+
+  // --- Ad Logic ---
+  private loadAdvertisement(): void {
+    this.http.get<Advertisement>('assets/advertisement.json').subscribe({
+      next: (ad) => {
+        this.adHeight = ad.height;
+        // Sanitize the HTML content to prevent XSS attacks
+        this.safeAdContent = this.sanitizer.bypassSecurityTrustHtml(ad.htmlContent);
+      },
+      error: (err) => {
+        console.error('Failed to load advertisement:', err);
+      }
+    });
   }
 
   // --- Sidebar Logic ---
@@ -63,7 +87,6 @@ export class AppComponent implements OnInit {
 
   expandAndFocusSearch(): void {
     this.isSidebarCollapsed = false;
-    // Use a timeout to ensure the element is visible and rendered before focusing
     setTimeout(() => {
       this.searchInput.nativeElement.focus();
     }, 0);
@@ -114,12 +137,10 @@ export class AppComponent implements OnInit {
   }
 
   private filterSites(): void {
-    // Filter user's added sites
     this.filteredSites = this.searchTerm
       ? this.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
       : [...this.sites];
 
-    // Filter available sites that are not already added
     if (this.searchTerm) {
         const existingUrls = new Set(this.sites.map(s => s.url));
         this.filteredAvailableSites = this.availableSites.filter(as =>
@@ -187,8 +208,8 @@ export class AppComponent implements OnInit {
     const newSite = { name, url };
     this.sites.push(newSite);
     this.saveSites();
-    this.filterSites(); // Re-filter to update both lists
-    if (this.filteredSites.length === 1) { // If it was the first site added
+    this.filterSites();
+    if (this.filteredSites.length === 1) {
       this.selectSite(newSite);
     }
     nameInput.value = '';
@@ -202,7 +223,7 @@ export class AppComponent implements OnInit {
     }
     this.sites.push(siteToAdd);
     this.saveSites();
-    this.filterSites(); // Re-filter lists after adding
+    this.filterSites();
   }
 
   getFilteredAvailableSites(): AvailableSite[] {
@@ -238,7 +259,6 @@ export class AppComponent implements OnInit {
   // --- Drag and Drop Logic ---
   onDragStart(event: DragEvent, site: Site): void {
     this.draggedSite = site;
-    // Add a class to the dragged element for styling
     (event.target as HTMLElement).classList.add('dragging');
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
@@ -246,7 +266,7 @@ export class AppComponent implements OnInit {
   }
 
   onDragOver(event: DragEvent, targetElement: HTMLElement): void {
-    event.preventDefault(); // Necessary to allow dropping
+    event.preventDefault();
     targetElement.classList.add('drag-over');
   }
 
@@ -256,9 +276,7 @@ export class AppComponent implements OnInit {
   }
 
   onDragEnd(event: DragEvent): void {
-    // Clean up 'dragging' class from the source element
     (event.target as HTMLElement).classList.remove('dragging');
-    // Clean up any lingering 'drag-over' classes
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
     this.draggedSite = null;
   }
@@ -273,12 +291,8 @@ export class AppComponent implements OnInit {
     const targetIndex = this.sites.findIndex(s => s.url === targetSite.url);
 
     if (draggedIndex > -1 && targetIndex > -1) {
-      // Remove the dragged site from its original position
       const [removedSite] = this.sites.splice(draggedIndex, 1);
-      // Insert it at the target position
       this.sites.splice(targetIndex, 0, removedSite);
-
-      // Persist the new order and update the view
       this.saveSites();
       this.filterSites();
     }
