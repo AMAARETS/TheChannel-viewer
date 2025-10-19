@@ -1,11 +1,16 @@
 <div class="app-layout">
-  <!-- This new container holds the sidebar and the iframe area -->
+  <!-- This container holds the sidebar and the iframe area -->
   <div class="main-container">
+
     <!-- Sidebar -->
     <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
       <div class="sidebar-header">
         <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
-        <button class="toggle-sidebar-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'">
+        <button
+          class="toggle-sidebar-btn"
+          (click)="toggleSidebar()"
+          [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
         </button>
       </div>
@@ -13,7 +18,13 @@
       <!-- Search -->
       <div class="search-bar">
         <ng-container *ngIf="!isSidebarCollapsed; else searchIcon">
-          <input #searchInput type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
+          <input
+            #searchInput
+            type="text"
+            class="search-input"
+            placeholder="חיפוש ערוץ..."
+            (input)="onSearch($event)"
+          >
         </ng-container>
         <ng-template #searchIcon>
           <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
@@ -22,6 +33,7 @@
         </ng-template>
       </div>
 
+      <!-- Channels List -->
       <ul class="site-list" (dragend)="onDragEnd($event)">
         <li #listItem
           *ngFor="let site of filteredSites"
@@ -32,7 +44,8 @@
           (dragstart)="onDragStart($event, site)"
           (dragover)="onDragOver($event, listItem)"
           (dragleave)="onDragLeave($event, listItem)"
-          (drop)="onDrop($event, site)">
+          (drop)="onDrop($event, site)"
+        >
           <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
           <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
           <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
@@ -77,13 +90,13 @@
   </div>
 
   <!-- Advertisement Footer -->
-  <footer class="ad-container" *ngIf="safeAdContent" [style.height]="adHeight">
-    <div class="ad-content-wrapper" [innerHTML]="safeAdContent"></div>
+  <footer class="ad-container">
+    <div id="ad-placement-container"></div>
   </footer>
 </div>
 
 
-<!-- Dialogs remain unchanged -->
+<!-- Dialogs (unchanged) -->
 <div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
   <div class="dialog-box" (click)="$event.stopPropagation()">
     <h2 class="dialog-title">הוספת ערוץ חדש</h2>

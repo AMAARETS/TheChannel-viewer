@@ -1,6 +1,12 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  AfterViewInit // Import AfterViewInit
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser'; // Import SafeHtml
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule, NgStyle } from '@angular/common';
 
 // Interfaces
@@ -13,11 +19,6 @@ export interface AvailableSite extends Site {
   description: string;
 }
 
-export interface Advertisement {
-  height: string;
-  htmlContent: string;
-}
-
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -25,7 +26,7 @@ export interface Advertisement {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   // Properties
   sites: Site[] = [];
   filteredSites: Site[] = [];
@@ -34,10 +35,6 @@ export class AppComponent implements OnInit {
   selectedSiteUrl: SafeResourceUrl | null = null;
   activeSiteName: string | null = null;
   searchTerm = '';
-
-  // Advertisement properties
-  safeAdContent: SafeHtml | null = null;
-  adHeight = '0px';
 
   // Dialog visibility state
   isAddSiteDialogVisible = false;
@@ -56,28 +53,41 @@ export class AppComponent implements OnInit {
 
   // Private constants
   private readonly storageKey = 'userSites';
-  private colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'];
+  private colorPalette = [
+    '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+    '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
+  ];
 
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.loadSites();
     this.loadAvailableSites();
-    this.loadAdvertisement(); // <-- Load ad content
   }
 
-  // --- Ad Logic ---
-  private loadAdvertisement(): void {
-    this.http.get<Advertisement>('assets/advertisement.json').subscribe({
-      next: (ad) => {
-        this.adHeight = ad.height;
-        // Sanitize the HTML content to prevent XSS attacks
-        this.safeAdContent = this.sanitizer.bypassSecurityTrustHtml(ad.htmlContent);
-      },
-      error: (err) => {
-        console.error('Failed to load advertisement:', err);
-      }
-    });
+  ngAfterViewInit(): void {
+    // This is where we load the external ad script
+    this.loadAdScript();
+  }
+
+  private loadAdScript(): void {
+    // The URL of the external script you want to load.
+    // Replace this with the actual script URL from your ad provider.
+    const scriptSrc = 'http://localhost:3000/';
+
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+    script.async = true;
+    script.defer = true;
+
+    // The external script will look for this element ID to inject the ad.
+    // Ensure the ad provider's script is configured to use this ID.
+    const adContainer = document.getElementById('ad-placement-container');
+    if (adContainer) {
+      adContainer.appendChild(script);
+    } else {
+      console.error('Advertisement container not found.');
+    }
   }
 
   // --- Sidebar Logic ---
