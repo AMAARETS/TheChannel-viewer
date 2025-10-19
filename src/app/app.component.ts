@@ -73,7 +73,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private loadAdScript(): void {
     // The URL of the external script you want to load.
     // Replace this with the actual script URL from your ad provider.
-    const scriptSrc = 'http://localhost:3000/';
+    const scriptSrc = 'http://localhost:3000/serve/script.js';
 
     const script = document.createElement('script');
     script.src = scriptSrc;
