@@ -3,7 +3,7 @@ import {
   OnInit,
   ViewChild,
   ElementRef,
-  AfterViewInit // Import AfterViewInit
+  AfterViewInit
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -66,28 +66,22 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // This is where we load the external ad script
     this.loadAdScript();
   }
 
   private loadAdScript(): void {
-    // The URL of the external script you want to load.
-    // Replace this with the actual script URL from your ad provider.
-    const scriptSrc = 'http://localhost:3000/serve/script.js';
+    // Make sure to clear your browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+    // to ensure you get the new version of the script.
+    // The "?v=" + new Date().getTime() part is a cache-busting technique.
+    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@d558adf/ads.ads.js?v=' + new Date().getTime();
 
     const script = document.createElement('script');
     script.src = scriptSrc;
     script.async = true;
     script.defer = true;
 
-    // The external script will look for this element ID to inject the ad.
-    // Ensure the ad provider's script is configured to use this ID.
-    const adContainer = document.getElementById('ad-placement-container');
-    if (adContainer) {
-      adContainer.appendChild(script);
-    } else {
-      console.error('Advertisement container not found.');
-    }
+    // Append the script to the body - this is the standard practice.
+    document.body.appendChild(script);
   }
 
   // --- Sidebar Logic ---
