@@ -4,10 +4,13 @@
 /* Basic reset and global styles */
 :host {
   display: block;
-  height: 100vh;
-  font-family: 'Roboto', sans-serif;
-  background-color: #f8f9fa;
+  height: 100%;
   overflow: hidden; /* Prevent layout shifts */
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
 }
 
 /* Main layout */
@@ -23,7 +26,7 @@
   display: flex;
   flex-grow: 1; /* <-- Make this container take up all available vertical space */
   overflow: hidden; /* <-- Important to contain elements and prevent double scrollbars */
-  height: 100%;
+  /*height: 100%;*/
 }
 
 /* --- Sidebar Styling --- */

@@ -50,6 +50,7 @@ The content is organized as follows:
 .gitignore
 angular.json
 package.json
+public/assets/advertisement.json
 public/assets/available-sites.json
 public/assets/sites.json
 README.md
@@ -92,49 +93,11 @@ max_line_length = off
 trim_trailing_whitespace = false
 </file>
 
-<file path=".gitignore">
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
-
-# Node
-/node_modules
-npm-debug.log
-yarn-error.log
-
-# IDEs and editors
-.idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
-
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-
-# System files
-.DS_Store
-Thumbs.db
+<file path="public/assets/advertisement.json">
+{
+  "height": "90px",
+  "htmlContent": "<a href='https://www.google.com' target='_blank' rel='noopener noreferrer' style='display:block; width:100%; height:100%; background-color:#e9e9e9; text-decoration: none; color: #333; font-family: sans-serif; display:flex; justify-content:center; align-items:center;'><img src='https://via.placeholder.com/728x90.png?text=Your+Advertisement+Here' alt='Advertisement' style='width: 100%; height: 100%; border:0; object-fit: cover;'></a>"
+}
 </file>
 
 <file path="public/assets/available-sites.json">
@@ -752,73 +715,50 @@ jobs:
         uses: actions/deploy-pages@v4
 </file>
 
-<file path="package.json">
-{
-  "name": "the-channel",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/animations": "^20.3.1",
-    "@angular/common": "^20.3.0",
-    "@angular/compiler": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "@angular/forms": "^20.3.0",
-    "@angular/platform-browser": "^20.3.0",
-    "@angular/router": "^20.3.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "^0.15.1"
-  },
-  "devDependencies": {
-    "@angular/build": "^20.3.2",
-    "@angular/cli": "^20.3.2",
-    "@angular/compiler-cli": "^20.3.0",
-    "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.9.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.9.2"
-  }
-}
-</file>
+<file path=".gitignore">
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-<file path="public/assets/sites.json">
-[
-  {
-    "name": "החתול השחור",
-    "url": "https://black-cat.thechats.click/"
-  },
-  {
-    "name": "באזר המציאות",
-    "url": "https://aliexpress.thechats.click/"
-  },
-  {
-    "name": "הערוץ",
-    "url": "https://amaarets.d-sadna.co.il/"
-  }
-]
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+The-channel.xml
 </file>
 
 <file path="src/assets/sites.json">
@@ -957,341 +897,74 @@ bootstrapApplication(AppComponent, {
 }
 </file>
 
-<file path="src/app/app.component.html">
-<div class="app-layout">
-  <!-- Sidebar -->
-  <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
-    <div class="sidebar-header">
-      <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
-      <button class="toggle-sidebar-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
-      </button>
-    </div>
-
-    <!-- שדה חיפוש או אייקון חיפוש -->
-    <div class="search-bar">
-      <ng-container *ngIf="!isSidebarCollapsed; else searchIcon">
-        <input #searchInput type="text" class="search-input" placeholder="חיפוש ערוץ..." (input)="onSearch($event)">
-      </ng-container>
-      <ng-template #searchIcon>
-        <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
-        </button>
-      </ng-template>
-    </div>
-
-    <ul class="site-list">
-      <li
-        *ngFor="let site of filteredSites"
-        (click)="selectSite(site)"
-        [class.active]="site.name === activeSiteName"
-        [title]="site.name">
-
-        <!-- Favicon / Fallback -->
-        <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-        <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
-          {{ getFirstLetter(site.name) }}
-        </div>
-
-        <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
-
-        <!-- כפתורים שמופיעים בריחוף (רק במצב מורחב) -->
-        <div class="site-actions" *ngIf="!isSidebarCollapsed">
-          <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה">
-            <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-          </a>
-          <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
-        </div>
-      </li>
-    </ul>
-
-    <!-- כפתור לפתיחת דיאלוג הוספה -->
-    <div class="sidebar-footer">
-      <button class="add-channel-btn" (click)="openAddSiteDialog()">
-        <span *ngIf="!isSidebarCollapsed">הוסף ערוץ </span>
-        <span>+</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Main Content Area -->
-  <main class="main-content">
-    <div class="iframe-container">
-      <iframe *ngIf="selectedSiteUrl" [src]="selectedSiteUrl" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
-      <div *ngIf="!selectedSiteUrl" class="placeholder">
-        <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- Dialogs remain unchanged... -->
-<!-- דיאלוג להוספת ערוץ חדש -->
-<div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
-  <div class="dialog-box" (click)="$event.stopPropagation()">
-    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
-    <div class="dialog-content">
-      <h3 class="dialog-subtitle">הוספה מרשימה</h3>
-      <ul class="available-sites-list">
-        <li *ngFor="let site of getFilteredAvailableSites()" (click)="addSiteFromAvailable(site)">
-          <div class="site-info">
-            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">
-              {{ getFirstLetter(site.name) }}
-            </div>
-            <div class="site-details">
-              <span class="site-name">{{ site.name }}</span>
-              <span class="site-description">{{ site.description }}</span>
-            </div>
-          </div>
-          <button class="btn-add-from-list">+</button>
-        </li>
-      </ul>
-      <hr class="dialog-divider">
-      <h3 class="dialog-subtitle">הוספה ידנית</h3>
-      <input #siteNameInput type="text" placeholder="שם הערוץ" (keyup.enter)="addSite(siteNameInput, siteUrlInput)">
-      <input #siteUrlInput type="text" placeholder="כתובת (URL)" (keyup.enter)="addSite(siteNameInput, siteUrlInput)">
-    </div>
-    <div class="dialog-actions">
-      <button class="btn-secondary" (click)="closeAddSiteDialog()">סגור</button>
-      <button class="btn-primary" (click)="addSite(siteNameInput, siteUrlInput)">שמור ערוץ ידני</button>
-    </div>
-  </div>
-</div>
-<!-- דיאלוג לאישור מחיקה -->
-<div class="dialog-overlay" *ngIf="isConfirmDeleteDialogVisible" (click)="closeConfirmDeleteDialog()">
-  <div class="dialog-box" (click)="$event.stopPropagation()">
-    <h2 class="dialog-title">אישור מחיקה</h2>
-    <div class="dialog-content">
-      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ siteToDelete?.name }}"?</p>
-    </div>
-    <div class="dialog-actions">
-      <button class="btn-secondary" (click)="closeConfirmDeleteDialog()">ביטול</button>
-      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
-    </div>
-  </div>
-</div>
+<file path="package.json">
+{
+  "name": "the-channel",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^20.3.1",
+    "@angular/cdk": "^20.2.7",
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.2",
+    "@angular/cli": "^20.3.2",
+    "@angular/compiler-cli": "^20.3.0",
+    "@types/jasmine": "~5.1.0",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.9.2"
+  }
+}
 </file>
 
-<file path="src/app/app.component.ts">
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule, NgStyle } from '@angular/common';
-
-// Interfaces
-export interface Site {
-  name: string;
-  url: string;
-}
-
-export interface AvailableSite extends Site {
-  description: string;
-}
-
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, NgStyle],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
-})
-export class AppComponent implements OnInit {
-  // Properties
-  sites: Site[] = [];
-  filteredSites: Site[] = [];
-  availableSites: AvailableSite[] = [];
-  selectedSiteUrl: SafeResourceUrl | null = null;
-  activeSiteName: string | null = null;
-
-  // Dialog visibility state
-  isAddSiteDialogVisible = false;
-  isConfirmDeleteDialogVisible = false;
-  siteToDelete: Site | null = null;
-
-  // Sidebar state
-  isSidebarCollapsed = false;
-  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
-
-  // Favicon error handling
-  faviconErrorUrls = new Set<string>();
-
-  // Private constants
-  private readonly storageKey = 'userSites';
-  private searchTerm = '';
-  private colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'];
-
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
-
-  ngOnInit(): void {
-    this.loadSites();
-    this.loadAvailableSites();
+<file path="public/assets/sites.json">
+[
+  {
+    "name": "החתול השחור",
+    "url": "https://black-cat.thechats.click/"
+  },
+  {
+    "name": "באזר המציאות",
+    "url": "https://aliexpress.thechats.click/"
+  },
+  {
+    "name": "הערוץ",
+    "url": "https://the-channel.clickandgo.cfd/"
   }
-
-  // --- Sidebar Logic ---
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
-  }
-
-  expandAndFocusSearch(): void {
-    this.isSidebarCollapsed = false;
-    // Use a timeout to ensure the element is visible and rendered before focusing
-    setTimeout(() => {
-      this.searchInput.nativeElement.focus();
-    }, 0);
-  }
-
-  // --- Site Data Handling ---
-  private loadSites(): void {
-    const savedSites = localStorage.getItem(this.storageKey);
-    if (savedSites) {
-      this.sites = JSON.parse(savedSites);
-    } else {
-      this.http.get<Site[]>('assets/sites.json').subscribe(data => {
-        this.sites = data;
-        this.saveSites();
-      });
-    }
-    this.filterSites();
-    this.selectInitialSite();
-  }
-
-  private loadAvailableSites(): void {
-    this.http.get<AvailableSite[]>('assets/available-sites.json').subscribe(data => {
-      this.availableSites = data;
-    });
-  }
-
-  private selectInitialSite(): void {
-    if (this.filteredSites.length > 0) {
-      this.selectSite(this.filteredSites[0]);
-    } else {
-      this.selectedSiteUrl = null;
-      this.activeSiteName = null;
-    }
-  }
-
-  private saveSites(): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.sites));
-  }
-
-  selectSite(site: Site): void {
-    this.selectedSiteUrl = this.sanitizer.bypassSecurityTrustResourceUrl(site.url);
-    this.activeSiteName = site.name;
-  }
-
-  onSearch(event: Event): void {
-    this.searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filterSites();
-  }
-
-  private filterSites(): void {
-    this.filteredSites = this.searchTerm
-      ? this.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
-      : [...this.sites];
-  }
-
-  // --- Favicon & Fallback Logic ---
-  getFaviconUrl(url: string): string {
-    try {
-      const siteUrl = new URL(url);
-      return `${siteUrl.origin}/favicon.ico`;
-    } catch (e) {
-      return '';
-    }
-  }
-
-  onFaviconError(site: Site): void {
-    this.faviconErrorUrls.add(site.url);
-  }
-
-  hasFaviconError(site: Site): boolean {
-    return this.faviconErrorUrls.has(site.url);
-  }
-
-  getFirstLetter(name: string): string {
-    return name ? name.charAt(0).toUpperCase() : '';
-  }
-
-  getColorForSite(name: string): string {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash % this.colorPalette.length);
-    return this.colorPalette[index];
-  }
-
-  // --- Dialog Logic ---
-  openAddSiteDialog(): void {
-    this.isAddSiteDialogVisible = true;
-  }
-
-  closeAddSiteDialog(): void {
-    this.isAddSiteDialogVisible = false;
-  }
-
-  addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement): void {
-    const name = nameInput.value.trim();
-    let url = urlInput.value.trim();
-    if (!name || !url) return;
-
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `https://${url}`;
-    }
-
-    if (this.sites.some(site => site.url === url)) {
-      alert('הערוץ כבר קיים ברשימה.');
-      return;
-    }
-
-    this.sites.push({ name, url });
-    this.saveSites();
-    this.filterSites();
-    nameInput.value = '';
-    urlInput.value = '';
-  }
-
-  addSiteFromAvailable(siteToAdd: Site): void {
-    if (this.sites.some(site => site.url === siteToAdd.url)) {
-      alert('הערוץ כבר קיים ברשימה.');
-      return;
-    }
-    this.sites.push(siteToAdd);
-    this.saveSites();
-    this.filterSites();
-  }
-
-  getFilteredAvailableSites(): AvailableSite[] {
-    const existingUrls = new Set(this.sites.map(s => s.url));
-    return this.availableSites.filter(as => !existingUrls.has(as.url));
-  }
-
-  openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
-    event.stopPropagation();
-    this.siteToDelete = site;
-    this.isConfirmDeleteDialogVisible = true;
-  }
-
-  closeConfirmDeleteDialog(): void {
-    this.isConfirmDeleteDialogVisible = false;
-    this.siteToDelete = null;
-  }
-
-  confirmRemoveSite(): void {
-    if (!this.siteToDelete) return;
-
-    this.faviconErrorUrls.delete(this.siteToDelete.url);
-    this.sites = this.sites.filter(site => site.url !== this.siteToDelete!.url);
-    this.saveSites();
-    this.filterSites();
-
-    if (this.activeSiteName === this.siteToDelete.name) {
-      this.selectInitialSite();
-    }
-    this.closeConfirmDeleteDialog();
-  }
-}
+]
 </file>
 
 <file path=".github/workflows/deploy.yml">
@@ -1368,13 +1041,22 @@ jobs:
 /* Main layout */
 .app-layout {
   display: flex;
+  flex-direction: column; /* <-- CHANGED: Stack main content and ad footer vertically */
   height: 100%;
   width: 100%;
 }
 
+/* NEW: Container for the main part of the app (sidebar + iframe) */
+.main-container {
+  display: flex;
+  flex-grow: 1; /* <-- Make this container take up all available vertical space */
+  overflow: hidden; /* <-- Important to contain elements and prevent double scrollbars */
+  height: 100%;
+}
+
 /* --- Sidebar Styling --- */
 .sidebar {
-  width: 240px; /* Default narrower width */
+  width: 180px;
   background-color: #ffffff;
   color: #202124;
   display: flex;
@@ -1382,7 +1064,7 @@ jobs:
   flex-shrink: 0;
   box-sizing: border-box;
   border-right: 1px solid #e0e0e0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-header {
@@ -1413,240 +1095,532 @@ jobs:
   justify-content: center;
   transition: background-color 0.2s, transform 0.3s;
 }
-
-.toggle-sidebar-btn:hover {
-  background-color: #f1f3f4;
-}
+.toggle-sidebar-btn:hover { background-color: #f1f3f4; }
 
 /* Search Bar */
-.search-bar {
-  padding: 0 16px 12px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 16px;
-  border: 1px solid #dadce0;
-  box-sizing: border-box;
-  font-size: 14px;
-}
-.search-input:focus {
-  outline: none;
-  border-color: #1a73e8;
-}
-
-.search-icon-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  height: 36px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 18px;
-  color: #5f6368;
-}
-.search-icon-btn:hover {
-  background-color: #f1f3f4;
-}
+.search-bar { padding: 0 16px 12px; }
+.search-input { width: 100%; padding: 8px 12px; border-radius: 16px; border: 1px solid #dadce0; box-sizing: border-box; font-size: 14px; }
+.search-input:focus { outline: none; border-color: #1a73e8; }
+.search-icon-btn { width: 100%; background: none; border: none; cursor: pointer; height: 36px; display: flex; justify-content: center; align-items: center; border-radius: 18px; color: #5f6368; }
+.search-icon-btn:hover { background-color: #f1f3f4; }
 
 /* List of sites */
-.site-list {
-  list-style-type: none;
-  padding: 0 8px;
-  margin: 0;
-  overflow-y: auto;
-  flex-grow: 1;
-}
-
-.site-list li {
-  display: flex;
-  align-items: center;
-  padding: 6px 16px;
-  border-radius: 16px;
-  margin-bottom: 2px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: 500;
-  color: #3c4043;
-  position: relative; /* Crucial for absolute positioning of actions */
-  height: 36px; /* Fixed height */
-  box-sizing: border-box;
-}
-
-.site-list li:hover {
-  background-color: #f1f3f4;
-}
-
-.site-list li .site-name {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.site-list li.active {
-  background-color: #e8f0fe;
-  color: #1967d2;
-}
+.site-list { list-style-type: none; padding: 0 8px; margin: 0; overflow-y: auto; flex-grow: 1; }
+.site-list li { display: flex; align-items: center; padding: 6px 16px; border-radius: 16px; margin-bottom: 2px; cursor: pointer; transition: background-color 0.2s ease, border-top 0.2s ease; font-weight: 500; color: #3c4043; position: relative; height: 36px; box-sizing: border-box; border-top: 2px solid transparent; }
+.site-list li:hover { background-color: #f1f3f4; }
+.site-list li .site-name { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.site-list li.active { background-color: #e8f0fe; color: #1967d2; }
 
 /* Action Buttons (Open new tab, Remove) */
-.site-actions {
-  position: absolute;
-  left: 8px; /* <-- שינוי מ-right ל-left */
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  background-color: #f1f3f4; /* Match the hover background */
-  border-radius: 14px;
-  opacity: 0; /* Hidden by default */
-  visibility: hidden;
-  transition: opacity 0.2s, visibility 0.2s;
-}
-
-.site-list li:hover .site-actions {
-  opacity: 1; /* Show on hover */
-  visibility: visible;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: #5f6368;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  padding: 4px;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  transition: background-color 0.2s;
-  text-decoration: none;
-}
-.action-btn:hover {
-  background-color: #e0e0e0;
-  color: #202124;
-}
+.site-actions { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; background-color: #f1f3f4; border-radius: 14px; opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0.2s; }
+.site-list li:hover .site-actions { opacity: 1; visibility: visible; }
+.action-btn { display: flex; align-items: center; justify-content: center; background: none; border: none; color: #5f6368; cursor: pointer; font-size: 20px; line-height: 1; padding: 4px; border-radius: 50%; width: 28px; height: 28px; transition: background-color 0.2s; text-decoration: none; }
+.action-btn:hover { background-color: #e0e0e0; color: #202124; }
 .remove-btn { font-weight: bold; }
 
+/* --- Drag and Drop Styles --- */
+.site-list li.dragging { opacity: 0.5; background: #cce5ff; }
+.site-list li.drag-over { border-top: 2px solid #1a73e8; }
+
+/* --- Available Sites in Search Styles --- */
+.available-sites-container { padding: 0 8px; margin-top: 8px; border-top: 1px solid #e0e0e0; }
+.available-sites-header { font-size: 12px; font-weight: 500; color: #5f6368; margin: 8px 16px; padding: 0; text-align: right; }
+.available-site-list { list-style: none; padding: 0; margin: 0; }
+.available-site-list li { display: flex; align-items: center; padding: 6px 16px; border-radius: 16px; cursor: pointer; transition: background-color 0.2s ease; height: 36px; box-sizing: border-box; }
+.available-site-list li:hover { background-color: #f1f3f4; }
+.available-site-list .site-name { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #3c4043; }
+.available-site-list .add-btn { font-size: 24px; margin-right: -4px; }
 
 /* Sidebar footer */
-.sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.add-channel-btn {
-  width: 100%;
-  background-color: transparent;
-  color: #1a73e8;
-  border: 1px solid #dadce0;
-  padding: 8px 16px;
-  border-radius: 16px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.2s;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.add-channel-btn:hover {
-  background-color: #f8f9fa;
-  border-color: #d2e3fc;
-}
+.sidebar-footer { padding: 16px; margin-top: auto; border-top: 1px solid #e0e0e0; }
+.add-channel-btn { width: 100%; background-color: transparent; color: #1a73e8; border: 1px solid #dadce0; padding: 8px 16px; border-radius: 16px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; }
+.add-channel-btn:hover { background-color: #f8f9fa; border-color: #d2e3fc; }
 
 /* --- Collapsed State --- */
-.sidebar.collapsed {
-  width: 68px;
-}
-
-.sidebar.collapsed .toggle-sidebar-btn {
-  transform: rotate(180deg);
-}
-
-.sidebar.collapsed .site-list {
-  padding: 0 4px;
-}
-
-.sidebar.collapsed .site-list li {
-  justify-content: center;
-  padding: 6px;
-}
-
-.sidebar.collapsed .site-icon {
-  margin: 0; /* Remove margin when there's no text */
-}
-
-.sidebar.collapsed .add-channel-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 24px;
-  padding: 0;
-}
-.sidebar.collapsed .add-channel-btn span:first-child {
-  display: none;
-}
-
+.sidebar.collapsed { width: 68px; }
+.sidebar.collapsed .toggle-sidebar-btn { transform: rotate(180deg); }
+.sidebar.collapsed .site-list { padding: 0 4px; }
+.sidebar.collapsed .site-list li { justify-content: center; padding: 6px; }
+.sidebar.collapsed .site-icon { margin: 0; }
+.sidebar.collapsed .available-sites-container { display: none; }
+.sidebar.collapsed .add-channel-btn { width: 40px; height: 40px; border-radius: 50%; font-size: 24px; padding: 0; }
+.sidebar.collapsed .add-channel-btn span:first-child { display: none; }
 
 /* Icons and Fallback */
-.site-icon {
-  width: 20px;
-  height: 20px;
-  margin-left: 12px;
-  flex-shrink: 0;
-  border-radius: 3px;
-}
-.fallback-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-}
-
+.site-icon { width: 20px; height: 20px; margin-left: 12px; flex-shrink: 0; border-radius: 3px; }
+.fallback-icon { display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-size: 12px; font-weight: 500; }
 
 /* Main content area */
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  background-color: #ffffff;
-}
+.main-content { flex-grow: 1; display: flex; background-color: #ffffff; }
+.iframe-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+.placeholder { color: #5f6368; font-size: 1.2rem; }
 
-.iframe-container {
-  flex-grow: 1;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* --- NEW: Advertisement Footer Styles --- */
+.ad-container {
+  width: 100%;
+  flex-shrink: 0; /* Ensures the footer doesn't shrink */
+  border-top: 1px solid #cccccc;
+  box-sizing: border-box;
+  background-color: #f0f0f0;
 }
-
-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
+.ad-content-wrapper {
   width: 100%;
   height: 100%;
-  border: none;
-}
-
-.placeholder {
-  color: #5f6368;
-  font-size: 1.2rem;
 }
 
 /* --- Dialog Styles (Unchanged) --- */
 .dialog-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;z-index:1000}.dialog-box{background-color:#fff;padding:24px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.1);width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column}.dialog-title{margin:0 0 16px;font-size:1.5rem;color:#202124}.dialog-subtitle{font-size:1rem;font-weight:500;color:#3c4043;margin:16px 0 8px}.dialog-content{overflow-y:auto;display:flex;flex-direction:column;gap:12px}.dialog-content p{margin:0;color:#5f6368}.dialog-content input{width:100%;padding:10px;border-radius:4px;border:1px solid #dadce0;box-sizing:border-box}.dialog-content input:focus{outline:0;border:2px solid #1a73e8;padding:9px}.dialog-divider{border:none;border-top:1px solid #e0e0e0;margin:16px 0}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:16px;border-top:1px solid #e0e0e0}.dialog-actions button{padding:8px 24px;border-radius:4px;border:none;cursor:pointer;font-weight:500;transition:background-color .2s}.btn-primary{background-color:#1a73e8;color:#fff}.btn-primary:hover{background-color:#185abc}.btn-secondary{background-color:transparent;color:#1a73e8;border:1px solid #dadce0}.btn-secondary:hover{background-color:#f1f3f4}.btn-danger{background-color:#d93025;color:#fff}.btn-danger:hover{background-color:#a50e0e}.available-sites-list{list-style-type:none;padding:0;margin:0;max-height:250px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:4px}.available-sites-list li{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;border-bottom:1px solid #e0e0e0;transition:background-color .2s}.available-sites-list li:last-child{border-bottom:none}.available-sites-list li:hover{background-color:#f8f9fa}.site-info{display:flex;align-items:center;gap:12px}.site-details{display:flex;flex-direction:column}.site-details .site-name{font-weight:500;color:#202124}.site-details .site-description{font-size:.8rem;color:#5f6368}.btn-add-from-list{background-color:#e8f0fe;color:#1967d2;border:none;border-radius:50%;width:24px;height:24px;font-size:16px;font-weight:700;cursor:pointer;line-height:1}.btn-add-from-list:hover{background-color:#d2e3fc}
+</file>
+
+<file path="src/app/app.component.html">
+<div class="app-layout">
+  <!-- This container holds the sidebar and the iframe area -->
+  <div class="main-container">
+
+    <!-- Sidebar -->
+    <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
+      <div class="sidebar-header">
+        <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
+        <button
+          class="toggle-sidebar-btn"
+          (click)="toggleSidebar()"
+          [title]="isSidebarCollapsed ? 'הרחב סרגל צד' : 'כווץ סרגל צד'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <ng-container *ngIf="!isSidebarCollapsed; else searchIcon">
+          <input
+            #searchInput
+            type="text"
+            class="search-input"
+            placeholder="חיפוש ערוץ..."
+            (input)="onSearch($event)"
+          >
+        </ng-container>
+        <ng-template #searchIcon>
+          <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+          </button>
+        </ng-template>
+      </div>
+
+      <!-- Channels List -->
+      <ul class="site-list" (dragend)="onDragEnd($event)">
+        <li #listItem
+          *ngFor="let site of filteredSites"
+          (click)="selectSite(site)"
+          [class.active]="site.name === activeSiteName"
+          [title]="site.name"
+          draggable="true"
+          (dragstart)="onDragStart($event, site)"
+          (dragover)="onDragOver($event, listItem)"
+          (dragleave)="onDragLeave($event, listItem)"
+          (drop)="onDrop($event, site)"
+        >
+          <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+          <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
+          <div class="site-actions" *ngIf="!isSidebarCollapsed">
+            <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה"><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></a>
+            <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Available sites matching search -->
+      <div class="available-sites-container" *ngIf="searchTerm && filteredAvailableSites.length > 0">
+        <h4 class="available-sites-header">הוספה מהירה</h4>
+        <ul class="available-site-list">
+          <li *ngFor="let site of filteredAvailableSites" (click)="addSiteFromAvailable(site)" [title]="site.description">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+            <span class="site-name" *ngIf="!isSidebarCollapsed">{{ site.name }}</span>
+            <button class="action-btn add-btn" *ngIf="!isSidebarCollapsed" title="הוסף ערוץ">+</button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Add Channel Button -->
+      <div class="sidebar-footer">
+        <button class="add-channel-btn" (click)="openAddSiteDialog()">
+          <span *ngIf="!isSidebarCollapsed">הוסף ערוץ </span>
+          <span>+</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="iframe-container">
+        <iframe *ngIf="selectedSiteUrl" [src]="selectedSiteUrl" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
+        <div *ngIf="!selectedSiteUrl" class="placeholder">
+          <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Advertisement Footer -->
+  <footer class="ad-container">
+    <div id="ad-placement-container"></div>
+  </footer>
+</div>
+
+
+<!-- Dialogs (unchanged) -->
+<div class="dialog-overlay" *ngIf="isAddSiteDialogVisible" (click)="closeAddSiteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+    <div class="dialog-content">
+      <h3 class="dialog-subtitle">הוספה מרשימה</h3>
+      <ul class="available-sites-list">
+        <li *ngFor="let site of getFilteredAvailableSites()" (click)="addSiteFromAvailable(site)">
+          <div class="site-info">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+            <div class="site-details">
+              <span class="site-name">{{ site.name }}</span>
+              <span class="site-description">{{ site.description }}</span>
+            </div>
+          </div>
+          <button class="btn-add-from-list">+</button>
+        </li>
+      </ul>
+      <hr class="dialog-divider">
+      <h3 class="dialog-subtitle">הוספה ידנית</h3>
+      <input #siteNameInput type="text" placeholder="שם הערוץ" (keyup.enter)="addSite(siteNameInput, siteUrlInput)">
+      <input #siteUrlInput type="text" placeholder="כתובת (URL)" (keyup.enter)="addSite(siteNameInput, siteUrlInput)">
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeAddSiteDialog()">סגור</button>
+      <button class="btn-primary" (click)="addSite(siteNameInput, siteUrlInput)">שמור ערוץ ידני</button>
+    </div>
+  </div>
+</div>
+<div class="dialog-overlay" *ngIf="isConfirmDeleteDialogVisible" (click)="closeConfirmDeleteDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">אישור מחיקה</h2>
+    <div class="dialog-content">
+      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ siteToDelete?.name }}"?</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeConfirmDeleteDialog()">ביטול</button>
+      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
+    </div>
+  </div>
+</div>
+</file>
+
+<file path="src/app/app.component.ts">
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  AfterViewInit
+} from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CommonModule, NgStyle } from '@angular/common';
+
+// Interfaces
+export interface Site {
+  name: string;
+  url: string;
+}
+
+export interface AvailableSite extends Site {
+  description: string;
+}
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, NgStyle],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit, AfterViewInit {
+  // Properties
+  sites: Site[] = [];
+  filteredSites: Site[] = [];
+  availableSites: AvailableSite[] = [];
+  filteredAvailableSites: AvailableSite[] = [];
+  selectedSiteUrl: SafeResourceUrl | null = null;
+  activeSiteName: string | null = null;
+  searchTerm = '';
+
+  // Dialog visibility state
+  isAddSiteDialogVisible = false;
+  isConfirmDeleteDialogVisible = false;
+  siteToDelete: Site | null = null;
+
+  // Sidebar state
+  isSidebarCollapsed = false;
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+
+  // Favicon error handling
+  faviconErrorUrls = new Set<string>();
+
+  // Drag and Drop state
+  private draggedSite: Site | null = null;
+
+  // Private constants
+  private readonly storageKey = 'userSites';
+  private colorPalette = [
+    '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+    '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
+  ];
+
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+
+  ngOnInit(): void {
+    this.loadSites();
+    this.loadAvailableSites();
+  }
+
+  ngAfterViewInit(): void {
+    this.loadAdScript();
+  }
+
+  private loadAdScript(): void {
+    // Make sure to clear your browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+    // to ensure you get the new version of the script.
+    // The "?v=" + new Date().getTime() part is a cache-busting technique.
+    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@d558adf/ads.ads.js?v=' + new Date().getTime();
+
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+    script.async = true;
+    script.defer = true;
+
+    // Append the script to the body - this is the standard practice.
+    document.body.appendChild(script);
+  }
+
+  // --- Sidebar Logic ---
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  expandAndFocusSearch(): void {
+    this.isSidebarCollapsed = false;
+    setTimeout(() => {
+      this.searchInput.nativeElement.focus();
+    }, 0);
+  }
+
+  // --- Site Data Handling ---
+  private loadSites(): void {
+    const savedSites = localStorage.getItem(this.storageKey);
+    if (savedSites) {
+      this.sites = JSON.parse(savedSites);
+    } else {
+      this.http.get<Site[]>('assets/sites.json').subscribe(data => {
+        this.sites = data;
+        this.saveSites();
+      });
+    }
+    this.filterSites();
+    this.selectInitialSite();
+  }
+
+  private loadAvailableSites(): void {
+    this.http.get<AvailableSite[]>('assets/available-sites.json').subscribe(data => {
+      this.availableSites = data;
+    });
+  }
+
+  private selectInitialSite(): void {
+    if (this.filteredSites.length > 0) {
+      this.selectSite(this.filteredSites[0]);
+    } else {
+      this.selectedSiteUrl = null;
+      this.activeSiteName = null;
+    }
+  }
+
+  private saveSites(): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.sites));
+  }
+
+  selectSite(site: Site): void {
+    this.selectedSiteUrl = this.sanitizer.bypassSecurityTrustResourceUrl(site.url);
+    this.activeSiteName = site.name;
+  }
+
+  onSearch(event: Event): void {
+    this.searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+    this.filterSites();
+  }
+
+  private filterSites(): void {
+    this.filteredSites = this.searchTerm
+      ? this.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
+      : [...this.sites];
+
+    if (this.searchTerm) {
+        const existingUrls = new Set(this.sites.map(s => s.url));
+        this.filteredAvailableSites = this.availableSites.filter(as =>
+            !existingUrls.has(as.url) && as.name.toLowerCase().includes(this.searchTerm)
+        );
+    } else {
+        this.filteredAvailableSites = [];
+    }
+  }
+
+  // --- Favicon & Fallback Logic ---
+  getFaviconUrl(url: string): string {
+    try {
+      const siteUrl = new URL(url);
+      return `${siteUrl.origin}/favicon.ico`;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  onFaviconError(site: Site): void {
+    this.faviconErrorUrls.add(site.url);
+  }
+
+  hasFaviconError(site: Site): boolean {
+    return this.faviconErrorUrls.has(site.url);
+  }
+
+  getFirstLetter(name: string): string {
+    return name ? name.charAt(0).toUpperCase() : '';
+  }
+
+  getColorForSite(name: string): string {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash % this.colorPalette.length);
+    return this.colorPalette[index];
+  }
+
+  // --- Dialog Logic ---
+  openAddSiteDialog(): void {
+    this.isAddSiteDialogVisible = true;
+  }
+
+  closeAddSiteDialog(): void {
+    this.isAddSiteDialogVisible = false;
+  }
+
+  addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement): void {
+    const name = nameInput.value.trim();
+    let url = urlInput.value.trim();
+    if (!name || !url) return;
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+
+    if (this.sites.some(site => site.url === url)) {
+      alert('הערוץ כבר קיים ברשימה.');
+      return;
+    }
+
+    const newSite = { name, url };
+    this.sites.push(newSite);
+    this.saveSites();
+    this.filterSites();
+    if (this.filteredSites.length === 1) {
+      this.selectSite(newSite);
+    }
+    nameInput.value = '';
+    urlInput.value = '';
+  }
+
+  addSiteFromAvailable(siteToAdd: Site): void {
+    if (this.sites.some(site => site.url === siteToAdd.url)) {
+      alert('הערוץ כבר קיים ברשימה.');
+      return;
+    }
+    this.sites.push(siteToAdd);
+    this.saveSites();
+    this.filterSites();
+  }
+
+  getFilteredAvailableSites(): AvailableSite[] {
+    const existingUrls = new Set(this.sites.map(s => s.url));
+    return this.availableSites.filter(as => !existingUrls.has(as.url));
+  }
+
+  openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
+    event.stopPropagation();
+    this.siteToDelete = site;
+    this.isConfirmDeleteDialogVisible = true;
+  }
+
+  closeConfirmDeleteDialog(): void {
+    this.isConfirmDeleteDialogVisible = false;
+    this.siteToDelete = null;
+  }
+
+  confirmRemoveSite(): void {
+    if (!this.siteToDelete) return;
+
+    this.faviconErrorUrls.delete(this.siteToDelete.url);
+    this.sites = this.sites.filter(site => site.url !== this.siteToDelete!.url);
+    this.saveSites();
+    this.filterSites();
+
+    if (this.activeSiteName === this.siteToDelete.name) {
+      this.selectInitialSite();
+    }
+    this.closeConfirmDeleteDialog();
+  }
+
+  // --- Drag and Drop Logic ---
+  onDragStart(event: DragEvent, site: Site): void {
+    this.draggedSite = site;
+    (event.target as HTMLElement).classList.add('dragging');
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent, targetElement: HTMLElement): void {
+    event.preventDefault();
+    targetElement.classList.add('drag-over');
+  }
+
+  onDragLeave(event: DragEvent, targetElement: HTMLElement): void {
+    event.preventDefault();
+    targetElement.classList.remove('drag-over');
+  }
+
+  onDragEnd(event: DragEvent): void {
+    (event.target as HTMLElement).classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    this.draggedSite = null;
+  }
+
+  onDrop(event: DragEvent, targetSite: Site): void {
+    event.preventDefault();
+    if (!this.draggedSite || this.draggedSite === targetSite) {
+      return;
+    }
+
+    const draggedIndex = this.sites.findIndex(s => s.url === this.draggedSite!.url);
+    const targetIndex = this.sites.findIndex(s => s.url === targetSite.url);
+
+    if (draggedIndex > -1 && targetIndex > -1) {
+      const [removedSite] = this.sites.splice(draggedIndex, 1);
+      this.sites.splice(targetIndex, 0, removedSite);
+      this.saveSites();
+      this.filterSites();
+    }
+  }
+}
 </file>
 
 </files>
