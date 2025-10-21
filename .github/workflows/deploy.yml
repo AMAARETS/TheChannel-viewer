@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - main
-  
+
   # מאפשר הפעלה ידנית מה-UI של GitHub
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
   build-and-deploy:
     # על איזו מערכת הפעלה להריץ את העבודה
     runs-on: ubuntu-latest
-    
+
     # שלבי העבודה
     steps:
       # 1. הורדת הקוד מהמאגר (מהענף main)
@@ -41,7 +41,7 @@ jobs:
       # 4. בניית פרויקט האנגולר
       #    שים לב: base-href חייב להיות שם המאגר שלך ב-GitHub
       - name: Build Angular App
-        run: npm run build -- --configuration production --base-href /TheChannel--viewer/
+        run: npm run build -- --configuration production --base-href /TheChannel-viewer/
         # ⬆️ ודא ש-'TheChannel--viewer' הוא שם המאגר המדויק שלך!
 
       # 5. פריסת קבצי הבנייה לענף gh-pages

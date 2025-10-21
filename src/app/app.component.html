@@ -5,7 +5,9 @@
     <!-- Sidebar -->
     <nav class="sidebar" [class.collapsed]="isSidebarCollapsed">
       <div class="sidebar-header">
-        <h1 class="sidebar-title" *ngIf="!isSidebarCollapsed">ערוצים</h1>
+      <div class="sidebar-logo" *ngIf="!isSidebarCollapsed">
+        <span class="rotated-letter">ה</span>ערוץ
+      </div>
         <button
           class="toggle-sidebar-btn"
           (click)="toggleSidebar()"
