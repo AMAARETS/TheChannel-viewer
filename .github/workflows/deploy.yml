@@ -41,7 +41,7 @@ jobs:
       # 4. בניית פרויקט האנגולר
       #    שים לב: base-href חייב להיות שם המאגר שלך ב-GitHub
       - name: Build Angular App
-        run: npm run build -- --configuration production --base-href /TheChannel-viewer/
+        run: npm run build -- --configuration production --base-href /
         # ⬆️ ודא ש-'TheChannel--viewer' הוא שם המאגר המדויק שלך!
 
       # 5. פריסת קבצי הבנייה לענף gh-pages
