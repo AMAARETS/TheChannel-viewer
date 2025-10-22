@@ -35,7 +35,7 @@ jobs:
 
       # 4. בניית פרויקט האנגולר
       - name: Build Angular App
-        run: npm run build -- --configuration production --base-href /TheChannel-viewer/
+        run: npm run build -- --configuration production --base-href /
 
       # 5. הכנת קבצי הבנייה להעלאה (Artifact)
       - name: Upload production-build artifact
