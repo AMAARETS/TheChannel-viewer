@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { take } from 'rxjs';
 
 // Import the new components
 import { SidebarComponent } from './components/sidebar/sidebar';
@@ -31,17 +32,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
 
   ngOnInit(): void {
-    // Select the initial site once data is loaded
-    this.siteDataService.categories$.subscribe(categories => {
-      // Check if a site is already selected to avoid overwriting user selection
-      this.uiStateService.selectedSite$.subscribe(selectedSite => {
-        if (!selectedSite && categories.length > 0) {
-          const firstSite = categories.flatMap(c => c.sites)[0];
-          if (firstSite) {
-            this.uiStateService.selectSite(firstSite);
-          }
+    this.siteDataService.categories$.pipe(take(1)).subscribe(categories => {
+      // Use the new getter to check if a site is already active
+      if (categories.length > 0 && !this.uiStateService.getActiveSite()) {
+        const firstSite = categories.flatMap(c => c.sites)[0];
+        if (firstSite) {
+          this.uiStateService.selectSite(firstSite);
         }
-      });
+      }
     });
   }
 

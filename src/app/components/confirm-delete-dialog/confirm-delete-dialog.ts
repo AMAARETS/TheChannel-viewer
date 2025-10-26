@@ -26,10 +26,13 @@ export class ConfirmDeleteDialogComponent {
     const siteToRemove = this.uiStateService.siteToDelete$.getValue();
     if (!siteToRemove) return;
 
+    // Get the active site BEFORE removing it from the data service
+    const activeSite = this.uiStateService.getActiveSite();
+
     this.siteDataService.removeSite(siteToRemove);
 
-    // If the active site was deleted, select the first available site
-    if (this.uiStateService.activeSiteName$.getValue() === siteToRemove.name) {
+    // If the active site was the one that was just deleted, select the first available site
+    if (activeSite?.url === siteToRemove.url) {
       const firstSite = this.siteDataService.categories$.getValue().flatMap(c => c.sites)[0];
       this.uiStateService.selectSite(firstSite || null);
     }

@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { Observable, BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
+
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { Category, Site, AvailableSite } from '../../core/models/site.model';
-import { FormsModule } from '@angular/forms';
-
 
 @Component({
   selector: 'app-sidebar',
@@ -20,53 +20,74 @@ export class SidebarComponent implements OnInit {
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
+  // --- State Observables from Services ---
   isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
   activeSiteName$ = this.uiStateService.activeSiteName$;
 
-  searchTerm = '';
-  filteredCategories$: Observable<Category[]> | undefined;
-  filteredAvailableSites$: Observable<AvailableSite[]> | undefined;
+  // --- Reactive Filtering Logic ---
+  // A subject to hold the current search term.
+  private searchTerm$ = new BehaviorSubject<string>('');
 
-  // Favicon error handling
+  // Public observables for the filtered lists, derived from the data sources and search term.
+  filteredCategories$!: Observable<Category[]>;
+  filteredAvailableSites$!: Observable<AvailableSite[]>;
+
+  // --- Drag and Drop State ---
+  private draggedItem: { site: Site, fromCategory: Category } | null = null;
+  private draggedCategory: Category | null = null;
+
+  // --- Favicon and UI Helpers ---
   faviconErrorUrls = new Set<string>();
   private colorPalette = [
     '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
     '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
   ];
 
-  // Drag and Drop state
-  private draggedItem: { site: Site, fromCategory: Category } | null = null;
-  private draggedCategory: Category | null = null;
-
   ngOnInit(): void {
-    this.filteredCategories$ = this.siteDataService.categories$;
-  }
-
-  onSearch(term: string): void {
-    this.searchTerm = term.toLowerCase();
-    const allCategories = this.siteDataService.categories$.getValue();
-
-    if (!this.searchTerm) {
-      this.filteredCategories$ = this.siteDataService.categories$;
-      this.filteredAvailableSites$ = undefined;
-      return;
-    }
-
-    const filtered = allCategories.map(category => ({
-      ...category,
-      sites: category.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
-    })).filter(category => category.sites.length > 0);
-    this.filteredCategories$ = new BehaviorSubject(filtered).asObservable();
-
-    const existingUrls = new Set(allCategories.flatMap((c: Category) => c.sites.map((s: Site) => s.url)));
-    const availableSites = this.siteDataService.availableSites$.getValue();
-    const filteredAvailable = availableSites.filter(as =>
-      !existingUrls.has(as.url) && as.name.toLowerCase().includes(this.searchTerm)
+    // Combine the latest values from categories and the search term to compute the filtered list.
+    this.filteredCategories$ = combineLatest([
+      this.siteDataService.categories$,
+      this.searchTerm$
+    ]).pipe(
+      map(([categories, term]) => {
+        if (!term) {
+          return categories; // If no search term, return all categories.
+        }
+        // Filter categories and sites within them based on the search term.
+        return categories
+          .map(category => ({
+            ...category,
+            sites: category.sites.filter(site => site.name.toLowerCase().includes(term))
+          }))
+          .filter(category => category.sites.length > 0); // Only include categories that have matching sites.
+      })
     );
-    this.filteredAvailableSites$ = new BehaviorSubject(filteredAvailable).asObservable();
+
+    // Combine multiple sources to filter available sites.
+    this.filteredAvailableSites$ = combineLatest([
+        this.siteDataService.availableSites$,
+        this.siteDataService.categories$,
+        this.searchTerm$
+    ]).pipe(
+        map(([availableSites, currentCategories, term]) => {
+            if (!term) {
+                return []; // Only show available sites when searching.
+            }
+            const existingUrls = new Set(currentCategories.flatMap(c => c.sites.map(s => s.url)));
+            return availableSites.filter(site =>
+                !existingUrls.has(site.url) && site.name.toLowerCase().includes(term)
+            );
+        })
+    );
   }
 
+  /** Pushes a new value to the search term subject. */
+  onSearch(event: Event): void {
+    const term = (event.target as HTMLInputElement).value.toLowerCase();
+    this.searchTerm$.next(term);
+  }
 
+  // --- User Actions ---
   selectSite(site: Site): void {
     this.uiStateService.selectSite(site);
   }
@@ -78,7 +99,8 @@ export class SidebarComponent implements OnInit {
   expandAndFocusSearch(): void {
     if (this.uiStateService.isSidebarCollapsed$.getValue()) {
       this.uiStateService.toggleSidebar();
-      setTimeout(() => this.searchInput.nativeElement.focus(), 300); // wait for animation
+      // Wait for sidebar expansion animation to finish before focusing.
+      setTimeout(() => this.searchInput.nativeElement.focus(), 300);
     } else {
       this.searchInput.nativeElement.focus();
     }
@@ -88,10 +110,12 @@ export class SidebarComponent implements OnInit {
     this.uiStateService.openAddSiteDialog();
   }
 
-  addSiteFromAvailable(site: AvailableSite) {
+  addSiteFromAvailable(site: AvailableSite): void {
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite({ name: site.name, url: site.url }, categoryName);
-    this.onSearch(''); // Reset search
+    // Reset search after adding.
+    this.searchInput.nativeElement.value = '';
+    this.searchTerm$.next('');
   }
 
   openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
@@ -99,7 +123,7 @@ export class SidebarComponent implements OnInit {
     this.uiStateService.openConfirmDeleteDialog(site);
   }
 
-  // Favicon & Fallback Logic
+  // --- Favicon & Fallback Logic ---
   getFaviconUrl(url: string): string {
     try {
       const siteUrl = new URL(url);
@@ -115,12 +139,12 @@ export class SidebarComponent implements OnInit {
     return this.colorPalette[Math.abs(hash % this.colorPalette.length)];
   }
 
-  // --- Drag and Drop Logic ---
+  // --- Drag and Drop Logic (Largely unchanged, but now relies on a solid data service) ---
   onDragStart(event: DragEvent, site: Site, fromCategory: Category): void {
     event.stopPropagation();
     this.draggedItem = { site, fromCategory };
     (event.target as HTMLElement).classList.add('dragging');
-    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; }
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
   }
 
   onDragOverSite(event: DragEvent, targetElement: HTMLElement): void {
@@ -131,6 +155,16 @@ export class SidebarComponent implements OnInit {
 
   onDragLeaveSite(event: DragEvent, targetElement: HTMLElement): void {
     targetElement.classList.remove('drag-over');
+  }
+
+  onDragOverCategory(event: DragEvent, targetCategory: Category): void {
+    if (!this.draggedItem || this.draggedItem.fromCategory.name === targetCategory.name) return;
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.add('site-drag-over');
+  }
+
+  onDragLeaveCategory(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('site-drag-over');
   }
 
   onDropOnSite(event: DragEvent, targetSite: Site, targetCategory: Category): void {
@@ -163,8 +197,8 @@ export class SidebarComponent implements OnInit {
     this.siteDataService.updateCategories(currentCategories);
   }
 
-  onDragEnd(event: DragEvent): void {
-    document.querySelectorAll('.dragging, .drag-over').forEach(el => el.classList.remove('dragging', 'drag-over'));
+  onDragEnd(): void {
+    document.querySelectorAll('.dragging, .drag-over, .site-drag-over').forEach(el => el.classList.remove('dragging', 'drag-over', 'site-drag-over'));
     this.draggedItem = null;
   }
 
@@ -172,7 +206,11 @@ export class SidebarComponent implements OnInit {
     if (this.uiStateService.isSidebarCollapsed$.getValue()) { event.preventDefault(); return; }
     this.draggedCategory = category;
     (event.currentTarget as HTMLElement).classList.add('dragging');
-    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; }
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  onCategoryDragEnter(event: DragEvent): void {
+    if (this.draggedCategory) event.preventDefault();
   }
 
   onCategoryDragOver(event: DragEvent): void {

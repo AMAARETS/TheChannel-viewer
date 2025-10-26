@@ -1,0 +1,2277 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+.editorconfig
+.github/workflows/ci.yaml
+.github/workflows/deploy.yml
+.gitignore
+angular.json
+eslint.config.js
+package.json
+public/assets/available-sites.json
+public/assets/sites.json
+README.md
+src/app/app.component.css
+src/app/app.component.html
+src/app/app.component.ts
+src/app/app.config.ts
+src/app/components/add-site-dialog/add-site-dialog.css
+src/app/components/add-site-dialog/add-site-dialog.html
+src/app/components/add-site-dialog/add-site-dialog.spec.ts
+src/app/components/add-site-dialog/add-site-dialog.ts
+src/app/components/confirm-delete-dialog/confirm-delete-dialog.css
+src/app/components/confirm-delete-dialog/confirm-delete-dialog.html
+src/app/components/confirm-delete-dialog/confirm-delete-dialog.spec.ts
+src/app/components/confirm-delete-dialog/confirm-delete-dialog.ts
+src/app/components/main-content/main-content.css
+src/app/components/main-content/main-content.html
+src/app/components/main-content/main-content.spec.ts
+src/app/components/main-content/main-content.ts
+src/app/components/sidebar/sidebar.css
+src/app/components/sidebar/sidebar.html
+src/app/components/sidebar/sidebar.spec.ts
+src/app/components/sidebar/sidebar.ts
+src/app/core/models/site.model.ts
+src/app/core/services/site-data.service.ts
+src/app/core/services/ui-state.service.ts
+src/index.html
+src/main.ts
+src/styles.css
+tsconfig.app.json
+tsconfig.json
+tsconfig.spec.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".editorconfig">
+# Editor configuration, see https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.ts]
+quote_type = single
+ij_typescript_use_double_quotes = false
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+</file>
+
+<file path="eslint.config.js">
+// @ts-check
+const eslint = require("@eslint/js");
+const tseslint = require("typescript-eslint");
+const angular = require("angular-eslint");
+
+module.exports = tseslint.config(
+  {
+    files: ["**/*.ts"],
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.recommended,
+      ...tseslint.configs.stylistic,
+      ...angular.configs.tsRecommended,
+    ],
+    processor: angular.processInlineTemplates,
+    rules: {
+      "@angular-eslint/directive-selector": [
+        "error",
+        {
+          type: "attribute",
+          prefix: "app",
+          style: "camelCase",
+        },
+      ],
+      "@angular-eslint/component-selector": [
+        "error",
+        {
+          type: "element",
+          prefix: "app",
+          style: "kebab-case",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.html"],
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
+    rules: {},
+  }
+);
+</file>
+
+<file path="src/app/app.config.ts">
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideZonelessChangeDetection(),
+    
+  ]
+};
+</file>
+
+<file path="src/app/components/add-site-dialog/add-site-dialog.css">
+/* src/app/components/add-site-dialog/add-site-dialog.component.css */
+
+/* --- Dialog Styles --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.dialog-box {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  color: #202124;
+}
+.dialog-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3c4043;
+  margin: 16px 0 8px;
+}
+.dialog-content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dialog-content input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+}
+.dialog-content input:focus {
+  outline: 0;
+  border: 2px solid #1a73e8;
+  padding: 9px;
+}
+.dialog-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 16px 0;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+.dialog-actions button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.btn-primary {
+  background-color: #1a73e8;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #185abc;
+}
+.btn-secondary {
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+}
+.btn-secondary:hover {
+  background-color: #f1f3f4;
+}
+
+/* Specific to Add-Site Dialog */
+.available-sites-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+.available-sites-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s;
+}
+.available-sites-list li:last-child {
+  border-bottom: none;
+}
+.available-sites-list li:hover {
+  background-color: #f8f9fa;
+}
+.site-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.site-details {
+  display: flex;
+  flex-direction: column;
+}
+.site-details .site-name {
+  font-weight: 500;
+  color: #202124;
+}
+.site-details .site-description {
+  font-size: 0.8rem;
+  color: #5f6368;
+}
+.btn-add-from-list {
+  background-color: #e8f0fe;
+  color: #1967d2;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+.btn-add-from-list:hover {
+  background-color: #d2e3fc;
+}
+
+/* Icons and Fallback (needed for available sites list) */
+.site-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+</file>
+
+<file path="src/app/components/add-site-dialog/add-site-dialog.html">
+<div class="dialog-overlay" *ngIf="isVisible$ | async" (click)="closeDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+    <div class="dialog-content">
+      <h3 class="dialog-subtitle">הוספה מרשימה</h3>
+      <ul class="available-sites-list">
+        <li *ngFor="let site of filteredAvailableSites$ | async" (click)="addSiteFromAvailable(site)">
+          <div class="site-info">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+            <div class="site-details">
+              <span class="site-name">{{ site.name }}</span>
+              <span class="site-description">{{ site.description }}</span>
+            </div>
+          </div>
+          <button class="btn-add-from-list">+</button>
+        </li>
+      </ul>
+      <hr class="dialog-divider">
+      <h3 class="dialog-subtitle">הוספה ידנית</h3>
+      <input #siteNameInput type="text" placeholder="שם הערוץ">
+      <input #siteUrlInput type="text" placeholder="כתובת (URL)">
+      <input #siteCategoryInput type="text" placeholder="קטגוריה (למשל: חדשות)" list="category-suggestions">
+      <datalist id="category-suggestions">
+        <option *ngFor="let category of categories$ | async" [value]="category.name"></option>
+      </datalist>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeDialog()">סגור</button>
+      <button class="btn-primary" (click)="addSite(siteNameInput, siteUrlInput, siteCategoryInput)">שמור ערוץ ידני</button>
+    </div>
+  </div>
+</div>
+</file>
+
+<file path="src/app/components/add-site-dialog/add-site-dialog.spec.ts">
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { AddSiteDialog } from './add-site-dialog';
+
+describe('AddSiteDialog', () => {
+  let component: AddSiteDialog;
+  let fixture: ComponentFixture<AddSiteDialog>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AddSiteDialog]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(AddSiteDialog);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+</file>
+
+<file path="src/app/components/add-site-dialog/add-site-dialog.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule, NgStyle } from '@angular/common';
+import { SiteDataService } from '../../core/services/site-data.service';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { AvailableSite, Site } from '../../core/models/site.model';
+import { map } from 'rxjs';
+
+@Component({
+  selector: 'app-add-site-dialog',
+  standalone: true,
+  imports: [CommonModule, NgStyle],
+  templateUrl: './add-site-dialog.html',
+  styleUrl: './add-site-dialog.css'
+})
+export class AddSiteDialogComponent {
+  siteDataService = inject(SiteDataService);
+  uiStateService = inject(UiStateService);
+
+  isVisible$ = this.uiStateService.isAddSiteDialogVisible$;
+  categories$ = this.siteDataService.categories$;
+
+  // Filter available sites to show only those not already in the user's list
+  filteredAvailableSites$ = this.siteDataService.availableSites$.pipe(
+    map(available => {
+      const existingUrls = new Set(this.siteDataService.categories$.getValue().flatMap(c => c.sites.map(s => s.url)));
+      return available.filter(site => !existingUrls.has(site.url));
+    })
+  );
+
+  closeDialog() {
+    this.uiStateService.closeAddSiteDialog();
+  }
+
+  addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement, categoryInput: HTMLInputElement): void {
+    const name = nameInput.value.trim();
+    let url = urlInput.value.trim();
+    const categoryName = categoryInput.value.trim() || 'כללי';
+    if (!name || !url) return;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) { url = `https://${url}`; }
+
+    const newSite: Site = { name, url };
+    if (this.siteDataService.addSite(newSite, categoryName)) {
+      this.uiStateService.selectSite(newSite);
+      nameInput.value = '';
+      urlInput.value = '';
+      categoryInput.value = '';
+      this.closeDialog();
+    }
+  }
+
+  addSiteFromAvailable(siteToAdd: AvailableSite): void {
+    const newSite: Site = { name: siteToAdd.name, url: siteToAdd.url };
+    const categoryName = siteToAdd.category || 'כללי';
+    this.siteDataService.addSite(newSite, categoryName);
+    this.closeDialog();
+  }
+
+  // Favicon Logic (can be moved to a shared utility/service later)
+  faviconErrorUrls = new Set<string>();
+  colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'];
+  getFaviconUrl(url: string): string { try { const siteUrl = new URL(url); return `${siteUrl.origin}/favicon.ico`; } catch (e) { return ''; } }
+  onFaviconError(site: Site): void { this.faviconErrorUrls.add(site.url); }
+  hasFaviconError(site: Site): boolean { return this.faviconErrorUrls.has(site.url); }
+  getFirstLetter(name: string): string { return name ? name.charAt(0).toUpperCase() : ''; }
+  getColorForSite(name: string): string { let hash = 0; for (let i = 0; i < name.length; i++) { hash = name.charCodeAt(i) + ((hash << 5) - hash); } return this.colorPalette[Math.abs(hash % this.colorPalette.length)]; }
+}
+</file>
+
+<file path="src/app/components/confirm-delete-dialog/confirm-delete-dialog.css">
+/* src/app/components/confirm-delete-dialog/confirm-delete-dialog.component.css */
+
+/* --- Shared Dialog Styles --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.dialog-box {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  color: #202124;
+}
+.dialog-content {
+  overflow-y: auto;
+}
+.dialog-content p {
+  margin: 0;
+  color: #5f6368;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  margin-top: 16px; /* Add some space from content */
+  border-top: 1px solid #e0e0e0;
+}
+.dialog-actions button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.btn-secondary {
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+}
+.btn-secondary:hover {
+  background-color: #f1f3f4;
+}
+.btn-danger {
+  background-color: #d93025;
+  color: #fff;
+}
+.btn-danger:hover {
+  background-color: #a50e0e;
+}
+</file>
+
+<file path="src/app/components/confirm-delete-dialog/confirm-delete-dialog.html">
+<div class="dialog-overlay" *ngIf="isVisible$ | async" (click)="closeDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">אישור מחיקה</h2>
+    <div class="dialog-content">
+      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ (siteToDelete$ | async)?.name }}"?</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeDialog()">ביטול</button>
+      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
+    </div>
+  </div>
+</div>
+</file>
+
+<file path="src/app/components/confirm-delete-dialog/confirm-delete-dialog.spec.ts">
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ConfirmDeleteDialog } from './confirm-delete-dialog';
+
+describe('ConfirmDeleteDialog', () => {
+  let component: ConfirmDeleteDialog;
+  let fixture: ComponentFixture<ConfirmDeleteDialog>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ConfirmDeleteDialog]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(ConfirmDeleteDialog);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+</file>
+
+<file path="src/app/components/confirm-delete-dialog/confirm-delete-dialog.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { SiteDataService } from '../../core/services/site-data.service';
+import { Site } from '../../core/models/site.model';
+
+@Component({
+  selector: 'app-confirm-delete-dialog',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './confirm-delete-dialog.html',
+  styleUrl: './confirm-delete-dialog.css'
+})
+export class ConfirmDeleteDialogComponent {
+  uiStateService = inject(UiStateService);
+  siteDataService = inject(SiteDataService);
+
+  isVisible$ = this.uiStateService.isConfirmDeleteDialogVisible$;
+  siteToDelete$ = this.uiStateService.siteToDelete$;
+
+  closeDialog() {
+    this.uiStateService.closeConfirmDeleteDialog();
+  }
+
+  confirmRemoveSite() {
+    const siteToRemove = this.uiStateService.siteToDelete$.getValue();
+    if (!siteToRemove) return;
+
+    // Get the active site BEFORE removing it from the data service
+    const activeSite = this.uiStateService.getActiveSite();
+
+    this.siteDataService.removeSite(siteToRemove);
+
+    // If the active site was the one that was just deleted, select the first available site
+    if (activeSite?.url === siteToRemove.url) {
+      const firstSite = this.siteDataService.categories$.getValue().flatMap(c => c.sites)[0];
+      this.uiStateService.selectSite(firstSite || null);
+    }
+
+    this.closeDialog();
+  }
+}
+</file>
+
+<file path="src/app/components/main-content/main-content.css">
+/* src/app/components/main-content/main-content.component.css */
+
+/*
+  THE FIX: Style the component's host element (<app-main-content>)
+  This tells the component itself to grow and fill the available space
+  provided by its parent flex container (.main-container).
+*/
+:host {
+  flex-grow: 1; /* Allows the component to take up all available horizontal space */
+  display: flex;  /* Makes the host a flex container for its internal content */
+  overflow: hidden; /* Prevents any potential overflow issues */
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  background-color: #ffffff;
+}
+
+.iframe-container {
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.placeholder {
+  color: #5f6368;
+  font-size: 1.2rem;
+}
+</file>
+
+<file path="src/app/components/main-content/main-content.html">
+<main class="main-content">
+  <div class="iframe-container">
+    <iframe *ngIf="selectedSiteUrl$ | async as url" [src]="url" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
+    <div *ngIf="!(selectedSiteUrl$ | async)" class="placeholder">
+      <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+    </div>
+  </div>
+</main>
+</file>
+
+<file path="src/app/components/main-content/main-content.spec.ts">
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { MainContent } from './main-content';
+
+describe('MainContent', () => {
+  let component: MainContent;
+  let fixture: ComponentFixture<MainContent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MainContent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(MainContent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+</file>
+
+<file path="src/app/components/main-content/main-content.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UiStateService } from '../../core/services/ui-state.service';
+
+@Component({
+  selector: 'app-main-content',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './main-content.html',
+  styleUrl: './main-content.css'
+})
+export class MainContentComponent {
+  uiStateService = inject(UiStateService);
+  selectedSiteUrl$ = this.uiStateService.sanitizedSelectedSiteUrl$;
+}
+</file>
+
+<file path="src/app/components/sidebar/sidebar.css">
+/* src/app/components/sidebar/sidebar.component.css */
+
+/* --- Sidebar Styling --- */
+.sidebar {
+  width: 180px;
+  background-color: #ffffff;
+  color: #202124;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-right: 1px solid #e0e0e0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%; /* <-- THE FIX: Ensures the nav fills its parent component */
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 8px 8px;
+}
+
+.toggle-sidebar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.3s;
+}
+.toggle-sidebar-btn:hover {
+  background-color: #f1f3f4;
+}
+
+/* Logo */
+.sidebar-logo {
+  font-size: 34px;
+  color: #3c4043;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s ease;
+  white-space: nowrap;
+  margin-right: 8px;
+  margin-bottom: 10px;
+}
+.sidebar-logo:hover {
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+.sidebar-logo .rotated-letter {
+  display: inline-block;
+  transform: rotate(30deg);
+  color: #c0392b;
+  position: relative;
+  top: 2px;
+  margin-left: 2px;
+  transition: transform 0.4s ease-in-out;
+}
+.sidebar-logo:hover .rotated-letter {
+  transform: rotate(15deg);
+}
+
+
+/* Search Bar */
+.search-bar {
+  padding: 0 16px 12px;
+}
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+.search-icon-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 18px;
+  color: #5f6368;
+}
+.search-icon-btn:hover {
+  background-color: #f1f3f4;
+}
+
+/* Category Styles */
+.category-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5f6368;
+  padding: 12px 24px 4px;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: grab;
+}
+
+/* This is the key part for scrolling */
+.scrollable-content {
+  flex-grow: 1; /* Make this section take all available vertical space */
+  overflow-y: auto; /* Add a scrollbar if content overflows */
+  /* This needs a parent with a defined height to work, which we just fixed */
+}
+
+.category-drop-zone {
+  transition: background-color 0.2s ease;
+}
+.category-drop-zone:has(li:hover) {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.site-list {
+  list-style-type: none;
+  padding: 0 8px;
+  margin: 0;
+}
+.site-list li {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 16px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-top 0.2s ease;
+  font-weight: 500;
+  color: #3c4043;
+  position: relative;
+  height: 36px;
+  box-sizing: border-box;
+  border-top: 2px solid transparent;
+}
+.site-list li:hover {
+  background-color: #f1f3f4;
+}
+.site-list li .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.site-list li.active {
+  background-color: #e8f0fe;
+  color: #1967d2;
+}
+
+/* Action Buttons (Open new tab, Remove) */
+.site-actions {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  background-color: #f1f3f4;
+  border-radius: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+.site-list li:hover .site-actions {
+  opacity: 1;
+  visibility: visible;
+}
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+.action-btn:hover {
+  background-color: #e0e0e0;
+  color: #202124;
+}
+.remove-btn {
+  font-weight: bold;
+}
+
+/* Drag and Drop Styles */
+.site-list li.dragging {
+  opacity: 0.5;
+  background: #cce5ff;
+}
+.site-list li.drag-over {
+  border-top: 2px solid #1a73e8;
+}
+.category-drop-zone.site-drag-over {
+  background-color: #f1f3f4;
+  border-radius: 8px;
+}
+.category-drop-zone.dragging {
+  opacity: 0.5;
+  background-color: #e8f0fe;
+}
+.category-drop-zone.category-drag-over {
+  border-top: 2px solid #0056b3;
+}
+
+/* Available Sites in Search Styles */
+.available-sites-container {
+  padding: 0 8px;
+  margin-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+.available-sites-header {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5f6368;
+  margin: 8px 16px;
+  padding: 0;
+  text-align: right;
+}
+.available-site-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.available-site-list li {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 36px;
+  box-sizing: border-box;
+}
+.available-site-list li:hover {
+  background-color: #f1f3f4;
+}
+.available-site-list .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #3c4043;
+}
+.available-site-list .add-btn {
+  font-size: 24px;
+  margin-right: -4px;
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+.add-channel-btn {
+  width: 100%;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  padding: 8px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.add-channel-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #d2e3fc;
+}
+
+/* Collapsed State */
+.sidebar.collapsed {
+  width: 68px;
+}
+.sidebar.collapsed .toggle-sidebar-btn {
+  transform: rotate(180deg);
+}
+.sidebar.collapsed .category-header {
+  display: none;
+}
+.sidebar.collapsed .site-list {
+  padding: 0 4px;
+}
+.sidebar.collapsed .site-list li {
+  justify-content: center;
+  padding: 6px;
+}
+.sidebar.collapsed .site-icon {
+  margin: 0;
+}
+.sidebar.collapsed .available-sites-container {
+  display: none;
+}
+.sidebar.collapsed .add-channel-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  padding: 0;
+}
+.sidebar.collapsed .add-channel-btn span:first-child {
+  display: none;
+}
+
+/* Icons and Fallback */
+.site-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 12px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+</file>
+
+<file path="src/app/components/sidebar/sidebar.html">
+<!-- Sidebar -->
+<nav class="sidebar" [class.collapsed]="(isSidebarCollapsed$ | async) ?? false">
+  <div class="sidebar-header">
+    <div class="sidebar-logo" *ngIf="!(isSidebarCollapsed$ | async)">
+      <span class="rotated-letter">ה</span>ערוץ
+    </div>
+    <button
+      class="toggle-sidebar-btn"
+      (click)="toggleSidebar()"
+      [title]="(isSidebarCollapsed$ | async) ? 'הרחב סרגל צד' : 'כווץ סרגל צד'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <ng-container *ngIf="!(isSidebarCollapsed$ | async); else searchIcon">
+      <input
+        #searchInput
+        type="text"
+        class="search-input"
+        placeholder="חיפוש ערוץ..."
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearch($event)"
+      >
+    </ng-container>
+    <ng-template #searchIcon>
+      <button class="search-icon-btn" (click)="expandAndFocusSearch()" title="חיפוש">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+      </button>
+    </ng-template>
+  </div>
+<div class="scrollable-content">
+  <!-- Channels List by Category -->
+  <div class="channel-list-container">
+    <div
+      *ngFor="let category of filteredCategories$ | async"
+      class="category-drop-zone"
+      draggable="true"
+      (dragstart)="onCategoryDragStart($event, category)"
+      (dragover)="onCategoryDragOver($event)"
+      (dragleave)="onCategoryDragLeave($event)"
+      (drop)="onCategoryDrop($event, category)"
+      (dragend)="onCategoryDragEnd($event)"
+      (dragenter)="onCategoryDragEnter($event)"
+    >
+      <h3 class="category-header" *ngIf="!(isSidebarCollapsed$ | async)">{{ category.name }}</h3>
+      <ul class="site-list"
+        (dragover)="onDragOverCategory($event, category)"
+        (dragleave)="onDragLeaveCategory($event)"
+        (drop)="onDropInCategory($event, category)">
+        <li #listItem
+          *ngFor="let site of category.sites"
+          (click)="selectSite(site)"
+          [class.active]="site.name === (activeSiteName$ | async)"
+          [title]="site.name"
+          draggable="true"
+          (dragstart)="onDragStart($event, site, category)"
+          (dragover)="onDragOverSite($event, listItem)"
+          (dragleave)="onDragLeaveSite($event, listItem)"
+          (drop)="onDropOnSite($event, site, category)"
+          (dragend)="onDragEnd($event)"
+        >
+          <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+          <span class="site-name" *ngIf="!(isSidebarCollapsed$ | async)">{{ site.name }}</span>
+          <div class="site-actions" *ngIf="!(isSidebarCollapsed$ | async)">
+            <a [href]="site.url" target="_blank" class="action-btn" (click)="$event.stopPropagation()" title="פתח בכרטיסייה חדשה"><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></a>
+            <button class="action-btn remove-btn" (click)="openConfirmDeleteDialog(site, $event)" title="הסר את הערוץ">×</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- Available sites matching search -->
+  <div class="available-sites-container" *ngIf="filteredAvailableSites$ | async as sites">
+    <div *ngIf="searchTerm && sites && sites.length > 0">
+      <h4 class="available-sites-header">הוספה מהירה</h4>
+      <ul class="available-site-list">
+        <li *ngFor="let site of sites" (click)="addSiteFromAvailable(site)" [title]="site.description">
+          <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+          <span class="site-name" *ngIf="!(isSidebarCollapsed$ | async)">{{ site.name }}</span>
+          <button class="action-btn add-btn" *ngIf="!(isSidebarCollapsed$ | async)" title="הוסף ערוץ">+</button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+  <!-- Add Channel Button -->
+  <div class="sidebar-footer">
+    <button class="add-channel-btn" (click)="openAddSiteDialog()">
+      <span *ngIf="!(isSidebarCollapsed$ | async)">הוסף ערוץ </span>
+      <span>+</span>
+    </button>
+  </div>
+</nav>
+</file>
+
+<file path="src/app/components/sidebar/sidebar.spec.ts">
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { Sidebar } from './sidebar';
+
+describe('Sidebar', () => {
+  let component: Sidebar;
+  let fixture: ComponentFixture<Sidebar>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Sidebar]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(Sidebar);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+</file>
+
+<file path="src/app/components/sidebar/sidebar.ts">
+import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
+import { CommonModule, NgStyle } from '@angular/common';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { SiteDataService } from '../../core/services/site-data.service';
+import { UiStateService } from '../../core/services/ui-state.service';
+import { Category, Site, AvailableSite } from '../../core/models/site.model';
+import { FormsModule } from '@angular/forms';
+
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule, NgStyle, FormsModule],
+  templateUrl: './sidebar.html',
+  styleUrl: './sidebar.css'
+})
+export class SidebarComponent implements OnInit {
+  siteDataService = inject(SiteDataService);
+  uiStateService = inject(UiStateService);
+
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+
+  isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
+  activeSiteName$ = this.uiStateService.activeSiteName$;
+
+  searchTerm = '';
+  filteredCategories$: Observable<Category[]> | undefined;
+  filteredAvailableSites$: Observable<AvailableSite[]> | undefined;
+
+  // Favicon error handling
+  faviconErrorUrls = new Set<string>();
+  private colorPalette = [
+    '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+    '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
+  ];
+
+  // Drag and Drop state
+  private draggedItem: { site: Site, fromCategory: Category } | null = null;
+  private draggedCategory: Category | null = null;
+
+  ngOnInit(): void {
+    this.filteredCategories$ = this.siteDataService.categories$;
+  }
+
+  onSearch(term: string): void {
+    this.searchTerm = term.toLowerCase();
+    const allCategories = this.siteDataService.categories$.getValue();
+
+    if (!this.searchTerm) {
+      this.filteredCategories$ = this.siteDataService.categories$;
+      this.filteredAvailableSites$ = undefined;
+      return;
+    }
+
+    const filtered = allCategories.map(category => ({
+      ...category,
+      sites: category.sites.filter(site => site.name.toLowerCase().includes(this.searchTerm))
+    })).filter(category => category.sites.length > 0);
+    this.filteredCategories$ = new BehaviorSubject(filtered).asObservable();
+
+    const existingUrls = new Set(allCategories.flatMap((c: Category) => c.sites.map((s: Site) => s.url)));
+    const availableSites = this.siteDataService.availableSites$.getValue();
+    const filteredAvailable = availableSites.filter(as =>
+      !existingUrls.has(as.url) && as.name.toLowerCase().includes(this.searchTerm)
+    );
+    this.filteredAvailableSites$ = new BehaviorSubject(filteredAvailable).asObservable();
+  }
+
+
+  selectSite(site: Site): void {
+    this.uiStateService.selectSite(site);
+  }
+
+  toggleSidebar(): void {
+    this.uiStateService.toggleSidebar();
+  }
+
+  expandAndFocusSearch(): void {
+    if (this.uiStateService.isSidebarCollapsed$.getValue()) {
+      this.uiStateService.toggleSidebar();
+      setTimeout(() => this.searchInput.nativeElement.focus(), 300); // wait for animation
+    } else {
+      this.searchInput.nativeElement.focus();
+    }
+  }
+
+  openAddSiteDialog(): void {
+    this.uiStateService.openAddSiteDialog();
+  }
+
+  addSiteFromAvailable(site: AvailableSite) {
+    const categoryName = site.category || 'כללי';
+    this.siteDataService.addSite({ name: site.name, url: site.url }, categoryName);
+    this.onSearch(''); // Reset search
+  }
+
+  openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
+    event.stopPropagation();
+    this.uiStateService.openConfirmDeleteDialog(site);
+  }
+
+  // Favicon & Fallback Logic
+  getFaviconUrl(url: string): string {
+    try {
+      const siteUrl = new URL(url);
+      return `${siteUrl.origin}/favicon.ico`;
+    } catch (e) { return ''; }
+  }
+  onFaviconError(site: Site | AvailableSite): void { this.faviconErrorUrls.add(site.url); }
+  hasFaviconError(site: Site | AvailableSite): boolean { return this.faviconErrorUrls.has(site.url); }
+  getFirstLetter(name: string): string { return name ? name.charAt(0).toUpperCase() : ''; }
+  getColorForSite(name: string): string {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) { hash = name.charCodeAt(i) + ((hash << 5) - hash); }
+    return this.colorPalette[Math.abs(hash % this.colorPalette.length)];
+  }
+
+  // --- Drag and Drop Logic ---
+  onDragStart(event: DragEvent, site: Site, fromCategory: Category): void {
+    event.stopPropagation();
+    this.draggedItem = { site, fromCategory };
+    (event.target as HTMLElement).classList.add('dragging');
+    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; }
+  }
+
+  onDragOverSite(event: DragEvent, targetElement: HTMLElement): void {
+    if (!this.draggedItem) return;
+    event.preventDefault();
+    targetElement.classList.add('drag-over');
+  }
+
+  onDragLeaveSite(event: DragEvent, targetElement: HTMLElement): void {
+    targetElement.classList.remove('drag-over');
+  }
+
+  onDragOverCategory(event: DragEvent, targetCategory: Category): void {
+    if (!this.draggedItem || this.draggedItem.fromCategory.name === targetCategory.name) return;
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.add('site-drag-over');
+  }
+
+  onDragLeaveCategory(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('site-drag-over');
+  }
+
+  onDropOnSite(event: DragEvent, targetSite: Site, targetCategory: Category): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.draggedItem || this.draggedItem.site.url === targetSite.url) return;
+
+    const currentCategories = JSON.parse(JSON.stringify(this.siteDataService.categories$.getValue()));
+    const realFromCategory = currentCategories.find((c: Category) => c.name === this.draggedItem!.fromCategory.name)!;
+    const realTargetCategory = currentCategories.find((c: Category) => c.name === targetCategory.name)!;
+
+    realFromCategory.sites = realFromCategory.sites.filter((s: Site) => s.url !== this.draggedItem!.site.url);
+    const targetIndex = realTargetCategory.sites.findIndex((s: Site) => s.url === targetSite.url);
+    realTargetCategory.sites.splice(targetIndex, 0, this.draggedItem.site);
+
+    this.siteDataService.updateCategories(currentCategories);
+  }
+
+  onDropInCategory(event: DragEvent, targetCategory: Category): void {
+    event.preventDefault();
+    if (!this.draggedItem || this.draggedItem.fromCategory.name === targetCategory.name) return;
+
+    const currentCategories = JSON.parse(JSON.stringify(this.siteDataService.categories$.getValue()));
+    const realFromCategory = currentCategories.find((c: Category) => c.name === this.draggedItem!.fromCategory.name)!;
+    const realTargetCategory = currentCategories.find((c: Category) => c.name === targetCategory.name)!;
+
+    realFromCategory.sites = realFromCategory.sites.filter((s: Site) => s.url !== this.draggedItem!.site.url);
+    realTargetCategory.sites.push(this.draggedItem.site);
+
+    this.siteDataService.updateCategories(currentCategories);
+  }
+
+  onDragEnd(event: DragEvent): void {
+    document.querySelectorAll('.dragging, .drag-over, .site-drag-over').forEach(el => el.classList.remove('dragging', 'drag-over', 'site-drag-over'));
+    this.draggedItem = null;
+  }
+
+  onCategoryDragStart(event: DragEvent, category: Category): void {
+    if (this.uiStateService.isSidebarCollapsed$.getValue()) { event.preventDefault(); return; }
+    this.draggedCategory = category;
+    (event.currentTarget as HTMLElement).classList.add('dragging');
+    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; }
+  }
+
+  onCategoryDragEnter(event: DragEvent): void {
+    if (this.draggedCategory) {
+      event.preventDefault();
+    }
+  }
+
+  onCategoryDragOver(event: DragEvent): void {
+    if (!this.draggedCategory) return;
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.add('category-drag-over');
+  }
+
+  onCategoryDragLeave(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('category-drag-over');
+  }
+
+  onCategoryDrop(event: DragEvent, targetCategory: Category): void {
+    event.preventDefault();
+    if (!this.draggedCategory || this.draggedCategory.name === targetCategory.name) return;
+
+    const currentCategories = this.siteDataService.categories$.getValue();
+    const fromIndex = currentCategories.findIndex((c: Category) => c.name === this.draggedCategory!.name);
+    const toIndex = currentCategories.findIndex((c: Category) => c.name === targetCategory.name);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      const [movedCategory] = currentCategories.splice(fromIndex, 1);
+      currentCategories.splice(toIndex, 0, movedCategory);
+      this.siteDataService.updateCategories(currentCategories);
+    }
+  }
+
+  onCategoryDragEnd(event: DragEvent): void {
+    document.querySelectorAll('.dragging, .category-drag-over').forEach(el => el.classList.remove('dragging', 'category-drag-over'));
+    this.draggedCategory = null;
+  }
+}
+</file>
+
+<file path="src/app/core/models/site.model.ts">
+export interface Site {
+  name: string;
+  url: string;
+}
+
+export interface Category {
+  name: string;
+  sites: Site[];
+}
+
+export interface AvailableSite extends Site {
+  description: string;
+  category: string;
+}
+</file>
+
+<file path="src/app/core/services/site-data.service.ts">
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, BehaviorSubject } from 'rxjs';
+import { Category, Site, AvailableSite } from '../models/site.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SiteDataService {
+  // --- Private constants for Local Storage ---
+  private readonly userCategoriesKey = 'userChannelCategories';
+  private readonly removedDefaultSitesKey = 'removedDefaultSites';
+  private readonly oldStorageKey = 'userSites'; // For migration
+
+  private defaultSites: Site[] = [];
+  private http = inject(HttpClient);
+
+  // BehaviorSubject to hold and stream the categories data
+  categories$ = new BehaviorSubject<Category[]>([]);
+  availableSites$ = new BehaviorSubject<AvailableSite[]>([]);
+
+  constructor() {
+    this.loadInitialData();
+  }
+
+  private loadInitialData(): void {
+    forkJoin({
+      defaultCategories: this.http.get<Category[]>('assets/sites.json'),
+      availableSites: this.http.get<AvailableSite[]>('assets/available-sites.json')
+    }).subscribe(({ defaultCategories, availableSites }) => {
+      this.availableSites$.next(availableSites);
+      this.defaultSites = defaultCategories.flatMap(cat => cat.sites);
+      this.loadUserCategoriesAndMerge(defaultCategories);
+    });
+  }
+
+  private loadUserCategoriesAndMerge(defaultCategories: Category[]): void {
+    let userCategories: Category[] | null = this.loadCategoriesFromStorage();
+
+    if (!userCategories) {
+        this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
+    } else {
+        const merged = this.mergeDefaultSites(userCategories, defaultCategories);
+        this.categories$.next(merged);
+    }
+    this.saveCategories();
+  }
+
+  private loadCategoriesFromStorage(): Category[] | null {
+    const savedCategoriesRaw = localStorage.getItem(this.userCategoriesKey);
+    if (savedCategoriesRaw) {
+        try {
+            const parsed = JSON.parse(savedCategoriesRaw);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) { console.error("Error parsing categories, ignoring.", e); }
+    }
+
+    const oldSitesRaw = localStorage.getItem(this.oldStorageKey);
+    if (oldSitesRaw) {
+        try {
+            const oldSites = JSON.parse(oldSitesRaw);
+            if (Array.isArray(oldSites) && oldSites.length > 0) {
+                console.log('Migrating data from old format.');
+                localStorage.removeItem(this.oldStorageKey);
+                return [{ name: 'הערוצים שלי', sites: oldSites }];
+            }
+        } catch(e) { console.error("Error parsing old sites, ignoring.", e); }
+    }
+    return null;
+  }
+
+  private mergeDefaultSites(userCategories: Category[], defaultCategories: Category[]): Category[] {
+    const removedSites = this.getRemovedDefaultSites();
+    const userSitesUrls = new Set(userCategories.flatMap(cat => cat.sites.map(s => s.url)));
+
+    defaultCategories.forEach(defaultCategory => {
+        defaultCategory.sites.forEach(defaultSite => {
+            if (!userSitesUrls.has(defaultSite.url) && !removedSites.has(defaultSite.url)) {
+                let targetCategory = userCategories.find(c => c.name === defaultCategory.name);
+                if (!targetCategory) {
+                    targetCategory = { name: defaultCategory.name, sites: [] };
+                    userCategories.push(targetCategory);
+                }
+                targetCategory.sites.push(defaultSite);
+            }
+        });
+    });
+    return userCategories;
+  }
+
+  private saveCategories(): void {
+    localStorage.setItem(this.userCategoriesKey, JSON.stringify(this.categories$.getValue()));
+  }
+
+  private getRemovedDefaultSites(): Set<string> {
+    const removedRaw = localStorage.getItem(this.removedDefaultSitesKey);
+    return new Set<string>(removedRaw ? JSON.parse(removedRaw) : []);
+  }
+
+  private saveRemovedDefaultSites(removedSet: Set<string>): void {
+    localStorage.setItem(this.removedDefaultSitesKey, JSON.stringify(Array.from(removedSet)));
+  }
+
+  addSite(newSite: Site, categoryName: string): boolean {
+    const currentCategories = this.categories$.getValue();
+    if (currentCategories.some(c => c.sites.some(s => s.url === newSite.url))) {
+      alert('הערוץ כבר קיים ברשימה.');
+      return false;
+    }
+
+    let targetCategory = currentCategories.find(c => c.name === categoryName);
+    if (targetCategory) {
+      targetCategory.sites.push(newSite);
+    } else {
+      currentCategories.push({ name: categoryName, sites: [newSite] });
+    }
+
+    this.categories$.next(currentCategories);
+    this.saveCategories();
+    return true;
+  }
+
+  removeSite(siteToRemove: Site): void {
+    if (this.defaultSites.some(s => s.url === siteToRemove.url)) {
+      const removedSites = this.getRemovedDefaultSites();
+      removedSites.add(siteToRemove.url);
+      this.saveRemovedDefaultSites(removedSites);
+    }
+
+    let currentCategories = this.categories$.getValue();
+    currentCategories.forEach(cat => { cat.sites = cat.sites.filter(s => s.url !== siteToRemove.url); });
+    currentCategories = currentCategories.filter(cat => cat.sites.length > 0);
+
+    this.categories$.next(currentCategories);
+    this.saveCategories();
+  }
+
+  updateCategories(updatedCategories: Category[]): void {
+    const cleanedCategories = updatedCategories.filter(c => c.sites.length > 0);
+    this.categories$.next(cleanedCategories);
+    this.saveCategories();
+  }
+}
+</file>
+
+<file path="src/app/core/services/ui-state.service.ts">
+import { Injectable, inject } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { BehaviorSubject } from 'rxjs'; // Removed Observable and map, not needed
+import { Site } from '../models/site.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UiStateService {
+  private sanitizer = inject(DomSanitizer);
+
+  // --- Dialogs visibility state ---
+  isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
+  isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
+  siteToDelete$ = new BehaviorSubject<Site | null>(null);
+
+  // --- Sidebar and Selection state ---
+  isSidebarCollapsed$ = new BehaviorSubject<boolean>(false);
+
+  // --- REVERTED AND CORRECTED STATE MANAGEMENT ---
+  // Back to the original, imperative pattern which works reliably.
+
+  // 1. Subject for the active site's name. This solves the .getValue() error.
+  activeSiteName$ = new BehaviorSubject<string | null>(null);
+
+  // 2. Subject for the iframe's URL. This will be updated manually.
+  sanitizedSelectedSiteUrl$ = new BehaviorSubject<SafeResourceUrl | null>(null);
+
+  // You can still keep a private subject for the full site object if needed for getters
+  private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
+  selectedSite$ = this.selectedSiteSubject.asObservable();
+
+
+  constructor() { }
+
+  // This function now manually updates everything, just like in the user's refactored code.
+  selectSite(site: Site | null) {
+    this.selectedSiteSubject.next(site); // Update the full site object
+
+    if (site) {
+      this.activeSiteName$.next(site.name); // Manually update the name
+      const sanitizedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(site.url);
+      this.sanitizedSelectedSiteUrl$.next(sanitizedUrl); // Manually update the URL for the iframe
+    } else {
+      this.activeSiteName$.next(null);
+      this.sanitizedSelectedSiteUrl$.next(null);
+    }
+  }
+
+  // Getter for synchronous access, used in AppComponent and ConfirmDeleteDialog
+  getActiveSite(): Site | null {
+    return this.selectedSiteSubject.getValue();
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed$.next(!this.isSidebarCollapsed$.value);
+  }
+
+  openAddSiteDialog(): void {
+    this.isAddSiteDialogVisible$.next(true);
+  }
+
+  closeAddSiteDialog(): void {
+    this.isAddSiteDialogVisible$.next(false);
+  }
+
+  openConfirmDeleteDialog(site: Site): void {
+    this.siteToDelete$.next(site);
+    this.isConfirmDeleteDialogVisible$.next(true);
+  }
+
+  closeConfirmDeleteDialog(): void {
+    this.isConfirmDeleteDialogVisible$.next(false);
+    this.siteToDelete$.next(null);
+  }
+}
+</file>
+
+<file path="tsconfig.app.json">
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]
+}
+</file>
+
+<file path="tsconfig.json">
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "typeCheckHostBindings": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}
+</file>
+
+<file path="tsconfig.spec.json">
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jasmine"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
+</file>
+
+<file path=".gitignore">
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+The-channel.xml
+</file>
+
+<file path="README.md">
+# TheChannel
+
+אתר להצגת ערוצים בi frame
+</file>
+
+<file path="src/main.ts">
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { provideHttpClient } from '@angular/common/http'; // <-- דרך מודרנית לספק HttpClient
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideHttpClient() // <-- רישום שירות ה-HttpClient עבור האפליקציה
+  ]
+}).catch(err => console.error(err));
+</file>
+
+<file path=".github/workflows/ci.yaml">
+# שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
+name: Build and Deploy to GitHub Pages
+
+# מתי להפעיל את ה-Workflow
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# הרשאות נדרשות כדי לאפשר ל-Action לפרוס ל-Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. הורדת הקוד מהמאגר
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: npm install
+
+      # 4. בניית פרויקט האנגולר
+      - name: Build Angular App
+        run: npm run build -- --configuration production --base-href /
+
+      # 5. הכנת קבצי הבנייה להעלאה (Artifact)
+      - name: Upload production-build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist/The-channel/browser/
+
+      # 6. פריסת ה-Artifact ל-GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+</file>
+
+<file path="public/assets/available-sites.json">
+[
+  {
+    "name": "",
+    "url": "",
+    "description": "",
+    "category": ""
+  }
+]
+</file>
+
+<file path="src/index.html">
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>הערוץ | הפלטפורמה הנוחה לצפייה בערוצים</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+</file>
+
+<file path="src/styles.css">
+/* src/styles.css */
+
+/* Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Basic reset and global styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+</file>
+
+<file path="angular.json">
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "The-channel": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "19kB",
+                  "maximumError": "25kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "The-channel:build:production"
+            },
+            "development": {
+              "buildTarget": "The-channel:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "schematicCollections": [
+      "angular-eslint"
+    ]
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "the-channel",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^20.3.1",
+    "@angular/cdk": "^20.2.7",
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.2",
+    "@angular/cli": "^20.3.2",
+    "@angular/compiler-cli": "^20.3.0",
+    "@types/jasmine": "~5.1.0",
+    "angular-eslint": "20.4.0",
+    "eslint": "^9.37.0",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "8.46.0"
+  }
+}
+</file>
+
+<file path=".github/workflows/deploy.yml">
+# שם ה-Workflow שיופיע בלשונית Actions ב-GitHub
+name: Build and Deploy to gh-pages branch
+
+# מתי להפעיל את ה-Workflow
+on:
+  # הפעלה אוטומטית בכל דחיפה (push) לענף main
+  push:
+    branches:
+      - main
+
+  # מאפשר הפעלה ידנית מה-UI של GitHub
+  workflow_dispatch:
+
+# הרשאות נדרשות כדי לאפשר ל-Action לדחוף קוד למאגר
+permissions:
+  contents: write
+
+# הגדרת עבודות (Jobs) שירוצו
+jobs:
+  build-and-deploy:
+    # על איזו מערכת הפעלה להריץ את העבודה
+    runs-on: ubuntu-latest
+
+    # שלבי העבודה
+    steps:
+      # 1. הורדת הקוד מהמאגר (מהענף main)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: npm install
+
+      # 4. בניית פרויקט האנגולר
+      #    שים לב: base-href חייב להיות שם המאגר שלך ב-GitHub
+      - name: Build Angular App
+        run: npm run build -- --configuration production --base-href /
+        # ⬆️ ודא ש-'TheChannel--viewer' הוא שם המאגר המדויק שלך!
+
+      # 5. פריסת קבצי הבנייה לענף gh-pages
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # טוקן שנוצר אוטומטית עם הרשאות כתיבה למאגר
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # התיקייה שמכילה את תוצר הבנייה (index.html וכו')
+          publish_dir: ./dist/The-channel/browser/
+          # ⬆️ ודא שהנתיב הזה תואם לתיקיית הפלט של הבנייה שלך
+</file>
+
+<file path="public/assets/sites.json">
+[
+  {
+    "name": "דוגמה",
+    "sites": [
+      {
+        "name": "הערוץ הראשון!!",
+        "url": "https://the-channel.clickandgo.cfd/"
+      }
+    ]
+  },
+  {
+    "name": "דוגjjjמה",
+    "sites": [
+      {
+        "name": "הערוץ ffghjhgהראשון!!",
+        "url": "https://the-kkchannel.clickandgo.cfd/"
+      }
+    ]
+  },
+  {
+    "name": "דוjkkkkגמה",
+    "sites": [
+      {
+        "name": "הערוץjjj הראשון!!",
+        "url": "https://the-lkjhgfdchannel.clkhjklkjickandgo.cfd/"
+      }
+    ]
+  },
+  {
+    "name": "דוjkkkkjhgfghjkגמה",
+    "sites": [
+      {
+        "name": "הערוץ הראשון!!",
+        "url": "https://tkjhgfdfghjhe-lkjhgfdchannel.clickandgo.cfd/"
+      }
+    ]
+  }
+]
+</file>
+
+<file path="src/app/app.component.html">
+<div class="app-layout">
+  <!-- This container holds the sidebar and the iframe area -->
+  <div class="main-container">
+    <app-sidebar></app-sidebar>
+    <app-main-content></app-main-content>
+  </div>
+
+  <!-- Advertisement Footer -->
+  <footer class="ad-container">
+    <div id="ad-placement-container"></div>
+  </footer>
+</div>
+
+<!-- Dialogs are now self-contained components -->
+<app-add-site-dialog></app-add-site-dialog>
+<app-confirm-delete-dialog></app-confirm-delete-dialog>
+</file>
+
+<file path="src/app/app.component.ts">
+import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { take } from 'rxjs';
+
+// Import the new components
+import { SidebarComponent } from './components/sidebar/sidebar';
+import { MainContentComponent } from './components/main-content/main-content';
+import { AddSiteDialogComponent } from './components/add-site-dialog/add-site-dialog';
+import { ConfirmDeleteDialogComponent } from './components/confirm-delete-dialog/confirm-delete-dialog';
+
+// Import services to ensure they are initialized
+import { SiteDataService } from './core/services/site-data.service';
+import { UiStateService } from './core/services/ui-state.service';
+import { Site } from './core/models/site.model';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [
+    CommonModule,
+    SidebarComponent,
+    MainContentComponent,
+    AddSiteDialogComponent,
+    ConfirmDeleteDialogComponent
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit, AfterViewInit {
+  // Inject services to ensure they are created and data is loaded.
+  private siteDataService = inject(SiteDataService);
+  private uiStateService = inject(UiStateService);
+
+  ngOnInit(): void {
+    this.siteDataService.categories$.pipe(take(1)).subscribe(categories => {
+      // Use the new getter to check if a site is already active
+      if (categories.length > 0 && !this.uiStateService.getActiveSite()) {
+        const firstSite = categories.flatMap(c => c.sites)[0];
+        if (firstSite) {
+          this.uiStateService.selectSite(firstSite);
+        }
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.loadAdScript();
+  }
+
+  private loadAdScript(): void {
+    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@d558adf/ads.ads.js?v=' + new Date().getTime();
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+}
+</file>
+
+<file path="src/app/app.component.css">
+/* src/app/app.component.css */
+
+:host {
+  display: block;
+  height: 100%;
+  overflow: hidden; /* Prevent layout shifts */
+}
+
+/* Main layout */
+.app-layout {
+  display: flex;
+  flex-direction: column; /* Stack main content and ad footer vertically */
+  height: 100%;
+  width: 100%;
+}
+
+/* Container for the main part of the app (sidebar + iframe) */
+.main-container {
+  display: flex;
+  flex-grow: 1; /* Make this container take up all available vertical space */
+  overflow: hidden; /* Important to contain elements and prevent double scrollbars */
+  min-height: 0; /* <-- THE FIX: Allows this container to shrink below its content's size */
+}
+
+/* Advertisement Footer Styles */
+.ad-container {
+  width: 100%;
+  flex-shrink: 0; /* Ensures the footer doesn't shrink */
+  border-top: 1px solid #cccccc;
+  box-sizing: border-box;
+  background-color: #f0f0f0;
+}
+</file>
+
+</files>

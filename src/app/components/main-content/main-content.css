@@ -1,10 +1,22 @@
 /* src/app/components/main-content/main-content.component.css */
 
+/*
+  THE FIX: Style the component's host element (<app-main-content>)
+  This tells the component itself to grow and fill the available space
+  provided by its parent flex container (.main-container).
+*/
+:host {
+  flex-grow: 1; /* Allows the component to take up all available horizontal space */
+  display: flex;  /* Makes the host a flex container for its internal content */
+  overflow: hidden; /* Prevents any potential overflow issues */
+}
+
 .main-content {
   flex-grow: 1;
   display: flex;
   background-color: #ffffff;
 }
+
 .iframe-container {
   flex-grow: 1;
   position: relative;
@@ -12,6 +24,7 @@
   justify-content: center;
   align-items: center;
 }
+
 iframe {
   position: absolute;
   top: 0;
@@ -20,6 +33,7 @@ iframe {
   height: 100%;
   border: none;
 }
+
 .placeholder {
   color: #5f6368;
   font-size: 1.2rem;

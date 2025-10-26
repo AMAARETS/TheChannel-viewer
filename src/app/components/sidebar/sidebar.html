@@ -21,8 +21,7 @@
         type="text"
         class="search-input"
         placeholder="חיפוש ערוץ..."
-        [ngModel]="searchTerm"
-        (ngModelChange)="onSearch($event)"
+        (input)="onSearch($event)"
       >
     </ng-container>
     <ng-template #searchIcon>
@@ -43,9 +42,12 @@
       (dragleave)="onCategoryDragLeave($event)"
       (drop)="onCategoryDrop($event, category)"
       (dragend)="onCategoryDragEnd($event)"
+      (dragenter)="onCategoryDragEnter($event)"
     >
       <h3 class="category-header" *ngIf="!(isSidebarCollapsed$ | async)">{{ category.name }}</h3>
       <ul class="site-list"
+        (dragover)="onDragOverCategory($event, category)"
+        (dragleave)="onDragLeaveCategory($event)"
         (drop)="onDropInCategory($event, category)">
         <li #listItem
           *ngFor="let site of category.sites"
@@ -57,7 +59,7 @@
           (dragover)="onDragOverSite($event, listItem)"
           (dragleave)="onDragLeaveSite($event, listItem)"
           (drop)="onDropOnSite($event, site, category)"
-          (dragend)="onDragEnd($event)"
+          (dragend)="onDragEnd()"
         >
           <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
           <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
@@ -73,19 +75,19 @@
 
 
   <!-- Available sites matching search -->
-  <div class="available-sites-container" *ngIf="filteredAvailableSites$ | async as sites">
-    <div *ngIf="searchTerm && sites && sites.length > 0">
-      <h4 class="available-sites-header">הוספה מהירה</h4>
-      <ul class="available-site-list">
-        <li *ngFor="let site of sites" (click)="addSiteFromAvailable(site)" [title]="site.description">
-          <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-          <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
-          <span class="site-name" *ngIf="!(isSidebarCollapsed$ | async)">{{ site.name }}</span>
-          <button class="action-btn add-btn" *ngIf="!(isSidebarCollapsed$ | async)" title="הוסף ערוץ">+</button>
-        </li>
-      </ul>
-    </div>
-  </div>
+    <div class="available-sites-container" *ngIf="(filteredAvailableSites$ | async) as sites">
+        <div *ngIf="sites.length > 0">
+          <h4 class="available-sites-header">הוספה מהירה</h4>
+          <ul class="available-site-list">
+            <li *ngFor="let site of sites" (click)="addSiteFromAvailable(site)" [title]="site.description">
+              <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+              <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+              <span class="site-name" *ngIf="!(isSidebarCollapsed$ | async)">{{ site.name }}</span>
+              <button class="action-btn add-btn" *ngIf="!(isSidebarCollapsed$ | async)" title="הוסף ערוץ">+</button>
+            </li>
+          </ul>
+        </div>
+      </div>
 </div>
 
   <!-- Add Channel Button -->

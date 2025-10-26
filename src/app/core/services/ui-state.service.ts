@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, map, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Site } from '../models/site.model';
 
 @Injectable({
@@ -14,36 +14,42 @@ export class UiStateService {
   isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteToDelete$ = new BehaviorSubject<Site | null>(null);
 
-  // --- Sidebar and Selection state ---
+  // --- Sidebar State ---
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(false);
-  activeSiteName$ = new BehaviorSubject<string | null>(null);
 
-  selectedSiteUrl$ = this.activeSiteName$.pipe(
-    distinctUntilChanged(),
-    map(name => {
-      // Note: Logic to get URL from name would need access to SiteDataService
-      // For simplicity, we'll manage the full site object instead.
-      return null; // This will be improved.
-    })
+  // --- Core Selection State ---
+  // A single source of truth for the selected site object.
+  private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
+
+  // Publicly exposed observables derived from the single source of truth.
+  // This is a more robust and reactive pattern.
+  selectedSite$: Observable<Site | null> = this.selectedSiteSubject.asObservable();
+
+  /** Emits the name of the active site, or null if none is selected. */
+  activeSiteName$: Observable<string | null> = this.selectedSite$.pipe(
+    map(site => site?.name ?? null)
   );
 
-  // A better approach for selected site
-  private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
-  selectedSite$ = this.selectedSiteSubject.asObservable();
-  sanitizedSelectedSiteUrl$: BehaviorSubject<SafeResourceUrl | null> = new BehaviorSubject<SafeResourceUrl | null>(null);
+  /** Emits a sanitized URL for the iframe, or null if no site is selected. */
+  sanitizedSelectedSiteUrl$: Observable<SafeResourceUrl | null> = this.selectedSite$.pipe(
+    map(site => site ? this.sanitizer.bypassSecurityTrustResourceUrl(site.url) : null)
+  );
 
-  constructor() { }
+  /**
+   * Selects a new site. All dependent observables (`activeSiteName$`, `sanitizedSelectedSiteUrl$`)
+   * will update automatically.
+   * @param site The site to select, or null to clear selection.
+   */
+  selectSite(site: Site | null): void {
+    this.selectedSiteSubject.next(site);
+  }
 
-  selectSite(site: Site | null) {
-    if (site) {
-      this.selectedSiteSubject.next(site);
-      this.activeSiteName$.next(site.name);
-      this.sanitizedSelectedSiteUrl$.next(this.sanitizer.bypassSecurityTrustResourceUrl(site.url));
-    } else {
-      this.selectedSiteSubject.next(null);
-      this.activeSiteName$.next(null);
-      this.sanitizedSelectedSiteUrl$.next(null);
-    }
+  /**
+   * Synchronously gets the current value of the selected site.
+   * Useful for logic that needs an immediate snapshot of the state.
+   */
+  getActiveSite(): Site | null {
+    return this.selectedSiteSubject.getValue();
   }
 
   toggleSidebar(): void {

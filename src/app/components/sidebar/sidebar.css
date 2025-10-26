@@ -11,6 +11,7 @@
   box-sizing: border-box;
   border-right: 1px solid #e0e0e0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%; /* <-- THE FIX: Ensures the nav fills its parent component */
 }
 
 .sidebar-header {
@@ -110,16 +111,11 @@
   cursor: grab;
 }
 
-/* List of sites
-.channel-list-container {
-  overflow-y: auto;
-  flex-grow: 1;
-}
-*/
-
+/* This is the key part for scrolling */
 .scrollable-content {
   flex-grow: 1; /* Make this section take all available vertical space */
   overflow-y: auto; /* Add a scrollbar if content overflows */
+  /* This needs a parent with a defined height to work, which we just fixed */
 }
 
 .category-drop-zone {

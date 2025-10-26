@@ -19,6 +19,7 @@
   display: flex;
   flex-grow: 1; /* Make this container take up all available vertical space */
   overflow: hidden; /* Important to contain elements and prevent double scrollbars */
+  min-height: 0; /* <-- THE FIX: Allows this container to shrink below its content's size */
 }
 
 /* Advertisement Footer Styles */
