@@ -1,0 +1,8 @@
+<main class="main-content">
+  <div class="iframe-container">
+    <iframe *ngIf="selectedSiteUrl$ | async as url" [src]="url" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
+    <div *ngIf="!(selectedSiteUrl$ | async)" class="placeholder">
+      <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
+    </div>
+  </div>
+</main>

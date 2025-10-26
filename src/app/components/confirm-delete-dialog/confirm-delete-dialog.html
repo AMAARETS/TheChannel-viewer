@@ -1,0 +1,12 @@
+<div class="dialog-overlay" *ngIf="isVisible$ | async" (click)="closeDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">אישור מחיקה</h2>
+    <div class="dialog-content">
+      <p>האם אתה בטוח שברצונך למחוק את הערוץ "{{ (siteToDelete$ | async)?.name }}"?</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeDialog()">ביטול</button>
+      <button class="btn-danger" (click)="confirmRemoveSite()">מחק</button>
+    </div>
+  </div>
+</div>

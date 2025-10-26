@@ -1,0 +1,165 @@
+/* src/app/components/add-site-dialog/add-site-dialog.component.css */
+
+/* --- Dialog Styles --- */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.dialog-box {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  color: #202124;
+}
+.dialog-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3c4043;
+  margin: 16px 0 8px;
+}
+.dialog-content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dialog-content input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+}
+.dialog-content input:focus {
+  outline: 0;
+  border: 2px solid #1a73e8;
+  padding: 9px;
+}
+.dialog-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 16px 0;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+.dialog-actions button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.btn-primary {
+  background-color: #1a73e8;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #185abc;
+}
+.btn-secondary {
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+}
+.btn-secondary:hover {
+  background-color: #f1f3f4;
+}
+
+/* Specific to Add-Site Dialog */
+.available-sites-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+.available-sites-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s;
+}
+.available-sites-list li:last-child {
+  border-bottom: none;
+}
+.available-sites-list li:hover {
+  background-color: #f8f9fa;
+}
+.site-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.site-details {
+  display: flex;
+  flex-direction: column;
+}
+.site-details .site-name {
+  font-weight: 500;
+  color: #202124;
+}
+.site-details .site-description {
+  font-size: 0.8rem;
+  color: #5f6368;
+}
+.btn-add-from-list {
+  background-color: #e8f0fe;
+  color: #1967d2;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+.btn-add-from-list:hover {
+  background-color: #d2e3fc;
+}
+
+/* Icons and Fallback (needed for available sites list) */
+.site-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}

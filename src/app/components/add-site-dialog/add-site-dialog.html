@@ -1,0 +1,33 @@
+<div class="dialog-overlay" *ngIf="isVisible$ | async" (click)="closeDialog()">
+  <div class="dialog-box" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">הוספת ערוץ חדש</h2>
+    <div class="dialog-content">
+      <h3 class="dialog-subtitle">הוספה מרשימה</h3>
+      <ul class="available-sites-list">
+        <li *ngFor="let site of filteredAvailableSites$ | async" (click)="addSiteFromAvailable(site)">
+          <div class="site-info">
+            <img *ngIf="!hasFaviconError(site)" [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+            <div *ngIf="hasFaviconError(site)" class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+            <div class="site-details">
+              <span class="site-name">{{ site.name }}</span>
+              <span class="site-description">{{ site.description }}</span>
+            </div>
+          </div>
+          <button class="btn-add-from-list">+</button>
+        </li>
+      </ul>
+      <hr class="dialog-divider">
+      <h3 class="dialog-subtitle">הוספה ידנית</h3>
+      <input #siteNameInput type="text" placeholder="שם הערוץ">
+      <input #siteUrlInput type="text" placeholder="כתובת (URL)">
+      <input #siteCategoryInput type="text" placeholder="קטגוריה (למשל: חדשות)" list="category-suggestions">
+      <datalist id="category-suggestions">
+        <option *ngFor="let category of categories$ | async" [value]="category.name"></option>
+      </datalist>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-secondary" (click)="closeDialog()">סגור</button>
+      <button class="btn-primary" (click)="addSite(siteNameInput, siteUrlInput, siteCategoryInput)">שמור ערוץ ידני</button>
+    </div>
+  </div>
+</div>

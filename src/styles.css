@@ -1,6 +1,13 @@
+/* src/styles.css */
+
+/* Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Basic reset and global styles */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
+  font-family: 'Roboto', sans-serif;
 }
