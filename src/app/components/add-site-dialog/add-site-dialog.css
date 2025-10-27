@@ -23,6 +23,7 @@
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  position: relative; /* FIX: This becomes the positioning context for the dropdown */
 }
 .dialog-title {
   margin: 0 0 16px;
@@ -36,7 +37,7 @@
   margin: 16px 0 8px;
 }
 .dialog-content {
-  overflow-y: auto;
+  overflow-y: auto; /* This can now safely scroll without clipping the dropdown */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -147,7 +148,28 @@
   background-color: #d2e3fc;
 }
 
-/* Icons and Fallback (needed for available sites list) */
+/* Custom Category Dropdown - FIX */
+.category-dropdown {
+  position: absolute; /* Positioned relative to .dialog-box */
+  background-color: white;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1010;
+  max-height: 150px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.category-item {
+  padding: 10px;
+  cursor: pointer;
+}
+.category-item:hover {
+  background-color: #f1f3f4;
+}
+
+
+/* Icons and Fallback */
 .site-icon {
   width: 20px;
   height: 20px;

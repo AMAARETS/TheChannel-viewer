@@ -1,0 +1,17 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()">
+      @if (config$ | async; as config) {
+        <h2 class="dialog-title">{{ config.title }}</h2>
+        <div class="dialog-content">
+          <label [for]="'dialog-input'">{{ config.label }}</label>
+          <input #dialogInput id="dialog-input" type="text" [placeholder]="config.placeholder || ''" (keydown.enter)="submit(dialogInput)">
+        </div>
+        <div class="dialog-actions">
+          <button class="btn-secondary" (click)="closeDialog()">ביטול</button>
+          <button class="btn-primary" (click)="submit(dialogInput)">{{ config.confirmButtonText }}</button>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -11,7 +11,7 @@
   box-sizing: border-box;
   border-right: 1px solid #e0e0e0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 100%; /* <-- THE FIX: Ensures the nav fills its parent component */
+  height: 100%;
 }
 
 .sidebar-header {
@@ -102,52 +102,103 @@
   font-size: 13px;
   font-weight: 700;
   color: #5f6368;
-  padding: 12px 24px 4px;
+  padding: 6px 12px 2px;
   margin: 0;
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: grab;
+  cursor: pointer;
+  border-radius: 4px; /* For focus outline */
+  display: flex;
+  align-items: center;
+}
+.category-header-collapsed {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5f6368;
+  padding: 12px 0;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: default;
+  height: 25px;
 }
 
-/* This is the key part for scrolling */
+/* Category Arrow */
+.category-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #5f6368;
+  margin-left: 8px;
+  transition: transform 0.2s ease-in-out;
+}
+.category-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+
+/* Scrollable Content with Auto-Hiding Scrollbar */
 .scrollable-content {
-  flex-grow: 1; /* Make this section take all available vertical space */
-  overflow-y: auto; /* Add a scrollbar if content overflows */
-  /* This needs a parent with a defined height to work, which we just fixed */
+  flex-grow: 1;
+  overflow-y: auto;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none;  /* For IE and Edge */
+}
+.scrollable-content::-webkit-scrollbar {
+  width: 0;
+}
+.scrollable-content:hover::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollable-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollable-content::-webkit-scrollbar-thumb {
+  background-color: #cccccc;
+  border-radius: 4px;
+  border: 2px solid #ffffff;
+}
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background-color: #b3b3b3;
 }
 
 .category-drop-zone {
   transition: background-color 0.2s ease;
+  border-radius: 20px;
+  margin: 0 2px;
 }
-.category-drop-zone:has(li:hover) {
-  background-color: #f8f9fa;
-  border-radius: 8px;
+.category-drop-zone:hover {
+  background-color: #f1f3f4;
 }
 
 .site-list {
   list-style-type: none;
-  padding: 0 8px;
+  padding: 4px;
   margin: 0;
 }
 .site-list li {
   display: flex;
   align-items: center;
-  padding: 6px 16px;
+  padding: 4px 8px;
   border-radius: 16px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   cursor: pointer;
   transition: background-color 0.2s ease, border-top 0.2s ease;
   font-weight: 500;
+  font-size: 14px;
   color: #3c4043;
   position: relative;
-  height: 36px;
+  height: 24px;
   box-sizing: border-box;
   border-top: 2px solid transparent;
 }
 .site-list li:hover {
-  background-color: #f1f3f4;
+  background-color: #e8e8e8;
 }
 .site-list li .site-name {
   flex-grow: 1;
@@ -158,26 +209,30 @@
 .site-list li.active {
   background-color: #e8f0fe;
   color: #1967d2;
+  font-weight: 700;
 }
 
-/* Action Buttons (Open new tab, Remove) */
+/* Action Buttons (Open new tab, Menu) */
 .site-actions {
   position: absolute;
-  left: 8px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  background-color: #f1f3f4;
+  background-color: rgba(232, 232, 232, 0.9);
   border-radius: 14px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
 }
-.site-list li:hover .site-actions {
+
+.site-list li:hover .site-actions,
+.site-list li.menu-active .site-actions {
   opacity: 1;
   visibility: visible;
 }
+
 .action-btn {
   display: flex;
   align-items: center;
@@ -186,22 +241,77 @@
   border: none;
   color: #5f6368;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 14px;
   line-height: 1;
-  padding: 4px;
+  padding: 2px;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  width: 16px;
+  height: 16px;
   transition: background-color 0.2s;
   text-decoration: none;
 }
 .action-btn:hover {
-  background-color: #e0e0e0;
+  background-color: #d1d0d0;
   color: #202124;
 }
-.remove-btn {
-  font-weight: bold;
+.menu-btn {
+  margin-left: 2px;
 }
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1100;
+  min-width: 150px;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.context-menu-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.context-menu-item:hover {
+  background-color: #f1f3f4;
+}
+.context-menu-item-wrapper {
+  position: relative;
+}
+.context-menu-item-wrapper:hover > .with-submenu > .context-submenu {
+  display: block;
+}
+
+.context-submenu {
+  position: absolute;
+  top: -5px; /* Default: open upwards */
+  right: 100%;
+  display: none;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1101;
+}
+
+/* FIX: When the main menu opens upwards, the submenu should open downwards */
+.context-menu.opens-up .context-submenu {
+  top: auto;
+  bottom: -5px;
+}
+
+.context-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 4px 0;
+}
+
 
 /* Drag and Drop Styles */
 .site-list li.dragging {
@@ -212,8 +322,7 @@
   border-top: 2px solid #1a73e8;
 }
 .category-drop-zone.site-drag-over {
-  background-color: #f1f3f4;
-  border-radius: 8px;
+  background-color: #e8f0fe;
 }
 .category-drop-zone.dragging {
   opacity: 0.5;
@@ -229,6 +338,7 @@
   margin-top: 8px;
   border-top: 1px solid #e0e0e0;
 }
+
 .available-sites-header {
   font-size: 12px;
   font-weight: 500;
@@ -245,15 +355,15 @@
 .available-site-list li {
   display: flex;
   align-items: center;
-  padding: 6px 16px;
+  padding: 4px 8px;
   border-radius: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  height: 36px;
+  height: 24px;
   box-sizing: border-box;
 }
 .available-site-list li:hover {
-  background-color: #f1f3f4;
+  background-color: #e8e8e8;
 }
 .available-site-list .site-name {
   flex-grow: 1;
@@ -261,15 +371,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: #3c4043;
+  font-size: 14px;
 }
 .available-site-list .add-btn {
-  font-size: 24px;
+  font-size: 16px;
+  font-weight: bold;
   margin-right: -4px;
 }
 
 /* Sidebar footer */
 .sidebar-footer {
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid #e0e0e0;
 }
 .add-channel-btn {
@@ -300,9 +412,6 @@
 .sidebar.collapsed .toggle-sidebar-btn {
   transform: rotate(180deg);
 }
-.sidebar.collapsed .category-header {
-  display: none;
-}
 .sidebar.collapsed .site-list {
   padding: 0 4px;
 }
@@ -329,11 +438,11 @@
 
 /* Icons and Fallback */
 .site-icon {
-  width: 20px;
-  height: 20px;
-  margin-left: 12px;
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
   flex-shrink: 0;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .fallback-icon {
   display: flex;
@@ -341,6 +450,6 @@
   justify-content: center;
   border-radius: 50%;
   color: white;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
 }

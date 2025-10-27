@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, HostListener } from '@angular/core'; // Import HostListener
 import { CommonModule, NgStyle } from '@angular/common';
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -19,7 +19,17 @@ export class AddSiteDialogComponent {
   isVisible$ = this.uiStateService.isAddSiteDialogVisible$;
   categories$ = this.siteDataService.categories$;
 
-  // Filter available sites to show only those not already in the user's list
+  isCategoryDropdownOpen = false;
+  dropdownPosition = {};
+
+  // FIX: Add HostListener to close dialog on Escape key press
+  @HostListener('window:keydown.escape')
+  closeOnEscape(): void {
+    if (this.uiStateService.isAddSiteDialogVisible$.getValue()) {
+      this.closeDialog();
+    }
+  }
+
   filteredAvailableSites$ = this.siteDataService.availableSites$.pipe(
     map(available => {
       const existingUrls = new Set(this.siteDataService.categories$.getValue().flatMap(c => c.sites.map(s => s.url)));
@@ -28,6 +38,7 @@ export class AddSiteDialogComponent {
   );
 
   closeDialog() {
+    this.isCategoryDropdownOpen = false;
     this.uiStateService.closeAddSiteDialog();
   }
 
@@ -55,10 +66,36 @@ export class AddSiteDialogComponent {
     this.closeDialog();
   }
 
-  // Favicon Logic (can be moved to a shared utility/service later)
+  openCategoryDropdown(inputEl: HTMLElement, dialogEl: HTMLElement): void {
+    const inputRect = inputEl.getBoundingClientRect();
+    const dialogRect = dialogEl.getBoundingClientRect();
+
+    const top = inputRect.bottom - dialogRect.top;
+    const left = inputRect.left - dialogRect.left;
+    const width = inputRect.width;
+
+    this.dropdownPosition = {
+      top: `${top}px`,
+      left: `${left}px`,
+      width: `${width}px`
+    };
+    this.isCategoryDropdownOpen = true;
+  }
+
+  closeCategoryDropdown(): void {
+    setTimeout(() => {
+      this.isCategoryDropdownOpen = false;
+    }, 150);
+  }
+
+  selectCategory(categoryName: string, categoryInput: HTMLInputElement): void {
+    categoryInput.value = categoryName;
+    this.isCategoryDropdownOpen = false;
+  }
+
   faviconErrorUrls = new Set<string>();
   colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'];
-  getFaviconUrl(url: string): string { try { const siteUrl = new URL(url); return `${siteUrl.origin}/favicon.ico`; } catch (e) { return ''; } }
+  getFaviconUrl(url: string): string { try { const siteUrl = new URL(url); return `${siteUrl.origin}/favicon.ico`; } catch { return ''; } }
   onFaviconError(site: Site): void { this.faviconErrorUrls.add(site.url); }
   hasFaviconError(site: Site): boolean { return this.faviconErrorUrls.has(site.url); }
   getFirstLetter(name: string): string { return name ? name.charAt(0).toUpperCase() : ''; }

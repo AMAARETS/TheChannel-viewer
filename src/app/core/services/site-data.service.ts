@@ -35,7 +35,7 @@ export class SiteDataService {
   }
 
   private loadUserCategoriesAndMerge(defaultCategories: Category[]): void {
-    let userCategories: Category[] | null = this.loadCategoriesFromStorage();
+    const userCategories: Category[] | null = this.loadCategoriesFromStorage(); // FIX: let -> const
 
     if (!userCategories) {
         this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
@@ -108,7 +108,7 @@ export class SiteDataService {
       return false;
     }
 
-    let targetCategory = currentCategories.find(c => c.name === categoryName);
+    const targetCategory = currentCategories.find(c => c.name === categoryName); // FIX: let -> const
     if (targetCategory) {
       targetCategory.sites.push(newSite);
     } else {
@@ -134,6 +134,31 @@ export class SiteDataService {
     this.categories$.next(currentCategories);
     this.saveCategories();
   }
+
+  moveSiteToCategory(siteToMove: Site, fromCategoryName: string, toCategoryName: string): void {
+    if (fromCategoryName === toCategoryName) return;
+
+    const currentCategories = JSON.parse(JSON.stringify(this.categories$.getValue()));
+    const fromCategory = currentCategories.find((c: Category) => c.name === fromCategoryName);
+    const toCategory = currentCategories.find((c: Category) => c.name === toCategoryName); // FIX: let -> const
+
+    if (!fromCategory) return;
+
+    // Remove from old category
+    fromCategory.sites = fromCategory.sites.filter((s: Site) => s.url !== siteToMove.url);
+
+    // Add to new category
+    if (toCategory) {
+      toCategory.sites.push(siteToMove);
+    } else {
+      currentCategories.push({ name: toCategoryName, sites: [siteToMove] });
+    }
+
+    // Clean up empty categories and update
+    const updatedCategories = currentCategories.filter((c: Category) => c.sites.length > 0);
+    this.updateCategories(updatedCategories);
+  }
+
 
   updateCategories(updatedCategories: Category[]): void {
     const cleanedCategories = updatedCategories.filter(c => c.sites.length > 0);

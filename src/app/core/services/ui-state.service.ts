@@ -1,7 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map, first } from 'rxjs';
 import { Site } from '../models/site.model';
+
+export interface InputDialogConfig {
+  title: string;
+  label: string;
+  placeholder?: string;
+  confirmButtonText: string;
+  callback: (value: string) => void;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -9,60 +18,64 @@ import { Site } from '../models/site.model';
 export class UiStateService {
   private sanitizer = inject(DomSanitizer);
 
+  // --- Local Storage Keys ---
+  private readonly sidebarCollapsedKey = 'sidebarCollapsed';
+  private readonly lastViewedSiteUrlKey = 'lastViewedSiteUrl';
+  private readonly collapsedCategoriesKey = 'collapsedCategories';
+
+
   // --- Dialogs visibility state ---
   isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
   isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteToDelete$ = new BehaviorSubject<Site | null>(null);
+  isInputDialogVisible$ = new BehaviorSubject<boolean>(false);
+  inputDialogConfig$ = new BehaviorSubject<InputDialogConfig | null>(null);
 
   // --- Sidebar State ---
-  isSidebarCollapsed$ = new BehaviorSubject<boolean>(false);
+  isSidebarCollapsed$ = new BehaviorSubject<boolean>(this.loadFromStorage(this.sidebarCollapsedKey) ?? false);
+
+  // --- Category Collapse State ---
+  collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>(this.loadFromStorage(this.collapsedCategoriesKey) ?? {});
 
   // --- Core Selection State ---
-  // A single source of truth for the selected site object.
   private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
-
-  // Publicly exposed observables derived from the single source of truth.
-  // This is a more robust and reactive pattern.
   selectedSite$: Observable<Site | null> = this.selectedSiteSubject.asObservable();
-
-  /** Emits the name of the active site, or null if none is selected. */
   activeSiteName$: Observable<string | null> = this.selectedSite$.pipe(
     map(site => site?.name ?? null)
   );
-
-  /** Emits a sanitized URL for the iframe, or null if no site is selected. */
   sanitizedSelectedSiteUrl$: Observable<SafeResourceUrl | null> = this.selectedSite$.pipe(
     map(site => site ? this.sanitizer.bypassSecurityTrustResourceUrl(site.url) : null)
   );
 
-  /**
-   * Selects a new site. All dependent observables (`activeSiteName$`, `sanitizedSelectedSiteUrl$`)
-   * will update automatically.
-   * @param site The site to select, or null to clear selection.
-   */
   selectSite(site: Site | null): void {
     this.selectedSiteSubject.next(site);
+    if (site) {
+      this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
+    }
   }
 
-  /**
-   * Synchronously gets the current value of the selected site.
-   * Useful for logic that needs an immediate snapshot of the state.
-   */
   getActiveSite(): Site | null {
     return this.selectedSiteSubject.getValue();
   }
 
+  getLastViewedSiteUrl(): string | null {
+    return this.loadFromStorage(this.lastViewedSiteUrlKey);
+  }
+
   toggleSidebar(): void {
-    this.isSidebarCollapsed$.next(!this.isSidebarCollapsed$.value);
+    const newState = !this.isSidebarCollapsed$.value;
+    this.isSidebarCollapsed$.next(newState);
+    this.saveToStorage(this.sidebarCollapsedKey, newState);
   }
 
-  openAddSiteDialog(): void {
-    this.isAddSiteDialogVisible$.next(true);
+  saveCollapsedCategories(state: Record<string, boolean>): void {
+    this.collapsedCategories$.next(state);
+    this.saveToStorage(this.collapsedCategoriesKey, state);
   }
 
-  closeAddSiteDialog(): void {
-    this.isAddSiteDialogVisible$.next(false);
-  }
+  // --- Dialog Methods ---
+  openAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(true); }
+  closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); }
 
   openConfirmDeleteDialog(site: Site): void {
     this.siteToDelete$.next(site);
@@ -72,5 +85,40 @@ export class UiStateService {
   closeConfirmDeleteDialog(): void {
     this.isConfirmDeleteDialogVisible$.next(false);
     this.siteToDelete$.next(null);
+  }
+
+  openInputDialog(config: InputDialogConfig): void {
+    this.inputDialogConfig$.next(config);
+    this.isInputDialogVisible$.next(true);
+  }
+
+  closeInputDialog(value: string | null): void {
+    if (value) {
+      this.inputDialogConfig$.pipe(first()).subscribe(config => {
+        config?.callback(value);
+      });
+    }
+    this.isInputDialogVisible$.next(false);
+    this.inputDialogConfig$.next(null);
+  }
+
+
+  // --- Local Storage Utilities ---
+  private saveToStorage<T>(key: string, value: T): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Error saving to localStorage', e);
+    }
+  }
+
+  private loadFromStorage<T>(key: string): T | null {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (e) {
+      console.error('Error reading from localStorage', e);
+      return null;
+    }
   }
 }

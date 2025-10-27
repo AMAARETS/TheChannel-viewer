@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject, Renderer2 } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, map, Subscription } from 'rxjs';
 
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
@@ -14,23 +14,35 @@ import { Category, Site, AvailableSite } from '../../core/models/site.model';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
+  renderer = inject(Renderer2);
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   // --- State Observables from Services ---
   isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
-  activeSiteName$ = this.uiStateService.activeSiteName$;
+  activeSiteUrl$: Observable<string | null> = this.uiStateService.selectedSite$.pipe(map(s => s?.url ?? null));
 
   // --- Reactive Filtering Logic ---
-  // A subject to hold the current search term.
   private searchTerm$ = new BehaviorSubject<string>('');
-
-  // Public observables for the filtered lists, derived from the data sources and search term.
   filteredCategories$!: Observable<Category[]>;
   filteredAvailableSites$!: Observable<AvailableSite[]>;
+
+  // --- UI State ---
+  private isTemporarilyExpanded$ = new BehaviorSubject<boolean>(false);
+  isExpanded$: Observable<boolean>;
+  categoryCollapseState$: Observable<Record<string, boolean>> = this.uiStateService.collapsedCategories$;
+  private globalClickListener!: () => void;
+  private subscriptions = new Subscription();
+
+  // --- Context Menu State ---
+  contextMenuSiteUrl: string | null = null;
+  contextMenuPosition = { top: '0px', left: '0px', bottom: 'auto' };
+  isMenuOpeningUp = false; // <-- משתנה חדש למעקב אחר כיוון הפתיחה
+  activeMenuData: { site: Site, category: Category } | null = null;
+
 
   // --- Drag and Drop State ---
   private draggedItem: { site: Site, fromCategory: Category } | null = null;
@@ -43,84 +55,176 @@ export class SidebarComponent implements OnInit {
     '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
   ];
 
+  constructor() {
+    this.isExpanded$ = combineLatest([
+      this.isSidebarCollapsed$,
+      this.isTemporarilyExpanded$
+    ]).pipe(
+      map(([isCollapsed, isTempExpanded]) => !isCollapsed || isTempExpanded)
+    );
+  }
+
   ngOnInit(): void {
-    // Combine the latest values from categories and the search term to compute the filtered list.
     this.filteredCategories$ = combineLatest([
       this.siteDataService.categories$,
       this.searchTerm$
     ]).pipe(
       map(([categories, term]) => {
-        if (!term) {
-          return categories; // If no search term, return all categories.
-        }
-        // Filter categories and sites within them based on the search term.
+        if (!term) return categories;
         return categories
           .map(category => ({
             ...category,
             sites: category.sites.filter(site => site.name.toLowerCase().includes(term))
           }))
-          .filter(category => category.sites.length > 0); // Only include categories that have matching sites.
+          .filter(category => category.sites.length > 0);
       })
     );
 
-    // Combine multiple sources to filter available sites.
     this.filteredAvailableSites$ = combineLatest([
         this.siteDataService.availableSites$,
         this.siteDataService.categories$,
         this.searchTerm$
     ]).pipe(
         map(([availableSites, currentCategories, term]) => {
-            if (!term) {
-                return []; // Only show available sites when searching.
-            }
+            if (!term) return [];
+            const termLower = term.toLowerCase();
             const existingUrls = new Set(currentCategories.flatMap(c => c.sites.map(s => s.url)));
             return availableSites.filter(site =>
-                !existingUrls.has(site.url) && site.name.toLowerCase().includes(term)
+                !existingUrls.has(site.url) && site.name.toLowerCase().includes(termLower)
             );
         })
     );
   }
 
-  /** Pushes a new value to the search term subject. */
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.closeContextMenu(); // Ensure listener is removed
+  }
+
+
   onSearch(event: Event): void {
-    const term = (event.target as HTMLInputElement).value.toLowerCase();
+    const term = (event.target as HTMLInputElement).value;
     this.searchTerm$.next(term);
   }
 
-  // --- User Actions ---
-  selectSite(site: Site): void {
-    this.uiStateService.selectSite(site);
-  }
-
-  toggleSidebar(): void {
-    this.uiStateService.toggleSidebar();
-  }
+  selectSite(site: Site): void { this.uiStateService.selectSite(site); }
+  toggleSidebar(): void { this.uiStateService.toggleSidebar(); }
+  openAddSiteDialog(): void { this.uiStateService.openAddSiteDialog(); }
 
   expandAndFocusSearch(): void {
     if (this.uiStateService.isSidebarCollapsed$.getValue()) {
       this.uiStateService.toggleSidebar();
-      // Wait for sidebar expansion animation to finish before focusing.
       setTimeout(() => this.searchInput.nativeElement.focus(), 300);
     } else {
       this.searchInput.nativeElement.focus();
     }
   }
 
-  openAddSiteDialog(): void {
-    this.uiStateService.openAddSiteDialog();
-  }
-
   addSiteFromAvailable(site: AvailableSite): void {
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite({ name: site.name, url: site.url }, categoryName);
-    // Reset search after adding.
     this.searchInput.nativeElement.value = '';
     this.searchTerm$.next('');
   }
 
-  openConfirmDeleteDialog(site: Site, event: MouseEvent): void {
+  // --- Category Collapse Logic ---
+  toggleCategory(categoryName: string): void {
+    const currentState = this.uiStateService.collapsedCategories$.getValue();
+    const newState = {
+      ...currentState,
+      [categoryName]: !currentState[categoryName]
+    };
+    this.uiStateService.saveCollapsedCategories(newState);
+  }
+
+  isCategoryCollapsed(categoryName: string): Observable<boolean> {
+    return this.categoryCollapseState$.pipe(
+      map(state => state[categoryName] ?? false)
+    );
+  }
+
+  // --- Context Menu Logic ---
+  toggleContextMenu(site: Site, category: Category, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.contextMenuSiteUrl === site.url) {
+      this.closeContextMenu();
+    } else {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const MENU_ESTIMATED_HEIGHT = 250; // הערכה גסה לגובה התפריד והתת-תפריט
+
+      this.isMenuOpeningUp = (rect.bottom + MENU_ESTIMATED_HEIGHT > viewportHeight);
+
+      if (this.isMenuOpeningUp) {
+        // אם אין מקום למטה, פתח את התפריט הראשי כלפי מעלה
+        this.contextMenuPosition = {
+          top: 'auto',
+          bottom: `${viewportHeight - rect.top}px`,
+          left: `${rect.left}px`
+        };
+      } else {
+        // אחרת, פתח כרגיל כלפי מטה
+        this.contextMenuPosition = {
+          top: `${rect.bottom}px`,
+          bottom: 'auto',
+          left: `${rect.left}px`
+        };
+      }
+
+      this.activeMenuData = { site, category };
+      this.contextMenuSiteUrl = site.url;
+
+      this.globalClickListener = this.renderer.listen('document', 'click', () => {
+        this.closeContextMenu();
+      });
+    }
+  }
+
+  isContextMenuOpenFor(site: Site): boolean {
+    return this.contextMenuSiteUrl === site.url;
+  }
+
+  closeContextMenu(): void {
+    this.contextMenuSiteUrl = null;
+    this.activeMenuData = null;
+    if (this.globalClickListener) {
+      this.globalClickListener();
+    }
+  }
+
+  openConfirmDeleteDialog(site: Site, event: Event): void {
     event.stopPropagation();
     this.uiStateService.openConfirmDeleteDialog(site);
+    this.closeContextMenu();
+  }
+
+  changeSiteCategory(site: Site, fromCategory: Category, toCategory: Category): void {
+    this.siteDataService.moveSiteToCategory(site, fromCategory.name, toCategory.name);
+    this.closeContextMenu();
+  }
+
+  promptForNewCategory(site: Site, fromCategory: Category): void {
+    this.uiStateService.openInputDialog({
+      title: 'קטגוריה חדשה',
+      label: 'שם הקטגוריה:',
+      confirmButtonText: 'הוסף והעבר',
+      callback: (newCategoryName) => {
+        this.siteDataService.moveSiteToCategory(site, fromCategory.name, newCategoryName);
+      }
+    });
+    this.closeContextMenu();
+  }
+
+
+  // --- Sidebar Hover Logic ---
+  onSidebarMouseEnter(): void {
+    if (this.uiStateService.isSidebarCollapsed$.getValue()) {
+      this.isTemporarilyExpanded$.next(true);
+    }
+  }
+
+  onSidebarMouseLeave(): void {
+    this.isTemporarilyExpanded$.next(false);
   }
 
   // --- Favicon & Fallback Logic ---
@@ -128,7 +232,7 @@ export class SidebarComponent implements OnInit {
     try {
       const siteUrl = new URL(url);
       return `${siteUrl.origin}/favicon.ico`;
-    } catch (e) { return ''; }
+    } catch { return ''; }
   }
   onFaviconError(site: Site | AvailableSite): void { this.faviconErrorUrls.add(site.url); }
   hasFaviconError(site: Site | AvailableSite): boolean { return this.faviconErrorUrls.has(site.url); }
@@ -139,7 +243,7 @@ export class SidebarComponent implements OnInit {
     return this.colorPalette[Math.abs(hash % this.colorPalette.length)];
   }
 
-  // --- Drag and Drop Logic (Largely unchanged, but now relies on a solid data service) ---
+  // --- Drag and Drop Logic ---
   onDragStart(event: DragEvent, site: Site, fromCategory: Category): void {
     event.stopPropagation();
     this.draggedItem = { site, fromCategory };
@@ -238,6 +342,7 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCategoryDragEnd(event: DragEvent): void {
     document.querySelectorAll('.dragging, .category-drag-over').forEach(el => el.classList.remove('dragging', 'category-drag-over'));
     this.draggedCategory = null;
