@@ -1,5 +1,5 @@
 @if (isVisible$ | async) {
-  <div class="dialog-overlay"> <!-- FIX: Removed (click) event -->
+  <div class="dialog-overlay">
     <div #dialogBox class="dialog-box" (click)="$event.stopPropagation()">
       <h2 class="dialog-title">הוספת ערוץ חדש</h2>
       <div class="dialog-content">
@@ -31,24 +31,27 @@
                type="text"
                placeholder="קטגוריה (למשל: חדשות)"
                (focus)="openCategoryDropdown(siteCategoryInput, dialogBox)"
-               (blur)="closeCategoryDropdown()">
-
+               (blur)="closeCategoryDropdown()"
+               (input)="onCategoryInput($event)">
       </div>
       <div class="dialog-actions">
         <button class="btn-secondary" (click)="closeDialog()">סגור</button>
         <button class="btn-primary" (click)="addSite(siteNameInput, siteUrlInput, siteCategoryInput)">שמור ערוץ ידני</button>
       </div>
 
-      @if (isCategoryDropdownOpen && (categories$ | async); as categories) {
-        <div class="category-dropdown" [ngStyle]="dropdownPosition">
-          @for (category of categories; track category.name) {
-            <!-- FIX: Added [attr.aria-selected]="false" -->
-            <div class="category-item" (mousedown)="selectCategory(category.name, siteCategoryInput)" (keydown.enter)="selectCategory(category.name, siteCategoryInput)" tabindex="0" role="option" [attr.aria-selected]="false">
-              {{ category.name }}
-            </div>
-          }
-        </div>
+      <!-- START: FIXED DROPDOWN LOGIC -->
+      @if (isCategoryDropdownOpen && (filteredCategories$ | async); as categories) {
+        @if (categories.length > 0) {
+          <div class="category-dropdown" [ngStyle]="dropdownPosition">
+            @for (category of categories; track category.name) {
+              <div class="category-item" (mousedown)="selectCategory(category.name, siteCategoryInput)" (keydown.enter)="selectCategory(category.name, siteCategoryInput)" tabindex="0" role="option" [attr.aria-selected]="false">
+                {{ category.name }}
+              </div>
+            }
+          </div>
+        }
       }
+      <!-- END: FIXED DROPDOWN LOGIC -->
     </div>
   </div>
 }

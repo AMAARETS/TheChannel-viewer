@@ -1,9 +1,9 @@
-import { Component, inject, HostListener } from '@angular/core'; // Import HostListener
+import { Component, inject, HostListener } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { AvailableSite, Site } from '../../core/models/site.model';
-import { map } from 'rxjs';
+import { AvailableSite, Site, Category } from '../../core/models/site.model';
+import { map, BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-add-site-dialog',
@@ -19,10 +19,13 @@ export class AddSiteDialogComponent {
   isVisible$ = this.uiStateService.isAddSiteDialogVisible$;
   categories$ = this.siteDataService.categories$;
 
+  // --- START: NEW AND UPDATED PROPERTIES ---
   isCategoryDropdownOpen = false;
   dropdownPosition = {};
+  private filteredCategoriesSubject = new BehaviorSubject<Category[]>([]);
+  filteredCategories$ = this.filteredCategoriesSubject.asObservable();
+  // --- END: NEW AND UPDATED PROPERTIES ---
 
-  // FIX: Add HostListener to close dialog on Escape key press
   @HostListener('window:keydown.escape')
   closeOnEscape(): void {
     if (this.uiStateService.isAddSiteDialogVisible$.getValue()) {
@@ -66,21 +69,40 @@ export class AddSiteDialogComponent {
     this.closeDialog();
   }
 
+  // --- START: UPDATED METHOD ---
   openCategoryDropdown(inputEl: HTMLElement, dialogEl: HTMLElement): void {
+    // עדכן את רשימת הסינון עם כל הקטגוריות בפתיחה
+    this.onCategoryInput({ target: inputEl } as any);
+
     const inputRect = inputEl.getBoundingClientRect();
     const dialogRect = dialogEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const DROPDOWN_MAX_HEIGHT = 150; // תואם ל-CSS
 
-    const top = inputRect.bottom - dialogRect.top;
     const left = inputRect.left - dialogRect.left;
     const width = inputRect.width;
 
-    this.dropdownPosition = {
-      top: `${top}px`,
-      left: `${left}px`,
-      width: `${width}px`
-    };
+    // בדוק אם יש מספיק מקום למטה
+    if (inputRect.bottom + DROPDOWN_MAX_HEIGHT > viewportHeight) {
+      // אין מספיק מקום, פתח כלפי מעלה
+      this.dropdownPosition = {
+        bottom: `${dialogRect.height - (inputRect.top - dialogRect.top)}px`,
+        left: `${left}px`,
+        width: `${width}px`
+      };
+    } else {
+      // יש מספיק מקום, פתח כלפי מטה (רגיל)
+      const top = inputRect.bottom - dialogRect.top;
+      this.dropdownPosition = {
+        top: `${top}px`,
+        left: `${left}px`,
+        width: `${width}px`
+      };
+    }
+
     this.isCategoryDropdownOpen = true;
   }
+  // --- END: UPDATED METHOD ---
 
   closeCategoryDropdown(): void {
     setTimeout(() => {
@@ -92,6 +114,18 @@ export class AddSiteDialogComponent {
     categoryInput.value = categoryName;
     this.isCategoryDropdownOpen = false;
   }
+
+  // --- START: NEW METHOD ---
+  onCategoryInput(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    const allCategories = this.siteDataService.categories$.getValue();
+
+    const filtered = allCategories.filter(category =>
+      category.name.toLowerCase().includes(filterValue)
+    );
+    this.filteredCategoriesSubject.next(filtered);
+  }
+  // --- END: NEW METHOD ---
 
   faviconErrorUrls = new Set<string>();
   colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'];

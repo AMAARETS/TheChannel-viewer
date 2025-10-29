@@ -1,0 +1,53 @@
+/* src/app/components/sidebar/context-menu/context-menu.component.css */
+.context-menu {
+  position: fixed;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1100;
+  min-width: 150px;
+  padding: 4px 0;
+  font-size: 14px;
+}
+.context-menu-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.context-menu-item:hover {
+  background-color: #f1f3f4;
+}
+.context-menu-item-wrapper {
+  position: relative;
+}
+.context-menu-item-wrapper:hover > .with-submenu > .context-submenu {
+  display: block;
+}
+
+.context-submenu {
+  position: absolute;
+  top: -5px;
+  right: 100%;
+  display: none;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1101;
+}
+
+/* When the main menu opens upwards, the submenu should open downwards */
+.context-menu.opens-up .context-submenu {
+  top: auto;
+  bottom: -5px;
+}
+
+.context-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 4px 0;
+}

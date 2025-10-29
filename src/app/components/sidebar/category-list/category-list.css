@@ -1,0 +1,183 @@
+/* src/app/components/sidebar/category-list/category-list.component.css */
+/* Category Styles */
+.category-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5f6368;
+  padding: 6px 12px 2px;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+.category-header-collapsed {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5f6368;
+  padding: 12px 0;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: default;
+  height: 25px;
+}
+
+/* Category Arrow */
+.category-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid #5f6368;
+  margin-left: 8px;
+  transition: transform 0.2s ease-in-out;
+}
+.category-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+.category-drop-zone {
+  transition: background-color 0.2s ease;
+  border-radius: 20px;
+  margin: 0 2px;
+}
+.category-drop-zone:hover {
+  background-color: #f1f3f4;
+}
+
+.site-list {
+  list-style-type: none;
+  padding: 4px;
+  margin: 0;
+}
+.site-list li {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 16px;
+  margin-bottom: 1px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-top 0.2s ease;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3c4043;
+  position: relative;
+  height: 24px;
+  box-sizing: border-box;
+  border-top: 2px solid transparent;
+}
+.site-list li:hover {
+  background-color: #e8e8e8;
+}
+.site-list li .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.site-list li.active {
+  background-color: #e8f0fe;
+  color: #1967d2;
+  font-weight: 700;
+}
+
+/* Action Buttons (Open new tab, Menu) */
+.site-actions {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  background-color: rgba(232, 232, 232, 0.9);
+  border-radius: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.site-list li:hover .site-actions {
+  opacity: 1;
+  visibility: visible;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+.action-btn:hover {
+  background-color: #d1d0d0;
+  color: #202124;
+}
+.menu-btn {
+  margin-left: 2px;
+}
+
+/* Drag and Drop Styles */
+.site-list li.dragging {
+  opacity: 0.5;
+  background: #cce5ff;
+}
+.site-list li.drag-over {
+  border-top: 2px solid #1a73e8;
+}
+.site-list.site-drag-over { /* Applied to UL */
+  background-color: #e8f0fe;
+  border-radius: 4px;
+}
+.category-drop-zone.dragging {
+  opacity: 0.5;
+  background-color: #e8f0fe;
+}
+.category-drop-zone.category-drag-over {
+  border-top: 2px solid #0056b3;
+}
+
+/* Icons and Fallback */
+.site-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+:host-context(.collapsed) .site-list {
+  padding: 0 4px;
+}
+:host-context(.collapsed) .site-list li {
+  justify-content: center;
+  padding: 6px;
+}
+:host-context(.collapsed) .site-icon {
+  margin: 0;
+}

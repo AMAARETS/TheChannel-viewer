@@ -22,6 +22,8 @@ export class UiStateService {
   private readonly sidebarCollapsedKey = 'sidebarCollapsed';
   private readonly lastViewedSiteUrlKey = 'lastViewedSiteUrl';
   private readonly collapsedCategoriesKey = 'collapsedCategories';
+  private readonly viewedTutorialsKey = 'viewedChannelTutorials';
+  private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial'; // <-- מפתח חדש
 
 
   // --- Dialogs visibility state ---
@@ -30,6 +32,7 @@ export class UiStateService {
   siteToDelete$ = new BehaviorSubject<Site | null>(null);
   isInputDialogVisible$ = new BehaviorSubject<boolean>(false);
   inputDialogConfig$ = new BehaviorSubject<InputDialogConfig | null>(null);
+  isLoginTutorialDialogVisible$ = new BehaviorSubject<boolean>(false);
 
   // --- Sidebar State ---
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(this.loadFromStorage(this.sidebarCollapsedKey) ?? false);
@@ -51,6 +54,19 @@ export class UiStateService {
     this.selectedSiteSubject.next(site);
     if (site) {
       this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
+
+      // --- START: UPDATED LOGIC ---
+      // 1. בדוק אם המשתמש ביטל את ההסבר באופן גלובלי
+      if (this.isLoginTutorialGloballyDisabled()) {
+        return;
+      }
+
+      // 2. אם לא, בדוק אם הוא ראה את ההסבר לערוץ הספציפי הזה
+      if (!this.hasViewedTutorial(site.url)) {
+        this.openLoginTutorialDialog();
+        this.markTutorialAsViewed(site.url);
+      }
+      // --- END: UPDATED LOGIC ---
     }
   }
 
@@ -102,6 +118,17 @@ export class UiStateService {
     this.inputDialogConfig$.next(null);
   }
 
+  openLoginTutorialDialog(): void { this.isLoginTutorialDialogVisible$.next(true); }
+
+  // --- START: UPDATED METHOD ---
+  closeLoginTutorialDialog(disableGlobally = false): void {
+    if (disableGlobally) {
+      this.disableLoginTutorialGlobally();
+    }
+    this.isLoginTutorialDialogVisible$.next(false);
+  }
+  // --- END: UPDATED METHOD ---
+
 
   // --- Local Storage Utilities ---
   private saveToStorage<T>(key: string, value: T): void {
@@ -121,4 +148,27 @@ export class UiStateService {
       return null;
     }
   }
+
+  private hasViewedTutorial(url: string): boolean {
+    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
+    return viewedUrls.includes(url);
+  }
+
+  private markTutorialAsViewed(url: string): void {
+    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
+    if (!viewedUrls.includes(url)) {
+      viewedUrls.push(url);
+      this.saveToStorage(this.viewedTutorialsKey, viewedUrls);
+    }
+  }
+
+  // --- START: NEW HELPER METHODS ---
+  private isLoginTutorialGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true;
+  }
+
+  private disableLoginTutorialGlobally(): void {
+    this.saveToStorage(this.neverShowLoginTutorialKey, true);
+  }
+  // --- END: NEW HELPER METHODS ---
 }

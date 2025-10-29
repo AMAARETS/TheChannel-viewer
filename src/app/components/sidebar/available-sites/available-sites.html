@@ -1,0 +1,25 @@
+@if (sites.length > 0) {
+  <div class="available-sites-container">
+    <h4 class="available-sites-header">הוספה מהירה</h4>
+    <ul class="available-site-list">
+      @for (site of sites; track site.url) {
+        <li
+            (click)="siteAdded.emit(site)"
+            (keydown.enter)="siteAdded.emit(site)"
+            [title]="site.description"
+            tabindex="0"
+            role="button">
+          @if (!hasFaviconError(site)) {
+            <img [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+          } @else {
+            <div class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+          }
+          @if (isExpanded) {
+            <span class="site-name">{{ site.name }}</span>
+            <button class="action-btn add-btn" title="הוסף ערוץ">+</button>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}

@@ -1,0 +1,22 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">התחברות לערוץ '{{ siteName$ | async }}'</h2>
+      <div class="dialog-content">
+        <p>בפעם הראשונה שרוצים להתחבר ע"י חשבון גוגל בערוץ זה, יש לבצע את ההתחברות בשני שלבים:</p>
+        <ol>
+          <li>פתחו את האתר <strong>בכרטיסייה חדשה</strong> בדפדפן והתחברו שם לחשבונכם.</li>
+          <li>לאחר מכן, חזרו לכאן ולחצו על כפתור ההתחברות שמופיע בתוך המסך של הערוץ.</li>
+        </ol>
+        <p>פעולה זו נדרשת רק פעם אחת עבור כל ערוץ בדפדפן זה.</p>
+      </div>
+      <div class="dialog-actions">
+        <div class="dont-show-again-container">
+          <input type="checkbox" id="dont-show-again" #dontShowAgainCheckbox>
+          <label for="dont-show-again">אל תציג שוב</label>
+        </div>
+        <button class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">סגור</button>
+      </div>
+    </div>
+  </div>
+}

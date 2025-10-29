@@ -1,0 +1,31 @@
+/* src/app/components/sidebar/search-bar/search-bar.component.css */
+.search-bar {
+  padding: 0 16px 12px;
+}
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+.search-icon-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 18px;
+  color: #5f6368;
+}
+.search-icon-btn:hover {
+  background-color: #f1f3f4;
+}

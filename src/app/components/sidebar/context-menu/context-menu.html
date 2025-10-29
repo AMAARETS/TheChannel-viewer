@@ -1,0 +1,24 @@
+@if (menuData) {
+  <div class="context-menu"
+       [ngStyle]="position"
+       [class.opens-up]="isOpeningUp"
+       (click)="$event.stopPropagation()">
+    <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
+    <div class="context-menu-item-wrapper">
+      <div class="context-menu-item with-submenu" tabindex="0" role="menuitem">
+        העברה לקטגוריה
+        <div class="context-submenu">
+          @for (cat of allCategories; track cat.name) {
+            @if (cat.name !== menuData.category.name) {
+              <div class="context-menu-item" (click)="onChangeCategory(menuData.site, menuData.category, cat)" (keydown.enter)="onChangeCategory(menuData.site, menuData.category, cat)" tabindex="0" role="menuitem">
+                {{cat.name}}
+              </div>
+            }
+          }
+          <hr class="context-divider">
+          <div class="context-menu-item" (click)="onNewCategory(menuData.site, menuData.category)" (keydown.enter)="onNewCategory(menuData.site, menuData.category)" tabindex="0" role="menuitem">קטגוריה חדשה...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

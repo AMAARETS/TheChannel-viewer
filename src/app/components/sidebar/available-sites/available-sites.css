@@ -1,0 +1,89 @@
+/* src/app/components/sidebar/available-sites/available-sites.component.css */
+
+.available-sites-container {
+  padding: 0 8px;
+  margin-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.available-sites-header {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5f6368;
+  margin: 8px 16px;
+  padding: 0;
+  text-align: right;
+}
+.available-site-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.available-site-list li {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  height: 24px;
+  box-sizing: border-box;
+}
+.available-site-list li:hover {
+  background-color: #e8e8e8;
+}
+.available-site-list .site-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #3c4043;
+  font-size: 14px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+.action-btn:hover {
+  background-color: #d1d0d0;
+  color: #202124;
+}
+
+.available-site-list .add-btn {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: -4px;
+}
+
+/* Icons and Fallback */
+.site-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 10px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.fallback-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+:host-context(.collapsed) .available-sites-container {
+  display: none;
+}
