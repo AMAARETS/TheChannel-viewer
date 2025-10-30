@@ -18,6 +18,11 @@
 .context-menu-item:hover {
   background-color: #f1f3f4;
 }
+.context-menu-item.disabled {
+  color: #9e9e9e;
+  cursor: not-allowed;
+  background-color: transparent;
+}
 .context-menu-item-wrapper {
   position: relative;
 }

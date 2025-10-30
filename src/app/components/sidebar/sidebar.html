@@ -18,7 +18,6 @@
     </button>
   </div>
 
-  <!-- Search Component -->
   <app-search-bar
     [isExpanded]="(isExpanded$ | async)!"
     (searchChanged)="onSearchChanged($event)"
@@ -26,27 +25,53 @@
   </app-search-bar>
 
   <div class="scrollable-content">
-    <!-- Categories and Sites List Component -->
-    <app-category-list
-      [categories]="(filteredCategories$ | async)!"
-      [isExpanded]="(isExpanded$ | async)!"
-      [activeSiteUrl]="(activeSiteUrl$ | async)"
-      [collapsedState]="(categoryCollapseState$ | async)!"
-      (siteSelected)="onSelectSite($event)"
-      (categoryToggled)="onToggleCategory($event)"
-      (contextMenuOpened)="onContextMenuOpen($event)"
-      (categoriesUpdated)="onUpdateCategories($event)">
-    </app-category-list>
+    @switch (dataLoadingState$ | async) {
+      @case ('loading') {
+        <div class="sidebar-message-container">
+          <div class="spinner"></div>
+          <span>טוען ערוצים...</span>
+        </div>
+      }
+      @case ('error') {
+        <div class="sidebar-message-container">
+          <span>שגיאה בטעינת הנתונים</span>
+        </div>
+      }
+      @case ('loaded') {
+        @if ((filteredCategories$ | async); as filteredCategories) {
+          <app-category-list
+            [categories]="filteredCategories"
+            [isExpanded]="(isExpanded$ | async)!"
+            [activeSiteUrl]="(activeSiteUrl$ | async)"
+            [collapsedState]="(categoryCollapseState$ | async)!"
+            (siteSelected)="onSelectSite($event)"
+            (categoryToggled)="onToggleCategory($event)"
+            (contextMenuOpened)="onContextMenuOpen($event)"
+            (categoriesUpdated)="onUpdateCategories($event)">
+          </app-category-list>
 
-    <!-- Available Sites (from search) Component -->
-    <app-available-sites
-      [sites]="(filteredAvailableSites$ | async)!"
-      [isExpanded]="(isExpanded$ | async)!"
-      (siteAdded)="onAddSiteFromAvailable($event)">
-    </app-available-sites>
+          <app-available-sites
+            [sites]="(filteredAvailableSites$ | async)!"
+            [isExpanded]="(isExpanded$ | async)!"
+            (siteAdded)="onAddSiteFromAvailable($event)">
+          </app-available-sites>
+
+          @if (searchTerm$ | async; as term) {
+            @if (term && filteredCategories.length === 0 && (filteredAvailableSites$ | async)!.length === 0) {
+              <div class="sidebar-message-container">
+                <span>לא נמצאו ערוצים</span>
+              </div>
+            }
+          } @else if ((siteDataService.categories$ | async)!.length === 0) {
+            <div class="sidebar-message-container">
+              <span>אין ערוצים להצגה.<br>אפשר להוסיף ערוץ חדש.</span>
+            </div>
+          }
+        }
+      }
+    }
   </div>
 
-  <!-- Add Channel Button -->
   <div class="sidebar-footer">
     <button class="add-channel-btn" (click)="openAddSiteDialog()">
       @if (isExpanded$ | async) {
@@ -64,5 +89,7 @@
   (closed)="onContextMenuClose()"
   (deleteClicked)="onDeleteSite($event)"
   (categoryChangeClicked)="onChangeSiteCategory($event)"
-  (newCategoryClicked)="onNewSiteCategory($event)">
+  (newCategoryClicked)="onNewSiteCategory($event)"
+  (moveUpClicked)="onMoveSiteUp($event)"
+  (moveDownClicked)="onMoveSiteDown($event)">
 </app-context-menu>

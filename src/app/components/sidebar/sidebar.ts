@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, BehaviorSubject, combineLatest, map, Subscription } from 'rxjs';
 
 // --- Child Component Imports ---
 import { SearchBarComponent } from './search-bar/search-bar';
-import { CategoryListComponent } from './category-list/category-list';
+import { CategoryListComponent, ContextMenuOpenEvent } from './category-list/category-list';
 import { AvailableSitesComponent } from './available-sites/available-sites';
 import { ContextMenuComponent, ContextMenuData } from './context-menu/context-menu';
 
@@ -24,7 +24,8 @@ import { Category, Site, AvailableSite } from '../../core/models/site.model';
     ContextMenuComponent
   ],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  styleUrl: './sidebar.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
@@ -32,22 +33,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   @ViewChild(SearchBarComponent) searchBar!: SearchBarComponent;
 
-  // --- State Observables from Services ---
+  dataLoadingState$ = this.uiStateService.dataLoadingState$;
   isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
   activeSiteUrl$: Observable<string | null> = this.uiStateService.selectedSite$.pipe(map(s => s?.url ?? null));
   categoryCollapseState$: Observable<Record<string, boolean>> = this.uiStateService.collapsedCategories$;
 
-  // --- Reactive Filtering Logic ---
-  private searchTerm$ = new BehaviorSubject<string>('');
+  searchTerm$ = new BehaviorSubject<string>('');
   filteredCategories$!: Observable<Category[]>;
   filteredAvailableSites$!: Observable<AvailableSite[]>;
 
-  // --- UI State ---
   private isTemporarilyExpanded$ = new BehaviorSubject<boolean>(false);
   isExpanded$: Observable<boolean>;
   private subscriptions = new Subscription();
 
-  // --- Context Menu State ---
   contextMenuData: ContextMenuData | null = null;
 
   constructor() {
@@ -96,8 +94,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  // --- Event Handlers from Child Components ---
-
   onSearchChanged(term: string): void {
     this.searchTerm$.next(term);
   }
@@ -115,10 +111,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   onAddSiteFromAvailable(site: AvailableSite): void {
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite({ name: site.name, url: site.url }, categoryName);
-    this.searchBar.clearSearch(); // Clear search input in child
+    this.searchBar.clearSearch();
   }
 
-  onContextMenuOpen(data: ContextMenuData): void {
+  onContextMenuOpen(data: ContextMenuOpenEvent): void {
     this.contextMenuData = data;
   }
 
@@ -150,11 +146,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.onContextMenuClose();
   }
 
+  onMoveSiteUp(event: { site: Site, fromCategory: Category }): void {
+    this.siteDataService.moveSite(event.site, event.fromCategory.name, 'up');
+    this.onContextMenuClose();
+  }
+
+  onMoveSiteDown(event: { site: Site, fromCategory: Category }): void {
+    this.siteDataService.moveSite(event.site, event.fromCategory.name, 'down');
+    this.onContextMenuClose();
+  }
+
   onUpdateCategories(categories: Category[]): void {
     this.siteDataService.updateCategories(categories);
   }
-
-  // --- UI Methods ---
 
   toggleSidebar(): void {
     this.uiStateService.toggleSidebar();

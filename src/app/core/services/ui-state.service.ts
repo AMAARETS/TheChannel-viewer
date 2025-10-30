@@ -11,20 +11,25 @@ export interface InputDialogConfig {
   callback: (value: string) => void;
 }
 
+export type DataLoadingState = 'loading' | 'loaded' | 'error';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UiStateService {
   private sanitizer = inject(DomSanitizer);
+  private focusedElementBeforeDialog: HTMLElement | null = null;
 
   // --- Local Storage Keys ---
   private readonly sidebarCollapsedKey = 'sidebarCollapsed';
   private readonly lastViewedSiteUrlKey = 'lastViewedSiteUrl';
   private readonly collapsedCategoriesKey = 'collapsedCategories';
   private readonly viewedTutorialsKey = 'viewedChannelTutorials';
-  private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial'; // <-- מפתח חדש
+  private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial';
 
+
+  // --- Data loading state ---
+  dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
 
   // --- Dialogs visibility state ---
   isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
@@ -54,19 +59,13 @@ export class UiStateService {
     this.selectedSiteSubject.next(site);
     if (site) {
       this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
-
-      // --- START: UPDATED LOGIC ---
-      // 1. בדוק אם המשתמש ביטל את ההסבר באופן גלובלי
       if (this.isLoginTutorialGloballyDisabled()) {
         return;
       }
-
-      // 2. אם לא, בדוק אם הוא ראה את ההסבר לערוץ הספציפי הזה
       if (!this.hasViewedTutorial(site.url)) {
         this.openLoginTutorialDialog();
         this.markTutorialAsViewed(site.url);
       }
-      // --- END: UPDATED LOGIC ---
     }
   }
 
@@ -90,10 +89,17 @@ export class UiStateService {
   }
 
   // --- Dialog Methods ---
-  openAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(true); }
-  closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); }
+  openAddSiteDialog(): void {
+    this.saveFocus();
+    this.isAddSiteDialogVisible$.next(true);
+  }
+  closeAddSiteDialog(): void {
+    this.isAddSiteDialogVisible$.next(false);
+    this.restoreFocus();
+  }
 
   openConfirmDeleteDialog(site: Site): void {
+    this.saveFocus();
     this.siteToDelete$.next(site);
     this.isConfirmDeleteDialogVisible$.next(true);
   }
@@ -101,9 +107,11 @@ export class UiStateService {
   closeConfirmDeleteDialog(): void {
     this.isConfirmDeleteDialogVisible$.next(false);
     this.siteToDelete$.next(null);
+    this.restoreFocus();
   }
 
   openInputDialog(config: InputDialogConfig): void {
+    this.saveFocus();
     this.inputDialogConfig$.next(config);
     this.isInputDialogVisible$.next(true);
   }
@@ -116,19 +124,31 @@ export class UiStateService {
     }
     this.isInputDialogVisible$.next(false);
     this.inputDialogConfig$.next(null);
+    this.restoreFocus();
   }
 
-  openLoginTutorialDialog(): void { this.isLoginTutorialDialogVisible$.next(true); }
+  openLoginTutorialDialog(): void {
+    this.saveFocus();
+    this.isLoginTutorialDialogVisible$.next(true);
+  }
 
-  // --- START: UPDATED METHOD ---
   closeLoginTutorialDialog(disableGlobally = false): void {
     if (disableGlobally) {
       this.disableLoginTutorialGlobally();
     }
     this.isLoginTutorialDialogVisible$.next(false);
+    this.restoreFocus();
   }
-  // --- END: UPDATED METHOD ---
 
+  // --- Focus Management ---
+  private saveFocus(): void {
+    this.focusedElementBeforeDialog = document.activeElement as HTMLElement;
+  }
+
+  private restoreFocus(): void {
+    this.focusedElementBeforeDialog?.focus();
+    this.focusedElementBeforeDialog = null;
+  }
 
   // --- Local Storage Utilities ---
   private saveToStorage<T>(key: string, value: T): void {
@@ -162,7 +182,6 @@ export class UiStateService {
     }
   }
 
-  // --- START: NEW HELPER METHODS ---
   private isLoginTutorialGloballyDisabled(): boolean {
     return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true;
   }
@@ -170,5 +189,4 @@ export class UiStateService {
   private disableLoginTutorialGlobally(): void {
     this.saveToStorage(this.neverShowLoginTutorialKey, true);
   }
-  // --- END: NEW HELPER METHODS ---
 }

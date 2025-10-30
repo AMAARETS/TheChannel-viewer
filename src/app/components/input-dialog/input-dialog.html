@@ -1,6 +1,6 @@
 @if (isVisible$ | async) {
   <div class="dialog-overlay" (click)="closeDialog()">
-    <div class="dialog-box" (click)="$event.stopPropagation()">
+    <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
       @if (config$ | async; as config) {
         <h2 class="dialog-title">{{ config.title }}</h2>
         <div class="dialog-content">

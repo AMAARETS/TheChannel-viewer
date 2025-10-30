@@ -1,0 +1,11 @@
+@if ((toastState$ | async); as state) {
+  @if (state.isVisible) {
+    <div
+      class="toast-container"
+      [ngClass]="'toast-' + state.type"
+      [@toastAnimation]>
+      {{ state.message }}
+      <button (click)="toastService.hide()" class="close-btn" aria-label="סגור הודעה">&times;</button>
+    </div>
+  }
+}

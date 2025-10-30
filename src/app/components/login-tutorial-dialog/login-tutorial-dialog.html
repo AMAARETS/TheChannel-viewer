@@ -1,6 +1,6 @@
 @if (isVisible$ | async) {
   <div class="dialog-overlay" (click)="closeDialog()">
-    <div class="dialog-box" (click)="$event.stopPropagation()">
+    <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
       <h2 class="dialog-title">התחברות לערוץ '{{ siteName$ | async }}'</h2>
       <div class="dialog-content">
         <p>בפעם הראשונה שרוצים להתחבר ע"י חשבון גוגל בערוץ זה, יש לבצע את ההתחברות בשני שלבים:</p>
@@ -15,7 +15,7 @@
           <input type="checkbox" id="dont-show-again" #dontShowAgainCheckbox>
           <label for="dont-show-again">אל תציג שוב</label>
         </div>
-        <button class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">סגור</button>
+        <button #closeButton class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">סגור</button>
       </div>
     </div>
   </div>

@@ -1,21 +1,23 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, BehaviorSubject } from 'rxjs';
+import { forkJoin, BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { Category, Site, AvailableSite } from '../models/site.model';
+import { UiStateService } from './ui-state.service';
+import { ToastService } from './toast.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SiteDataService {
-  // --- Private constants for Local Storage ---
   private readonly userCategoriesKey = 'userChannelCategories';
   private readonly removedDefaultSitesKey = 'removedDefaultSites';
-  private readonly oldStorageKey = 'userSites'; // For migration
+  private readonly oldStorageKey = 'userSites';
 
   private defaultSites: Site[] = [];
   private http = inject(HttpClient);
+  private uiStateService = inject(UiStateService);
+  private toastService = inject(ToastService);
 
-  // BehaviorSubject to hold and stream the categories data
   categories$ = new BehaviorSubject<Category[]>([]);
   availableSites$ = new BehaviorSubject<AvailableSite[]>([]);
 
@@ -24,10 +26,19 @@ export class SiteDataService {
   }
 
   private loadInitialData(): void {
+    this.uiStateService.dataLoadingState$.next('loading');
     forkJoin({
       defaultCategories: this.http.get<Category[]>('assets/sites.json'),
       availableSites: this.http.get<AvailableSite[]>('assets/available-sites.json')
-    }).subscribe(({ defaultCategories, availableSites }) => {
+    }).pipe(
+      tap(() => this.uiStateService.dataLoadingState$.next('loaded')),
+      catchError(error => {
+        console.error("Failed to load site data", error);
+        this.uiStateService.dataLoadingState$.next('error');
+        this.toastService.show('אירעה שגיאה בטעינת הערוצים', 'error');
+        return of({ defaultCategories: [], availableSites: [] });
+      })
+    ).subscribe(({ defaultCategories, availableSites }) => {
       this.availableSites$.next(availableSites);
       this.defaultSites = defaultCategories.flatMap(cat => cat.sites);
       this.loadUserCategoriesAndMerge(defaultCategories);
@@ -35,7 +46,7 @@ export class SiteDataService {
   }
 
   private loadUserCategoriesAndMerge(defaultCategories: Category[]): void {
-    const userCategories: Category[] | null = this.loadCategoriesFromStorage(); // FIX: let -> const
+    const userCategories: Category[] | null = this.loadCategoriesFromStorage();
 
     if (!userCategories) {
         this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
@@ -104,11 +115,11 @@ export class SiteDataService {
   addSite(newSite: Site, categoryName: string): boolean {
     const currentCategories = this.categories$.getValue();
     if (currentCategories.some(c => c.sites.some(s => s.url === newSite.url))) {
-      alert('הערוץ כבר קיים ברשימה.');
+      this.toastService.show('הערוץ כבר קיים ברשימה', 'error');
       return false;
     }
 
-    const targetCategory = currentCategories.find(c => c.name === categoryName); // FIX: let -> const
+    const targetCategory = currentCategories.find(c => c.name === categoryName);
     if (targetCategory) {
       targetCategory.sites.push(newSite);
     } else {
@@ -117,6 +128,7 @@ export class SiteDataService {
 
     this.categories$.next(currentCategories);
     this.saveCategories();
+    this.toastService.show(`הערוץ '${newSite.name}' נוסף בהצלחה`);
     return true;
   }
 
@@ -133,6 +145,7 @@ export class SiteDataService {
 
     this.categories$.next(currentCategories);
     this.saveCategories();
+    this.toastService.show(`הערוץ '${siteToRemove.name}' נמחק`);
   }
 
   moveSiteToCategory(siteToMove: Site, fromCategoryName: string, toCategoryName: string): void {
@@ -140,25 +153,41 @@ export class SiteDataService {
 
     const currentCategories = JSON.parse(JSON.stringify(this.categories$.getValue()));
     const fromCategory = currentCategories.find((c: Category) => c.name === fromCategoryName);
-    const toCategory = currentCategories.find((c: Category) => c.name === toCategoryName); // FIX: let -> const
+    const toCategory = currentCategories.find((c: Category) => c.name === toCategoryName);
 
     if (!fromCategory) return;
 
-    // Remove from old category
     fromCategory.sites = fromCategory.sites.filter((s: Site) => s.url !== siteToMove.url);
 
-    // Add to new category
     if (toCategory) {
       toCategory.sites.push(siteToMove);
     } else {
       currentCategories.push({ name: toCategoryName, sites: [siteToMove] });
     }
 
-    // Clean up empty categories and update
     const updatedCategories = currentCategories.filter((c: Category) => c.sites.length > 0);
     this.updateCategories(updatedCategories);
+    this.toastService.show(`'${siteToMove.name}' הועבר לקטגוריית '${toCategoryName}'`, 'info');
   }
 
+  moveSite(site: Site, fromCategoryName: string, direction: 'up' | 'down'): void {
+    const categories = [...this.categories$.getValue()];
+    const category = categories.find(c => c.name === fromCategoryName);
+    if (!category) return;
+
+    const index = category.sites.findIndex(s => s.url === site.url);
+    if (index === -1) return;
+
+    if (direction === 'up' && index > 0) {
+      [category.sites[index], category.sites[index - 1]] = [category.sites[index - 1], category.sites[index]];
+    } else if (direction === 'down' && index < category.sites.length - 1) {
+      [category.sites[index], category.sites[index + 1]] = [category.sites[index + 1], category.sites[index]];
+    } else {
+      return; // No move was possible
+    }
+
+    this.updateCategories(categories);
+  }
 
   updateCategories(updatedCategories: Category[]): void {
     const cleanedCategories = updatedCategories.filter(c => c.sites.length > 0);

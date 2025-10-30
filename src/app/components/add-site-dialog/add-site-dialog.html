@@ -1,6 +1,6 @@
 @if (isVisible$ | async) {
   <div class="dialog-overlay">
-    <div #dialogBox class="dialog-box" (click)="$event.stopPropagation()">
+    <div #dialogBox class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
       <h2 class="dialog-title">הוספת ערוץ חדש</h2>
       <div class="dialog-content">
         <h3 class="dialog-subtitle">הוספה מרשימה</h3>

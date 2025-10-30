@@ -3,7 +3,9 @@
        [ngStyle]="position"
        [class.opens-up]="isOpeningUp"
        (click)="$event.stopPropagation()">
+
     <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
+
     <div class="context-menu-item-wrapper">
       <div class="context-menu-item with-submenu" tabindex="0" role="menuitem">
         העברה לקטגוריה
@@ -20,5 +22,11 @@
         </div>
       </div>
     </div>
+
+    <!-- ACCESSIBILITY: Move Up/Down -->
+    <hr class="context-divider">
+    <div class="context-menu-item" [class.disabled]="menuData.isFirst" (click)="onMoveUp(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveUp(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למעלה</div>
+    <div class="context-menu-item" [class.disabled]="menuData.isLast" (click)="onMoveDown(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveDown(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למטה</div>
+
   </div>
 }

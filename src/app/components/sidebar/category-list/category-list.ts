@@ -1,12 +1,13 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { Category, Site } from '../../../core/models/site.model';
 
-// --- Type Alias for Context Menu Data ---
 export interface ContextMenuOpenEvent {
   site: Site;
   category: Category;
   event: MouseEvent;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
 @Component({
@@ -14,7 +15,8 @@ export interface ContextMenuOpenEvent {
   standalone: true,
   imports: [CommonModule, NgStyle],
   templateUrl: './category-list.html',
-  styleUrl: './category-list.css'
+  styleUrl: './category-list.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CategoryListComponent {
   @Input() categories: Category[] = [];
@@ -27,11 +29,9 @@ export class CategoryListComponent {
   @Output() contextMenuOpened = new EventEmitter<ContextMenuOpenEvent>();
   @Output() categoriesUpdated = new EventEmitter<Category[]>();
 
-  // --- Drag and Drop State ---
   private draggedSite: { site: Site, fromCategory: Category } | null = null;
   private draggedCategory: Category | null = null;
 
-  // --- Favicon and UI Helpers ---
   faviconErrorUrls = new Set<string>();
   private colorPalette = [
     '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
@@ -42,7 +42,6 @@ export class CategoryListComponent {
     return this.collapsedState[categoryName] ?? false;
   }
 
-  // --- Favicon & Fallback Logic ---
   getFaviconUrl(url: string): string {
     try {
       const siteUrl = new URL(url);
@@ -58,7 +57,6 @@ export class CategoryListComponent {
     return this.colorPalette[Math.abs(hash % this.colorPalette.length)];
   }
 
-  // --- Site Drag and Drop Logic ---
   onSiteDragStart(event: DragEvent, site: Site, fromCategory: Category): void {
     event.stopPropagation();
     this.draggedSite = { site, fromCategory };
@@ -121,7 +119,6 @@ export class CategoryListComponent {
     this.draggedSite = null;
   }
 
-  // --- Category Drag and Drop Logic ---
   onCategoryDragStart(event: DragEvent, category: Category): void {
     if (!this.isExpanded) { event.preventDefault(); return; }
     this.draggedCategory = category;

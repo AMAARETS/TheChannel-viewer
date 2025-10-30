@@ -56,7 +56,18 @@
   list-style-type: none;
   padding: 4px;
   margin: 0;
+  /* --- FIX for animation --- */
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, visibility 0.3s;
+  max-height: 1000px; /* Large enough value */
 }
+.site-list.collapsed {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  visibility: hidden;
+}
+
 .site-list li {
   display: flex;
   align-items: center;

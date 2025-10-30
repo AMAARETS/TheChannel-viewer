@@ -1,5 +1,6 @@
-import { Component, inject, HostListener } from '@angular/core';
+import { Component, inject, HostListener, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
+import { A11yModule } from '@angular/cdk/a11y';
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { AvailableSite, Site, Category } from '../../core/models/site.model';
@@ -8,23 +9,33 @@ import { map, BehaviorSubject } from 'rxjs';
 @Component({
   selector: 'app-add-site-dialog',
   standalone: true,
-  imports: [CommonModule, NgStyle],
+  imports: [CommonModule, NgStyle, A11yModule],
   templateUrl: './add-site-dialog.html',
-  styleUrl: './add-site-dialog.css'
+  styleUrl: './add-site-dialog.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AddSiteDialogComponent {
+export class AddSiteDialogComponent implements AfterViewChecked {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
 
   isVisible$ = this.uiStateService.isAddSiteDialogVisible$;
   categories$ = this.siteDataService.categories$;
 
-  // --- START: NEW AND UPDATED PROPERTIES ---
   isCategoryDropdownOpen = false;
   dropdownPosition = {};
   private filteredCategoriesSubject = new BehaviorSubject<Category[]>([]);
   filteredCategories$ = this.filteredCategoriesSubject.asObservable();
-  // --- END: NEW AND UPDATED PROPERTIES ---
+
+  @ViewChild('siteNameInput') siteNameInput?: ElementRef<HTMLInputElement>;
+  private isVisible = false;
+
+  ngAfterViewChecked(): void {
+    const isDialogVisible = this.uiStateService.isAddSiteDialogVisible$.getValue();
+    if (isDialogVisible && !this.isVisible) {
+      setTimeout(() => this.siteNameInput?.nativeElement.focus(), 0);
+    }
+    this.isVisible = isDialogVisible;
+  }
 
   @HostListener('window:keydown.escape')
   closeOnEscape(): void {
@@ -69,29 +80,24 @@ export class AddSiteDialogComponent {
     this.closeDialog();
   }
 
-  // --- START: UPDATED METHOD ---
   openCategoryDropdown(inputEl: HTMLElement, dialogEl: HTMLElement): void {
-    // עדכן את רשימת הסינון עם כל הקטגוריות בפתיחה
     this.onCategoryInput({ target: inputEl } as any);
 
     const inputRect = inputEl.getBoundingClientRect();
     const dialogRect = dialogEl.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    const DROPDOWN_MAX_HEIGHT = 150; // תואם ל-CSS
+    const DROPDOWN_MAX_HEIGHT = 150;
 
     const left = inputRect.left - dialogRect.left;
     const width = inputRect.width;
 
-    // בדוק אם יש מספיק מקום למטה
     if (inputRect.bottom + DROPDOWN_MAX_HEIGHT > viewportHeight) {
-      // אין מספיק מקום, פתח כלפי מעלה
       this.dropdownPosition = {
         bottom: `${dialogRect.height - (inputRect.top - dialogRect.top)}px`,
         left: `${left}px`,
         width: `${width}px`
       };
     } else {
-      // יש מספיק מקום, פתח כלפי מטה (רגיל)
       const top = inputRect.bottom - dialogRect.top;
       this.dropdownPosition = {
         top: `${top}px`,
@@ -102,7 +108,6 @@ export class AddSiteDialogComponent {
 
     this.isCategoryDropdownOpen = true;
   }
-  // --- END: UPDATED METHOD ---
 
   closeCategoryDropdown(): void {
     setTimeout(() => {
@@ -115,7 +120,6 @@ export class AddSiteDialogComponent {
     this.isCategoryDropdownOpen = false;
   }
 
-  // --- START: NEW METHOD ---
   onCategoryInput(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase().trim();
     const allCategories = this.siteDataService.categories$.getValue();
@@ -125,7 +129,6 @@ export class AddSiteDialogComponent {
     );
     this.filteredCategoriesSubject.next(filtered);
   }
-  // --- END: NEW METHOD ---
 
   faviconErrorUrls = new Set<string>();
   colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'];

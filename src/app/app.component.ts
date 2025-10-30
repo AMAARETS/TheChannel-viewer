@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { first } from 'rxjs';
 
@@ -8,7 +8,8 @@ import { MainContentComponent } from './components/main-content/main-content';
 import { AddSiteDialogComponent } from './components/add-site-dialog/add-site-dialog';
 import { ConfirmDeleteDialogComponent } from './components/confirm-delete-dialog/confirm-delete-dialog';
 import { InputDialogComponent } from './components/input-dialog/input-dialog';
-import { LoginTutorialDialogComponent } from './components/login-tutorial-dialog/login-tutorial-dialog'; // <-- ייבוא חדש
+import { LoginTutorialDialogComponent } from './components/login-tutorial-dialog/login-tutorial-dialog';
+import { ToastComponent } from './components/toast/toast.component';
 
 // Import services
 import { SiteDataService } from './core/services/site-data.service';
@@ -24,10 +25,12 @@ import { UiStateService } from './core/services/ui-state.service';
     AddSiteDialogComponent,
     ConfirmDeleteDialogComponent,
     InputDialogComponent,
-    LoginTutorialDialogComponent // <-- הוספה למערך הייבוא
+    LoginTutorialDialogComponent,
+    ToastComponent
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit, AfterViewInit {
   private siteDataService = inject(SiteDataService);

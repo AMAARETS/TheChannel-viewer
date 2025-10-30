@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,7 +6,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './search-bar.html',
-  styleUrl: './search-bar.css'
+  styleUrl: './search-bar.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchBarComponent {
   @Input() isExpanded = true;
@@ -24,12 +25,10 @@ export class SearchBarComponent {
     this.expandAndFocus.emit();
   }
 
-  // Method for parent component to call
   public focus(): void {
     this.searchInput.nativeElement.focus();
   }
 
-  // Method for parent component to call
   public clearSearch(): void {
     if (this.searchInput) {
       this.searchInput.nativeElement.value = '';

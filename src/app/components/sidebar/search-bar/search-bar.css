@@ -2,9 +2,19 @@
 .search-bar {
   padding: 0 16px 12px;
 }
+
+/* --- FIX: Added container for clear button positioning --- */
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .search-input {
   width: 100%;
   padding: 8px 12px;
+  /* --- FIX: Make space for the clear button --- */
+  padding-left: 28px;
   border-radius: 16px;
   border: 1px solid #dadce0;
   box-sizing: border-box;
@@ -14,6 +24,28 @@
   outline: none;
   border-color: #1a73e8;
 }
+
+/* --- NEW: Clear button styles --- */
+.clear-search-btn {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clear-search-btn:hover {
+  color: #202124;
+}
+
 .search-icon-btn {
   width: 100%;
   background: none;
