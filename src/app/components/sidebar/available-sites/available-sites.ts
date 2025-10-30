@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { AvailableSite } from '../../../core/models/site.model';
 
@@ -7,7 +7,8 @@ import { AvailableSite } from '../../../core/models/site.model';
   standalone: true,
   imports: [CommonModule, NgStyle],
   templateUrl: './available-sites.html',
-  styleUrl: './available-sites.css'
+  styleUrl: './available-sites.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AvailableSitesComponent {
   @Input() sites: AvailableSite[] = [];

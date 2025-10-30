@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UiStateService } from '../../core/services/ui-state.service';
 
@@ -7,7 +7,8 @@ import { UiStateService } from '../../core/services/ui-state.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './main-content.html',
-  styleUrl: './main-content.css'
+  styleUrl: './main-content.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainContentComponent {
   uiStateService = inject(UiStateService);
