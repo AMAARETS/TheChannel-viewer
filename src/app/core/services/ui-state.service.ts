@@ -1,7 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BehaviorSubject, Observable, map, first } from 'rxjs';
 import { Site } from '../models/site.model';
+import { SiteDataService } from './site-data.service';
 
 export interface InputDialogConfig {
   title: string;
@@ -12,12 +13,15 @@ export interface InputDialogConfig {
 }
 
 export type DataLoadingState = 'loading' | 'loaded' | 'error';
+export type ActiveView = 'site' | 'advertise' | 'contact';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UiStateService {
   private sanitizer = inject(DomSanitizer);
+  private injector = inject(Injector);
+  private _siteDataService: SiteDataService | null = null;
   private focusedElementBeforeDialog: HTMLElement | null = null;
 
   // --- Local Storage Keys ---
@@ -30,6 +34,9 @@ export class UiStateService {
 
   // --- Data loading state ---
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
+
+  // --- Active View State ---
+  activeView$ = new BehaviorSubject<ActiveView>('site');
 
   // --- Dialogs visibility state ---
   isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
@@ -55,10 +62,31 @@ export class UiStateService {
     map(site => site ? this.sanitizer.bypassSecurityTrustResourceUrl(site.url) : null)
   );
 
-  selectSite(site: Site | null): void {
+  private get siteDataService(): SiteDataService {
+    if (!this._siteDataService) {
+      this._siteDataService = this.injector.get(SiteDataService);
+    }
+    return this._siteDataService;
+  }
+
+  selectSite(site: Site | null, categoryName?: string): void {
     this.selectedSiteSubject.next(site);
+    this.activeView$.next('site');
+
     if (site) {
       this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
+
+      const catName = categoryName || this.siteDataService.getCategoryForSite(site);
+
+      if (catName) {
+        const params = new URLSearchParams();
+        params.set('name', site.name);
+        params.set('url', site.url);
+        params.set('category', catName);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        history.replaceState(null, '', newUrl);
+      }
+
       if (this.isLoginTutorialGloballyDisabled()) {
         return;
       }
@@ -66,7 +94,19 @@ export class UiStateService {
         this.openLoginTutorialDialog();
         this.markTutorialAsViewed(site.url);
       }
+    } else {
+        history.replaceState(null, '', window.location.pathname);
     }
+  }
+
+  showAdvertisePage(): void {
+    this.selectedSiteSubject.next(null);
+    this.activeView$.next('advertise');
+  }
+
+  showContactPage(): void {
+    this.selectedSiteSubject.next(null);
+    this.activeView$.next('contact');
   }
 
   getActiveSite(): Site | null {

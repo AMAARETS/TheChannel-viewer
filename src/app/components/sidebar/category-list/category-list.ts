@@ -24,7 +24,7 @@ export class CategoryListComponent {
   @Input() activeSiteUrl: string | null = null;
   @Input() collapsedState: Record<string, boolean> = {};
 
-  @Output() siteSelected = new EventEmitter<Site>();
+  @Output() siteSelected = new EventEmitter<{ site: Site, category: Category }>();
   @Output() categoryToggled = new EventEmitter<string>();
   @Output() contextMenuOpened = new EventEmitter<ContextMenuOpenEvent>();
   @Output() categoriesUpdated = new EventEmitter<Category[]>();

@@ -98,8 +98,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.searchTerm$.next(term);
   }
 
-  onSelectSite(site: Site): void {
-    this.uiStateService.selectSite(site);
+  onSelectSite(event: { site: Site, category: Category }): void {
+    this.uiStateService.selectSite(event.site, event.category.name);
   }
 
   onToggleCategory(categoryName: string): void {
@@ -158,6 +158,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   onUpdateCategories(categories: Category[]): void {
     this.siteDataService.updateCategories(categories);
+  }
+
+  onShowAdvertisePage(): void {
+    this.uiStateService.showAdvertisePage();
+  }
+
+  onShowContactPage(): void {
+    this.uiStateService.showContactPage();
   }
 
   toggleSidebar(): void {

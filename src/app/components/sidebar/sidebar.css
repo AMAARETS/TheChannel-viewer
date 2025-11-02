@@ -142,7 +142,7 @@
 
 /* --- Collapsed State --- */
 .sidebar.collapsed {
-  width: 68px;
+  width: 62px;
 }
 .sidebar.collapsed .toggle-sidebar-btn {
   transform: rotate(180deg);
@@ -151,9 +151,37 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  font-size: 24px;
+  font-size: 28px;
   padding: 0;
+  color: rgb(15, 12, 12);
+  border: none;
+  line-height: 40px;
 }
-.sidebar.collapsed .add-channel-btn span:first-child {
+
+/* --- NEW: Footer Links --- */
+.sidebar-footer-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+.footer-link-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #dadce0;
+  color: #5f6368;
+  padding: 6px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.footer-link-btn:hover {
+  background-color: #f1f3f4;
+  color: #202124;
+}
+.sidebar.collapsed .sidebar-footer-links {
   display: none;
 }

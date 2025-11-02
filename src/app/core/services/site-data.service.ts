@@ -170,6 +170,16 @@ export class SiteDataService {
     this.toastService.show(`'${siteToMove.name}' הועבר לקטגוריית '${toCategoryName}'`, 'info');
   }
 
+  getCategoryForSite(siteToFind: Site): string | null {
+    const categories = this.categories$.getValue();
+    for (const category of categories) {
+      if (category.sites.some(site => site.url === siteToFind.url)) {
+        return category.name;
+      }
+    }
+    return null;
+  }
+
   moveSite(site: Site, fromCategoryName: string, direction: 'up' | 'down'): void {
     const categories = [...this.categories$.getValue()];
     const category = categories.find(c => c.name === fromCategoryName);
