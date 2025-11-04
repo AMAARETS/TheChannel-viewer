@@ -3,6 +3,7 @@ import { CommonModule, NgStyle } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
+import { AnalyticsService } from '../../core/services/analytics.service'; // הוספת יבוא
 import { AvailableSite, Site, Category } from '../../core/models/site.model';
 import { map, BehaviorSubject } from 'rxjs';
 
@@ -17,6 +18,7 @@ import { map, BehaviorSubject } from 'rxjs';
 export class AddSiteDialogComponent implements AfterViewChecked {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
+  analyticsService = inject(AnalyticsService); // הזרקת השירות
 
   isVisible$ = this.uiStateService.isAddSiteDialogVisible$;
   categories$ = this.siteDataService.categories$;
@@ -65,6 +67,10 @@ export class AddSiteDialogComponent implements AfterViewChecked {
 
     const newSite: Site = { name, url };
     if (this.siteDataService.addSite(newSite, categoryName)) {
+      this.analyticsService.trackAddChannel({
+        channel_name: name,
+        method: 'manual',
+      });
       this.uiStateService.selectSite(newSite);
       nameInput.value = '';
       urlInput.value = '';
@@ -76,6 +82,10 @@ export class AddSiteDialogComponent implements AfterViewChecked {
   addSiteFromAvailable(siteToAdd: AvailableSite): void {
     const newSite: Site = { name: siteToAdd.name, url: siteToAdd.url };
     const categoryName = siteToAdd.category || 'כללי';
+    this.analyticsService.trackAddChannel({
+      channel_name: siteToAdd.name,
+      method: 'quick_add',
+    });
     this.siteDataService.addSite(newSite, categoryName);
     this.closeDialog();
   }

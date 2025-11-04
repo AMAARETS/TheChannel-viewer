@@ -38,35 +38,72 @@ export class AppComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
 
   ngOnInit(): void {
-    // נמתין שהמידע הראשוני ייטען
-    this.siteDataService.categories$.pipe(
-      first(categories => categories.length > 0)
-    ).subscribe(categories => {
-      // קודם נבדוק אם יש ערוץ ב-URL
-      const siteFromUrl = this.tryGetSiteFromUrl();
-      if (siteFromUrl) {
+    // קודם נבדוק פרמטרים ב-URL שיכולים לפעול מיידית
+    const initialParamsHandled = this.handleUrlParametersOnLoad();
+
+    // אם הפרמטרים לא דרשו טעינת ערוצים, נמשיך כרגיל
+    if (!initialParamsHandled) {
+        this.siteDataService.categories$.pipe(
+            first(categories => categories.length > 0)
+        ).subscribe(categories => {
+            this.handleChannelUrlOrDefault(categories);
+        });
+    }
+  }
+
+  /**
+   * מטפל בפרמטרים ב-URL בזמן הטעינה הראשונית של האפליקציה.
+   * @returns {boolean} - מחזיר true אם הפרמטרים טופלו ואין צורך להמשיך לטעינת ערוץ ברירת מחדל.
+   */
+  private handleUrlParametersOnLoad(): boolean {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    const source = params.get('source');
+
+    if (view === 'advertise') {
+      this.uiStateService.showAdvertisePage();
+      return true;
+    }
+
+    if (view === 'contact') {
+      this.uiStateService.showContactPage();
+      return true;
+    }
+
+    if (view === 'custom' && source) {
+      const paramsObject = Object.fromEntries(params.entries());
+      // קורא לשירות כדי שיטען את התוכן מהתיקייה המתאימה
+      this.uiStateService.loadCustomContentFromSource(source, paramsObject);
+      return true;
+    }
+
+    return false; // לא נמצאו פרמטרים מיוחדים, המשך ללוגיקה הרגילה
+  }
+
+  /**
+   * טוען ערוץ מה-URL או את הערוץ האחרון שנצפה.
+   */
+  private handleChannelUrlOrDefault(categories: any[]): void {
+    const siteFromUrl = this.tryGetSiteFromUrl();
+    if (siteFromUrl) {
+      const allSites = categories.flatMap(c => c.sites);
+      const siteExists = allSites.some(s => s.url === siteFromUrl.url);
+
+      if (!siteExists) {
+        this.siteDataService.addSite({ name: siteFromUrl.name, url: siteFromUrl.url }, siteFromUrl.category);
+      }
+      this.uiStateService.selectSite({name: siteFromUrl.name, url: siteFromUrl.url}, siteFromUrl.category);
+
+    } else {
+      const lastViewedUrl = this.uiStateService.getLastViewedSiteUrl();
+      if (lastViewedUrl) {
         const allSites = categories.flatMap(c => c.sites);
-        const siteExists = allSites.some(s => s.url === siteFromUrl.url);
-
-        if (!siteExists) {
-          this.siteDataService.addSite({ name: siteFromUrl.name, url: siteFromUrl.url }, siteFromUrl.category);
-        }
-
-        // בחירת הערוץ מה-URL, עם שם הקטגוריה
-        this.uiStateService.selectSite({name: siteFromUrl.name, url: siteFromUrl.url}, siteFromUrl.category);
-
-      } else {
-        // אם אין ערוץ ב-URL, נטען את האחרון שנצפה
-        const lastViewedUrl = this.uiStateService.getLastViewedSiteUrl();
-        if (lastViewedUrl) {
-          const allSites = categories.flatMap(c => c.sites);
-          const lastSite = allSites.find(s => s.url === lastViewedUrl);
-          if (lastSite) {
-            this.uiStateService.selectSite(lastSite);
-          }
+        const lastSite = allSites.find(s => s.url === lastViewedUrl);
+        if (lastSite) {
+          this.uiStateService.selectSite(lastSite);
         }
       }
-    });
+    }
   }
 
   private tryGetSiteFromUrl(): (Site & { category: string }) | null {
@@ -76,13 +113,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const category = params.get('category');
 
     if (name && url && category) {
-      // בדיקה בסיסית שה-URL תקין
-      try {
-        new URL(url);
-        return { name, url, category };
-      } catch (e) {
-        return null;
-      }
+      try { new URL(url); return { name, url, category }; } catch (e) { return null; }
     }
     return null;
   }

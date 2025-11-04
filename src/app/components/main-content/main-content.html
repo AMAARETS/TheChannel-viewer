@@ -81,5 +81,13 @@
         </div>
       </div>
     }
+    <!-- FIX 4: Add case for custom content -->
+    @case ('custom') {
+      <div class="page-container">
+        <div class="page-content" [innerHTML]="sanitizedCustomContent$ | async">
+          <!-- External HTML will be rendered here -->
+        </div>
+      </div>
+    }
   }
 </main>

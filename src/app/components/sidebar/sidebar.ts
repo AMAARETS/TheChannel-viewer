@@ -11,6 +11,7 @@ import { ContextMenuComponent, ContextMenuData } from './context-menu/context-me
 // --- Service and Model Imports ---
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
+import { AnalyticsService } from '../../core/services/analytics.service'; // הוספת יבוא
 import { Category, Site, AvailableSite } from '../../core/models/site.model';
 
 @Component({
@@ -30,6 +31,7 @@ import { Category, Site, AvailableSite } from '../../core/models/site.model';
 export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
+  analyticsService = inject(AnalyticsService); // הזרקת השירות
 
   @ViewChild(SearchBarComponent) searchBar!: SearchBarComponent;
 
@@ -161,10 +163,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowAdvertisePage(): void {
+    this.analyticsService.trackButtonClick({
+      button_name: 'sidebar_advertise',
+      button_location: 'sidebar',
+    });
     this.uiStateService.showAdvertisePage();
   }
 
   onShowContactPage(): void {
+    this.analyticsService.trackButtonClick({
+      button_name: 'sidebar_contact',
+      button_location: 'sidebar',
+    });
     this.uiStateService.showContactPage();
   }
 
@@ -182,6 +192,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   openAddSiteDialog(): void {
+    this.analyticsService.trackButtonClick({
+      button_name: 'open_add_channel_dialog',
+      button_location: 'sidebar',
+    });
     this.uiStateService.openAddSiteDialog();
   }
 

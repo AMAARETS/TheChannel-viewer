@@ -22,6 +22,9 @@ export class MainContentComponent {
   selectedSiteUrl$ = this.uiStateService.sanitizedSelectedSiteUrl$;
   activeView$ = this.uiStateService.activeView$;
 
+  // FIX 4: Add sanitized custom content observable
+  sanitizedCustomContent$ = this.uiStateService.sanitizedCustomContent$;
+
   // --- לוגיקת טופס יצירת קשר ---
   contactForm = this.fb.group({
     name: ['', Validators.required],
