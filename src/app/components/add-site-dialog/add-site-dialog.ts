@@ -1,4 +1,12 @@
-import { Component, inject, HostListener, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import {
+  Component,
+  inject,
+  HostListener,
+  ChangeDetectionStrategy,
+  ViewChild,
+  ElementRef,
+  AfterViewChecked,
+} from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { SiteDataService } from '../../core/services/site-data.service';
@@ -13,7 +21,7 @@ import { map, BehaviorSubject } from 'rxjs';
   imports: [CommonModule, NgStyle, A11yModule],
   templateUrl: './add-site-dialog.html',
   styleUrl: './add-site-dialog.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddSiteDialogComponent implements AfterViewChecked {
   siteDataService = inject(SiteDataService);
@@ -47,9 +55,11 @@ export class AddSiteDialogComponent implements AfterViewChecked {
   }
 
   filteredAvailableSites$ = this.siteDataService.availableSites$.pipe(
-    map(available => {
-      const existingUrls = new Set(this.siteDataService.categories$.getValue().flatMap(c => c.sites.map(s => s.url)));
-      return available.filter(site => !existingUrls.has(site.url));
+    map((available) => {
+      const existingUrls = new Set(
+        this.siteDataService.categories$.getValue().flatMap((c) => c.sites.map((s) => s.url))
+      );
+      return available.filter((site) => !existingUrls.has(site.url));
     })
   );
 
@@ -58,12 +68,18 @@ export class AddSiteDialogComponent implements AfterViewChecked {
     this.uiStateService.closeAddSiteDialog();
   }
 
-  addSite(nameInput: HTMLInputElement, urlInput: HTMLInputElement, categoryInput: HTMLInputElement): void {
+  addSite(
+    nameInput: HTMLInputElement,
+    urlInput: HTMLInputElement,
+    categoryInput: HTMLInputElement
+  ): void {
     const name = nameInput.value.trim();
     let url = urlInput.value.trim();
     const categoryName = categoryInput.value.trim() || 'כללי';
     if (!name || !url) return;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) { url = `https://${url}`; }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
 
     const newSite: Site = { name, url };
     if (this.siteDataService.addSite(newSite, categoryName)) {
@@ -105,14 +121,14 @@ export class AddSiteDialogComponent implements AfterViewChecked {
       this.dropdownPosition = {
         bottom: `${dialogRect.height - (inputRect.top - dialogRect.top)}px`,
         left: `${left}px`,
-        width: `${width}px`
+        width: `${width}px`,
       };
     } else {
       const top = inputRect.bottom - dialogRect.top;
       this.dropdownPosition = {
         top: `${top}px`,
         left: `${left}px`,
-        width: `${width}px`
+        width: `${width}px`,
       };
     }
 
@@ -134,7 +150,7 @@ export class AddSiteDialogComponent implements AfterViewChecked {
     const filterValue = (event.target as HTMLInputElement).value.toLowerCase().trim();
     const allCategories = this.siteDataService.categories$.getValue();
 
-    const filtered = allCategories.filter(category =>
+    const filtered = allCategories.filter((category) =>
       category.name.toLowerCase().includes(filterValue)
     );
     this.filteredCategoriesSubject.next(filtered);
@@ -142,9 +158,28 @@ export class AddSiteDialogComponent implements AfterViewChecked {
 
   faviconErrorUrls = new Set<string>();
   colorPalette = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'];
-  getFaviconUrl(url: string): string { try { const siteUrl = new URL(url); return `${siteUrl.origin}/favicon.ico`; } catch { return ''; } }
-  onFaviconError(site: Site): void { this.faviconErrorUrls.add(site.url); }
-  hasFaviconError(site: Site): boolean { return this.faviconErrorUrls.has(site.url); }
-  getFirstLetter(name: string): string { return name ? name.charAt(0).toUpperCase() : ''; }
-  getColorForSite(name: string): string { let hash = 0; for (let i = 0; i < name.length; i++) { hash = name.charCodeAt(i) + ((hash << 5) - hash); } return this.colorPalette[Math.abs(hash % this.colorPalette.length)]; }
+  getFaviconUrl(url: string): string {
+    try {
+      const siteUrl = new URL(url);
+      return `${siteUrl.origin}/favicon.ico`;
+    } catch {
+      return '';
+    }
+  }
+  onFaviconError(site: Site): void {
+    this.faviconErrorUrls.add(site.url);
+  }
+  hasFaviconError(site: Site): boolean {
+    return this.faviconErrorUrls.has(site.url);
+  }
+  getFirstLetter(name: string): string {
+    return name ? name.charAt(0).toUpperCase() : '';
+  }
+  getColorForSite(name: string): string {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return this.colorPalette[Math.abs(hash % this.colorPalette.length)];
+  }
 }
