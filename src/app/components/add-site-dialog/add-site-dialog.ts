@@ -81,7 +81,8 @@ export class AddSiteDialogComponent implements AfterViewChecked {
       url = `https://${url}`;
     }
 
-    const newSite: Site = { name, url };
+    // Assume manual sites might not support it, can be changed later
+    const newSite: Site = { name, url, googleLoginSupported: false };
     if (this.siteDataService.addSite(newSite, categoryName)) {
       this.analyticsService.trackAddChannel({
         channel_name: name,
@@ -96,7 +97,8 @@ export class AddSiteDialogComponent implements AfterViewChecked {
   }
 
   addSiteFromAvailable(siteToAdd: AvailableSite): void {
-    const newSite: Site = { name: siteToAdd.name, url: siteToAdd.url };
+    // The googleLoginSupported property is already part of AvailableSite
+    const newSite: Site = { name: siteToAdd.name, url: siteToAdd.url, googleLoginSupported: siteToAdd.googleLoginSupported };
     const categoryName = siteToAdd.category || 'כללי';
     this.analyticsService.trackAddChannel({
       channel_name: siteToAdd.name,

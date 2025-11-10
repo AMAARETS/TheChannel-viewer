@@ -1,0 +1,24 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog(dontShowAgainCheckbox)">
+    <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
+      <h2 class="dialog-title">ברוכים הבאים ל'הערוץ'!</h2>
+      <div class="dialog-content">
+        <p>תודה שבחרת להשתמש בפלטפורמה שלנו.</p>
+        <p><strong>עדכון חשוב בנושא התחברות עם חשבון גוגל:</strong></p>
+        <ul>
+          <li>אנו עובדים במרץ כדי לאפשר התחברות חלקה עם חשבון גוגל בכל הערוצים המובנים. נכון לעכשיו, חלק מהערוצים עדיין אינם תומכים באפשרות זו.</li>
+          <li>ערוצים שאינם מופיעים ברשימה ניתן להוסיף ידנית באמצעות כפתור "הוסף ערוץ".</li>
+          <li>אם נתקלתם בבעיית התחברות בערוץ שהוספתם ידנית, מומלץ לפנות ישירות לבעלי הערוץ כדי שיסדירו את הנושא מולם.</li>
+        </ul>
+        <p>אנו מעריכים את סבלנותכם!</p>
+      </div>
+      <div class="dialog-actions">
+        <div class="dont-show-again-container">
+          <input type="checkbox" id="dont-show-welcome-again" #dontShowAgainCheckbox>
+          <label for="dont-show-welcome-again">אל תציג שוב</label>
+        </div>
+        <button #closeButton class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">הבנתי, תודה!</button>
+      </div>
+    </div>
+  </div>
+}

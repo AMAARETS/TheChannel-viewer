@@ -11,3 +11,25 @@ html, body {
   overflow: hidden;
   font-family: 'Roboto', sans-serif;
 }
+
+.page-container {
+  flex-grow: 1; /* ודא שהקונטיינר ממלא את השטח */
+  overflow-y: auto; /* זה הכלל החשוב שמאפשר גלילה! */
+  padding: 20px;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%; /* ודא שהקונטיינר תופס את כל הרוחב הזמין */
+  box-sizing: border-box; /* כדי שה-padding לא יגרום לגלישה */
+}
+
+.page-content {
+  width: 100%;
+  max-width: 900px;
+  background-color: #ffffff;
+  padding: 40px 50px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  text-align: center;
+}

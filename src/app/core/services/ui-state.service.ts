@@ -3,7 +3,7 @@ import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-brows
 import { BehaviorSubject, Observable, map, first } from 'rxjs';
 import { Site } from '../models/site.model';
 import { SiteDataService } from './site-data.service';
-import { AnalyticsService } from './analytics.service'; // הוספת יבוא
+import { AnalyticsService } from './analytics.service';
 
 export interface InputDialogConfig {
   title: string;
@@ -22,13 +22,16 @@ export type ActiveView = 'site' | 'advertise' | 'contact' | 'custom';
 export class UiStateService {
   private sanitizer = inject(DomSanitizer);
   private injector = inject(Injector);
-  private analyticsService = inject(AnalyticsService); // הזרקת השירות
+  private analyticsService = inject(AnalyticsService);
   private _siteDataService: SiteDataService | null = null;
   private focusedElementBeforeDialog: HTMLElement | null = null;
 
-  // --- ניהול משאבים דינאמיים ---
   private injectedCss: HTMLLinkElement | null = null;
   private injectedJs: HTMLScriptElement | null = null;
+
+  // --- Dialog Queue Management ---
+  private dialogQueue: (() => void)[] = [];
+  private isDialogVisible = false;
 
   // --- Local Storage Keys ---
   private readonly sidebarCollapsedKey = 'sidebarCollapsed';
@@ -36,6 +39,7 @@ export class UiStateService {
   private readonly collapsedCategoriesKey = 'collapsedCategories';
   private readonly viewedTutorialsKey = 'viewedChannelTutorials';
   private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial';
+  private readonly neverShowWelcomeDialogKey = 'neverShowWelcomeDialog';
 
   // --- Data loading state ---
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
@@ -55,6 +59,9 @@ export class UiStateService {
   isInputDialogVisible$ = new BehaviorSubject<boolean>(false);
   inputDialogConfig$ = new BehaviorSubject<InputDialogConfig | null>(null);
   isLoginTutorialDialogVisible$ = new BehaviorSubject<boolean>(false);
+  isWelcomeDialogVisible$ = new BehaviorSubject<boolean>(false);
+  isGoogleLoginUnsupportedDialogVisible$ = new BehaviorSubject<boolean>(false);
+  siteForUnsupportedLoginDialog$ = new BehaviorSubject<Site | null>(null);
 
   // --- Sidebar State ---
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(
@@ -77,7 +84,6 @@ export class UiStateService {
   );
 
   constructor() {
-    // חשיפת ה-API הגלובלי לניווט חיצוני
     const globalApi = (window as any).theChannel || {};
     globalApi.navigateTo = this.loadCustomContentFromSource.bind(this);
     (window as any).theChannel = globalApi;
@@ -90,10 +96,19 @@ export class UiStateService {
     return this._siteDataService;
   }
 
-  /**
-   * מנקה את כל המשאבים הדינאמיים (CSS, JS) שהוזרקו לדף.
-   * יש לקרוא לפונקציה זו לפני כל ניווט למצב תצוגה חדש.
-   */
+  // --- Dialog Queue Public Methods ---
+  enqueueDialog(dialogFn: () => void): void {
+    this.dialogQueue.push(dialogFn);
+  }
+
+  processNextDialogInQueue(): void {
+    if (this.isDialogVisible || this.dialogQueue.length === 0) {
+      return;
+    }
+    const nextDialogFn = this.dialogQueue.shift()!;
+    nextDialogFn();
+  }
+
   private cleanupInjectedResources(): void {
     if (this.injectedCss) {
       document.head.removeChild(this.injectedCss);
@@ -103,33 +118,22 @@ export class UiStateService {
       document.body.removeChild(this.injectedJs);
       this.injectedJs = null;
     }
-    this.customContent$.next(null); // נקה גם את התוכן
+    this.customContent$.next(null);
   }
 
-  /**
-   * הפונקציה המרכזית לטעינת תוכן דינאמי מתיקייה בשרת.
-   * @param source - שם התיקייה תחת /ads/
-   * @param params - אובייקט של פרמטרים להוספה ל-URL
-   */
   async loadCustomContentFromSource(
     source: string,
     params: Record<string, string> = {}
   ): Promise<void> {
     this.cleanupInjectedResources();
-
-    // הנתיב הבסיסי לתיקיית התוכן. הנתיב הוא אבסולוטי מתיקיית השורש של הדומיין.
     const baseUrl = `/ads/${source}/`;
-
     try {
-      // 1. טען את ה-HTML הראשי (חובה)
       const htmlUrl = `${baseUrl}index.html`;
       const htmlResponse = await fetch(htmlUrl);
       if (!htmlResponse.ok) {
         throw new Error(`קובץ index.html לא נמצא בתיקייה '${source}'`);
       }
       const htmlContent = await htmlResponse.text();
-
-      // 2. בדוק וטען CSS אם קיים
       const cssUrl = `${baseUrl}style.css`;
       const cssCheck = await fetch(cssUrl, { method: 'HEAD' });
       if (cssCheck.ok) {
@@ -138,26 +142,15 @@ export class UiStateService {
         this.injectedCss.href = cssUrl;
         document.head.appendChild(this.injectedCss);
       }
-
-      // 3. עדכן את מצב האפליקציה וה-URL
       this.activeView$.next('custom');
       this.customContent$.next(htmlContent);
-
-      const urlParams = new URLSearchParams({
-        view: 'custom',
-        source,
-        ...params,
-      });
+      const urlParams = new URLSearchParams({ view: 'custom', source, ...params });
       history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
-
-      // >> הוספת מעקב
       this.analyticsService.trackPageView({
         page_title: `Custom Content: ${source}`,
         page_path: `/ads/${source}`,
         page_location: window.location.href,
       });
-
-      // 4. בדוק וטען JS אם קיים (אחרי שה-HTML כבר ב-DOM)
       const jsUrl = `${baseUrl}script.js`;
       const jsCheck = await fetch(jsUrl, { method: 'HEAD' });
       if (jsCheck.ok) {
@@ -177,7 +170,7 @@ export class UiStateService {
   }
 
   selectSite(site: Site | null, categoryName?: string): void {
-    this.cleanupInjectedResources(); // נקה משאבים קודמים
+    this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
 
@@ -194,56 +187,32 @@ export class UiStateService {
         history.pushState(null, '', newUrl);
       }
 
-      // >> הוספת מעקב
       this.analyticsService.trackPageView({
         page_title: site.name,
         page_path: `/sites/${catName || 'unknown'}/${site.name}`,
-        page_location: site.url, // במקרה זה, ה-URL החיצוני הוא המיקום
+        page_location: site.url,
       });
 
-      if (this.isLoginTutorialGloballyDisabled()) return;
-      if (!this.hasViewedTutorial(site.url)) {
-        this.openLoginTutorialDialog();
-        this.markTutorialAsViewed(site.url);
+      if (site.googleLoginSupported) {
+        if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
+          this.enqueueDialog(() => this.openLoginTutorialDialog());
+          this.markTutorialAsViewed(site.url);
+        }
+      } else {
+        this.enqueueDialog(() => this.openGoogleLoginUnsupportedDialog(site));
       }
     } else {
       history.pushState(null, '', window.location.pathname);
     }
+
+    // --- FIX: Start queue processing if no other dialog is active ---
+    // This is the key fix. It handles cases where a user clicks a channel
+    // when no other dialogs are open. It won't run when adding a new site
+    // because `isDialogVisible` will be true at that moment.
+    if (!this.isDialogVisible) {
+      this.processNextDialogInQueue();
+    }
   }
-
-  showAdvertisePage(): void {
-    this.cleanupInjectedResources();
-    this.selectedSiteSubject.next(null);
-    this.activeView$.next('advertise');
-    const params = new URLSearchParams();
-    params.set('view', 'advertise');
-    history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
-
-    // >> הוספת מעקב
-    this.analyticsService.trackPageView({
-      page_title: 'Advertise Page',
-      page_path: '/advertise',
-      page_location: window.location.href,
-    });
-  }
-
-  showContactPage(): void {
-    this.cleanupInjectedResources();
-    this.selectedSiteSubject.next(null);
-    this.activeView$.next('contact');
-    const params = new URLSearchParams();
-    params.set('view', 'contact');
-    history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
-
-    // >> הוספת מעקב
-    this.analyticsService.trackPageView({
-      page_title: 'Contact Page',
-      page_path: '/contact',
-      page_location: window.location.href,
-    });
-  }
-
-  // --- שאר הפונקציות נשארות ללא שינוי ---
 
   getActiveSite(): Site | null {
     return this.selectedSiteSubject.getValue();
@@ -260,8 +229,10 @@ export class UiStateService {
     this.collapsedCategories$.next(state);
     this.saveToStorage(this.collapsedCategoriesKey, state);
   }
+
   openAddSiteDialog(): void {
     this.saveFocus();
+    this.isDialogVisible = true;
     this.isAddSiteDialogVisible$.next(true);
   }
   closeAddSiteDialog(): void {
@@ -270,6 +241,7 @@ export class UiStateService {
   }
   openConfirmDeleteDialog(site: Site): void {
     this.saveFocus();
+    this.isDialogVisible = true;
     this.siteToDelete$.next(site);
     this.isConfirmDeleteDialogVisible$.next(true);
   }
@@ -280,6 +252,7 @@ export class UiStateService {
   }
   openInputDialog(config: InputDialogConfig): void {
     this.saveFocus();
+    this.isDialogVisible = true;
     this.inputDialogConfig$.next(config);
     this.isInputDialogVisible$.next(true);
   }
@@ -295,6 +268,7 @@ export class UiStateService {
   }
   openLoginTutorialDialog(): void {
     this.saveFocus();
+    this.isDialogVisible = true;
     this.isLoginTutorialDialogVisible$.next(true);
   }
   closeLoginTutorialDialog(disableGlobally = false): void {
@@ -304,12 +278,43 @@ export class UiStateService {
     this.isLoginTutorialDialogVisible$.next(false);
     this.restoreFocus();
   }
+
+  isWelcomeDialogGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true;
+  }
+
+  openWelcomeDialog(): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.isWelcomeDialogVisible$.next(true);
+  }
+  closeWelcomeDialog(disableGlobally = false): void {
+    if (disableGlobally) {
+      this.saveToStorage(this.neverShowWelcomeDialogKey, true);
+    }
+    this.isWelcomeDialogVisible$.next(false);
+    this.restoreFocus();
+  }
+  openGoogleLoginUnsupportedDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteForUnsupportedLoginDialog$.next(site);
+    this.isGoogleLoginUnsupportedDialogVisible$.next(true);
+  }
+  closeGoogleLoginUnsupportedDialog(): void {
+    this.isGoogleLoginUnsupportedDialogVisible$.next(false);
+    this.siteForUnsupportedLoginDialog$.next(null);
+    this.restoreFocus();
+  }
+
   private saveFocus(): void {
     this.focusedElementBeforeDialog = document.activeElement as HTMLElement;
   }
   private restoreFocus(): void {
     this.focusedElementBeforeDialog?.focus();
     this.focusedElementBeforeDialog = null;
+    this.isDialogVisible = false; // A dialog is now closed
+    setTimeout(() => this.processNextDialogInQueue(), 0); // Check for the next one
   }
   private saveToStorage<T>(key: string, value: T): void {
     try {

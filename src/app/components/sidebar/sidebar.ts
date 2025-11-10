@@ -11,7 +11,7 @@ import { ContextMenuComponent, ContextMenuData } from './context-menu/context-me
 // --- Service and Model Imports ---
 import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
-import { AnalyticsService } from '../../core/services/analytics.service'; // הוספת יבוא
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { Category, Site, AvailableSite } from '../../core/models/site.model';
 
 @Component({
@@ -31,7 +31,7 @@ import { Category, Site, AvailableSite } from '../../core/models/site.model';
 export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
-  analyticsService = inject(AnalyticsService); // הזרקת השירות
+  analyticsService = inject(AnalyticsService);
 
   @ViewChild(SearchBarComponent) searchBar!: SearchBarComponent;
 
@@ -112,7 +112,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   onAddSiteFromAvailable(site: AvailableSite): void {
     const categoryName = site.category || 'כללי';
-    this.siteDataService.addSite({ name: site.name, url: site.url }, categoryName);
+    // FIX: Pass the 'site' object directly, as it conforms to the 'Site' interface
+    // and contains the required 'googleLoginSupported' property.
+    this.siteDataService.addSite(site, categoryName);
     this.searchBar.clearSearch();
   }
 
@@ -167,7 +169,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       button_name: 'sidebar_advertise',
       button_location: 'sidebar',
     });
-    this.uiStateService.showAdvertisePage();
+    this.uiStateService.loadCustomContentFromSource('advertise', {});
   }
 
   onShowContactPage(): void {
@@ -175,7 +177,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       button_name: 'sidebar_contact',
       button_location: 'sidebar',
     });
-    this.uiStateService.showContactPage();
+    this.uiStateService.loadCustomContentFromSource('contact', {});
   }
 
   toggleSidebar(): void {

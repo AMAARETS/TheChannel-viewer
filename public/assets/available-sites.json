@@ -3,6 +3,14 @@
     "name": "לחחחחהערחחחחחחחחחחח",
     "url": "https://chat.google.com/dm/kgIDd8AAAAE/-KZc2ixE5OU/-KZc2ixE5OU?cls=10",
     "description": "חחגלל",
-    "category": "ששששששש"
+    "category": "ששששששש",
+    "googleLoginSupported": true
+  },
+  {
+    "name": "אתר דוגמה נוסף",
+    "url": "https://example.org",
+    "description": "אתר זה אינו תומך בהתחברות גוגל",
+    "category": "כללי",
+    "googleLoginSupported": false
   }
 ]

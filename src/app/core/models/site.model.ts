@@ -1,6 +1,7 @@
 export interface Site {
   name: string;
   url: string;
+  googleLoginSupported: boolean;
 }
 
 export interface Category {

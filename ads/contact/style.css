@@ -1,0 +1,58 @@
+/* סגנונות אלו הועברו מ-main-content.css */
+
+.contact-form-container h2 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.contact-form-container p {
+  margin-bottom: 24px;
+}
+.contact-form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: right;
+}
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.form-group input:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #4361ee;
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+.submit-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  background-color: #4361ee;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.submit-btn:hover:not(:disabled) {
+  background-color: #3a0ca3;
+}
+.submit-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.form-message {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.form-message.success { background-color: #d4edda; color: #155724; }
+.form-message.error { background-color: #f8d7da; color: #721c24; }

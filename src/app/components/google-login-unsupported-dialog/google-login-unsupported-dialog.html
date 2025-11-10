@@ -1,0 +1,17 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    @if(site$ | async; as site) {
+      <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
+        <h2 class="dialog-title">התחברות לגוגל בערוץ '{{ site.name }}'</h2>
+        <div class="dialog-content">
+          <p>בערוץ זה עדיין לא נתמכת התחברות באמצעות חשבון גוגל מתוך הפלטפורמה.</p>
+          <p>כדי להתחבר, יש לפתוח את הערוץ בכרטיסייה חדשה בדפדפן.</p>
+        </div>
+        <div class="dialog-actions">
+          <button #closeButton class="btn-secondary" (click)="closeDialog()">סגור</button>
+          <a [href]="site.url" target="_blank" class="btn-primary-link" (click)="closeDialog()">פתח בכרטיסייה חדשה</a>
+        </div>
+      </div>
+    }
+  </div>
+}
