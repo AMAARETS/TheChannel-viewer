@@ -1,16 +1,30 @@
 [
   {
-    "name": "לחחחחהערחחחחחחחחחחח",
-    "url": "https://chat.google.com/dm/kgIDd8AAAAE/-KZc2ixE5OU/-KZc2ixE5OU?cls=10",
-    "description": "חחגלל",
-    "category": "ששששששש",
+    "name": "היכל התורה",
+    "url": "https://torani.chatfree.app/",
+    "description": "אתר בנושא תורה",
+    "category": "תורני",
     "googleLoginSupported": true
   },
   {
-    "name": "אתר דוגמה נוסף",
-    "url": "https://example.org",
-    "description": "אתר זה אינו תומך בהתחברות גוגל",
-    "category": "כללי",
+    "name": "My ali",
+    "url": "https://myali.chatfree.app/",
+    "description": "אתר קניות",
+    "category": "קניות",
+    "googleLoginSupported": false
+  },
+  {
+    "name": "My ali - מותגים",
+    "url": "https://myali-mutagim.chatfree.app/",
+    "description": "אתר קניות למותגים",
+    "category": "קניות",
+    "googleLoginSupported": false
+  },
+  {
+    "name": "מעיינות נדירים - ישראל שפירא",
+    "url": "https://channel.israelshapira.com/",
+    "description": "אתר בנושא טיולים ומעיינות",
+    "category": "טיולים",
     "googleLoginSupported": false
   }
 ]

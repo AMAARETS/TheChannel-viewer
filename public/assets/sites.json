@@ -1,20 +1,35 @@
 [
   {
-    "name": "דוגמה",
+    "name": "תורני",
     "sites": [
       {
-        "name": "הערוץ הראשון!!",
-        "url": "https://the-channel.clickandgo.cfd/",
+        "name": "היכל התורה",
+        "url": "https://torani.chatfree.app/",
         "googleLoginSupported": true
-      },
+      }
+    ]
+  },
+  {
+  "name": "קניות",
+    "sites":[
       {
-        "name": "ערוץ ללא תלעכעיחלמיכה",
-        "url": "https://example.com",
+        "name": "My ali",
+        "url": "https://myali.chatfree.app/",
         "googleLoginSupported": false
       },
       {
-        "name": "ערוץ ללא תמיכה",
-        "url": "https://accounts.google.co.il",
+        "name": "My ali - מותגים",
+        "url": "https://myali-mutagim.chatfree.app/",
+        "googleLoginSupported": false
+      }
+    ]
+  },
+  {
+    "name": "טיולים",
+    "sites":[
+      {
+        "name": "מעיינות נדירים - ישראל שפירא",
+        "url": "https://channel.israelshapira.com/",
         "googleLoginSupported": false
       }
     ]
