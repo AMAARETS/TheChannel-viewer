@@ -5,18 +5,22 @@
      (mouseleave)="onSidebarMouseLeave()">
   <div class="sidebar-header">
     <!-- FIX 1: Toggle button moved BEFORE the logo in the DOM -->
-    <button
+
+    @if (isExpanded$ | async) {
+      <!-- IMPROVEMENT 1: Make the logo a link -->
+      <a href="/" class="logo-link">
+        <div class="sidebar-logo">
+          <span class="rotated-letter">ה</span>ערוץ
+        </div>
+      </a>
+    }
+        <button
       class="toggle-sidebar-btn"
       (click)="toggleSidebar()"
       [title]="(isSidebarCollapsed$ | async) ? 'הרחב סרגל צד' : 'כווץ סרגל צד'"
     >
       <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
     </button>
-    @if (isExpanded$ | async) {
-      <div class="sidebar-logo">
-        <span class="rotated-letter">ה</span>ערוץ
-      </div>
-    }
   </div>
 
   <app-search-bar
@@ -106,5 +110,6 @@
   (categoryChangeClicked)="onChangeSiteCategory($event)"
   (newCategoryClicked)="onNewSiteCategory($event)"
   (moveUpClicked)="onMoveSiteUp($event)"
-  (moveDownClicked)="onMoveSiteDown($event)">
+  (moveDownClicked)="onMoveSiteDown($event)"
+  (copyLinkClicked)="onCopySiteLink($event)"> <!-- IMPROVEMENT 2: Handle the new event -->
 </app-context-menu>

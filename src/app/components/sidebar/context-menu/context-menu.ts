@@ -27,6 +27,8 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Output() newCategoryClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() moveUpClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() moveDownClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
+  // IMPROVEMENT 2: Add new event emitter for copy link
+  @Output() copyLinkClicked = new EventEmitter<{ site: Site, category: Category }>();
 
   position = { top: '0px', left: '0px', bottom: 'auto' };
   isOpeningUp = false;
@@ -87,6 +89,12 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   onDelete(site: Site, event: Event): void {
     event.stopPropagation();
     this.deleteClicked.emit(site);
+  }
+
+  // IMPROVEMENT 2: Add handler for copy link click
+  onCopyLink(site: Site, category: Category, event: Event): void {
+    event.stopPropagation();
+    this.copyLinkClicked.emit({ site, category });
   }
 
   onChangeCategory(site: Site, fromCategory: Category, toCategory: Category): void {

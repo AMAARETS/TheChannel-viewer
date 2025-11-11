@@ -5,6 +5,8 @@
        (click)="$event.stopPropagation()">
 
     <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
+    <!-- IMPROVEMENT 2: Add "Copy Link" option -->
+    <div class="context-menu-item" (click)="onCopyLink(menuData.site, menuData.category, $event)" (keydown.enter)="onCopyLink(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">העתק קישור</div>
 
     <div class="context-menu-item-wrapper">
       <div class="context-menu-item with-submenu" tabindex="0" role="menuitem">

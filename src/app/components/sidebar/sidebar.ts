@@ -13,6 +13,7 @@ import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { Category, Site, AvailableSite } from '../../core/models/site.model';
+import { ToastService } from '../../core/services/toast.service'; // IMPROVEMENT 2: Import ToastService
 
 @Component({
   selector: 'app-sidebar',
@@ -32,6 +33,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
   analyticsService = inject(AnalyticsService);
+  toastService = inject(ToastService); // IMPROVEMENT 2: Inject ToastService
 
   @ViewChild(SearchBarComponent) searchBar!: SearchBarComponent;
 
@@ -128,6 +130,21 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   onDeleteSite(site: Site): void {
     this.uiStateService.openConfirmDeleteDialog(site);
+    this.onContextMenuClose();
+  }
+
+  // IMPROVEMENT 2: Add method to handle copying the site link
+  onCopySiteLink(event: { site: Site, category: Category }): void {
+    const { site, category } = event;
+    const url = `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(site.name)}&url=${encodeURIComponent(site.url)}&category=${encodeURIComponent(category.name)}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+      this.toastService.show('הקישור הועתק', 'info');
+    }).catch(err => {
+      console.error('Failed to copy link: ', err);
+      this.toastService.show('שגיאה בהעתקת הקישור', 'error');
+    });
+
     this.onContextMenuClose();
   }
 

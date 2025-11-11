@@ -17,7 +17,8 @@
 /* FIX 1: Header layout changed to use flex-direction */
 .sidebar-header {
   display: flex;
-  justify-content: flex-start; /* Aligns items to the start (right in RTL) */
+  justify-content: flex-end; /* Aligns items to the start (right in RTL) */
+  flex-direction: row-reverse;
   align-items: center;
   padding: 16px 8px 8px 8px; /* Adjusted padding */
   gap: 8px; /* Space between button and logo */
@@ -39,6 +40,12 @@
 }
 .toggle-sidebar-btn:hover {
   background-color: #f1f3f4;
+}
+
+/* --- IMPROVEMENT 1: Style for the logo link --- */
+.logo-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* Logo */

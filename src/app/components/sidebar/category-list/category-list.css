@@ -92,6 +92,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* --- IMPROVEMENT 3 & 4: Font style and size adjustment --- */
+  font-family:  'Poppins', Roboto, Arial, sans-serif; /* Explicitly set Google's font */
+  font-size: 15.5px; /* Slightly increased font size */
+  font-weight: 200;
 }
 .site-list li.active {
   background-color: #e8f0fe;
