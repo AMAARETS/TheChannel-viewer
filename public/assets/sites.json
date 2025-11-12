@@ -10,6 +10,16 @@
     ]
   },
   {
+    "name": "חדשות",
+    "sites":[
+      {
+        "name": "הגיזרה",
+        "url": "https://hagizra.news/",
+        "googleLoginSupported": false
+      }
+    ]
+  },
+  {
   "name": "קניות",
     "sites":[
       {
