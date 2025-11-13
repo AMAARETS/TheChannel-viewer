@@ -1,21 +1,21 @@
 [
   {
-    "name": "תורני",
-    "sites": [
-      {
-        "name": "היכל התורה",
-        "url": "https://torani.chatfree.app/",
-        "googleLoginSupported": true
-      }
-    ]
-  },
-  {
     "name": "חדשות",
     "sites":[
       {
         "name": "הגיזרה",
         "url": "https://hagizra.news/",
         "googleLoginSupported": false
+      }
+    ]
+  },
+  {
+    "name": "תורני",
+    "sites": [
+      {
+        "name": "היכל התורה",
+        "url": "https://torani.chatfree.app/",
+        "googleLoginSupported": true
       }
     ]
   },

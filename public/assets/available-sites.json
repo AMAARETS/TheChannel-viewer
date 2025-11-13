@@ -1,5 +1,12 @@
 [
   {
+    "name": "הגיזרה",
+    "url": "https://hagizra.news/",
+    "description": "חדשות חמות",
+    "category": "חדשות",
+    "googleLoginSupported": false
+  },
+  {
     "name": "היכל התורה",
     "url": "https://torani.chatfree.app/",
     "description": "אתר בנושא תורה",
