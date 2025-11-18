@@ -1,31 +1,25 @@
 /* src/app/app.component.css */
-
 :host {
   display: block;
   height: 100%;
-  overflow: hidden; /* Prevent layout shifts */
+  overflow: hidden;
 }
-
-/* Main layout */
 .app-layout {
   display: flex;
-  flex-direction: column; /* Stack main content and ad footer vertically */
+  flex-direction: column;
   height: 100%;
   width: 100%;
 }
-
-/* Container for the main part of the app (sidebar + iframe) */
+/* עיצוב הבאנר הוסר מכאן */
 .main-container {
   display: flex;
-  flex-grow: 1; /* Make this container take up all available vertical space */
-  overflow: hidden; /* Important to contain elements and prevent double scrollbars */
-  min-height: 0; /* <-- THE FIX: Allows this container to shrink below its content's size */
+  flex-grow: 1;
+  overflow: hidden;
+  min-height: 0;
 }
-
-/* Advertisement Footer Styles */
 .ad-container {
   width: 100%;
-  flex-shrink: 0; /* Ensures the footer doesn't shrink */
+  flex-shrink: 0;
   border-top: 1px solid #cccccc;
   box-sizing: border-box;
   background-color: #f0f0f0;

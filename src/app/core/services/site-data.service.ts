@@ -1,15 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { forkJoin, BehaviorSubject, catchError, of } from 'rxjs';
 import { Category, Site, AvailableSite } from '../models/site.model';
 import { UiStateService } from './ui-state.service';
 import { ToastService } from './toast.service';
+import { ExtensionCommunicationService, AppSettings } from './extension-communication.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SiteDataService {
-  private readonly userCategoriesKey = 'userChannelCategories';
+  private readonly userSettingsKey = 'userChannelSettings';
   private readonly removedDefaultSitesKey = 'removedDefaultSites';
   private readonly oldStorageKey = 'userSites';
 
@@ -17,6 +18,7 @@ export class SiteDataService {
   private http = inject(HttpClient);
   private uiStateService = inject(UiStateService);
   private toastService = inject(ToastService);
+  private extensionCommService = inject(ExtensionCommunicationService);
 
   categories$ = new BehaviorSubject<Category[]>([]);
   availableSites$ = new BehaviorSubject<AvailableSite[]>([]);
@@ -27,45 +29,75 @@ export class SiteDataService {
 
   private loadInitialData(): void {
     this.uiStateService.dataLoadingState$.next('loading');
+
     forkJoin({
       defaultCategories: this.http.get<Category[]>('assets/sites.json'),
       availableSites: this.http.get<AvailableSite[]>('assets/available-sites.json')
     }).pipe(
-      tap(() => this.uiStateService.dataLoadingState$.next('loaded')),
       catchError(error => {
         console.error("Failed to load site data", error);
         this.uiStateService.dataLoadingState$.next('error');
         this.toastService.show('אירעה שגיאה בטעינת הערוצים', 'error');
         return of({ defaultCategories: [], availableSites: [] });
       })
-    ).subscribe(({ defaultCategories, availableSites }) => {
+    ).subscribe(async ({ defaultCategories, availableSites }) => {
       this.availableSites$.next(availableSites);
       this.defaultSites = defaultCategories.flatMap(cat => cat.sites);
-      this.loadUserCategoriesAndMerge(defaultCategories);
+
+      const extensionResponse = await this.extensionCommService.requestSettingsFromExtension();
+      const localSettings = this.loadSettingsFromStorage();
+
+      const extSettings = extensionResponse?.settings;
+      const extTimestamp = extensionResponse?.lastModified || 0;
+      const localTimestamp = localSettings?.lastModified || 0;
+
+      let finalSettings: AppSettings;
+      let winningSource: 'extension' | 'local' | 'default' = 'default';
+
+      if (extTimestamp > localTimestamp) {
+        console.log("Loading settings from extension (newer).");
+        finalSettings = extSettings!;
+        winningSource = 'extension';
+      } else if (localTimestamp > 0) {
+        console.log("Loading settings from localStorage (newer or extension unavailable).");
+        finalSettings = localSettings!;
+        winningSource = 'local';
+      } else {
+        console.log("Loading default settings.");
+        finalSettings = { categories: defaultCategories, sidebarCollapsed: false, collapsedCategories: {}, lastModified: 0 };
+      }
+      
+      const mergedCategories = this.mergeDefaultSites(finalSettings.categories, defaultCategories);
+      this.categories$.next(mergedCategories);
+      this.uiStateService.loadInitialStateFromExtension(finalSettings);
+
+      if (winningSource === 'local') {
+        this.saveCategories(false);
+      } else {
+        this.saveCategoriesToStorageOnly();
+      }
+      
+      this.uiStateService.dataLoadingState$.next('loaded');
     });
   }
-
-  private loadUserCategoriesAndMerge(defaultCategories: Category[]): void {
-    const userCategories: Category[] | null = this.loadCategoriesFromStorage();
-
-    if (!userCategories) {
-        this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
-    } else {
-        const merged = this.mergeDefaultSites(userCategories, defaultCategories);
-        this.categories$.next(merged);
+  
+  // <--- תיקון: הפונקציה מחזירה AppSettings מלא
+  private loadSettingsFromStorage(): AppSettings | null {
+    const savedSettingsRaw = localStorage.getItem(this.userSettingsKey);
+    if (savedSettingsRaw) {
+      try {
+        const parsed = JSON.parse(savedSettingsRaw);
+        if (Array.isArray(parsed.categories) && typeof parsed.lastModified === 'number') {
+          return {
+            categories: parsed.categories,
+            sidebarCollapsed: parsed.sidebarCollapsed ?? false,
+            collapsedCategories: parsed.collapsedCategories ?? {},
+            lastModified: parsed.lastModified
+          };
+        }
+      } catch (e) { console.error("Error parsing settings, ignoring.", e); }
     }
-    this.saveCategories();
-  }
-
-  private loadCategoriesFromStorage(): Category[] | null {
-    const savedCategoriesRaw = localStorage.getItem(this.userCategoriesKey);
-    if (savedCategoriesRaw) {
-        try {
-            const parsed = JSON.parse(savedCategoriesRaw);
-            if (Array.isArray(parsed)) return parsed;
-        } catch (e) { console.error("Error parsing categories, ignoring.", e); }
-    }
-
+    // מיגרציה
     const oldSitesRaw = localStorage.getItem(this.oldStorageKey);
     if (oldSitesRaw) {
         try {
@@ -73,7 +105,12 @@ export class SiteDataService {
             if (Array.isArray(oldSites) && oldSites.length > 0) {
                 console.log('Migrating data from old format.');
                 localStorage.removeItem(this.oldStorageKey);
-                return [{ name: 'הערוצים שלי', sites: oldSites }];
+                return { 
+                  categories: [{ name: 'הערוצים שלי', sites: oldSites }],
+                  sidebarCollapsed: false,
+                  collapsedCategories: {},
+                  lastModified: Date.now() 
+                };
             }
         } catch(e) { console.error("Error parsing old sites, ignoring.", e); }
     }
@@ -83,26 +120,41 @@ export class SiteDataService {
   private mergeDefaultSites(userCategories: Category[], defaultCategories: Category[]): Category[] {
     const removedSites = this.getRemovedDefaultSites();
     const userSitesUrls = new Set(userCategories.flatMap(cat => cat.sites.map(s => s.url)));
-
     defaultCategories.forEach(defaultCategory => {
-        defaultCategory.sites.forEach(defaultSite => {
-            if (!userSitesUrls.has(defaultSite.url) && !removedSites.has(defaultSite.url)) {
-                let targetCategory = userCategories.find(c => c.name === defaultCategory.name);
-                if (!targetCategory) {
-                    targetCategory = { name: defaultCategory.name, sites: [] };
-                    userCategories.push(targetCategory);
-                }
-                targetCategory.sites.push(defaultSite);
-            }
-        });
+      defaultCategory.sites.forEach(defaultSite => {
+        if (!userSitesUrls.has(defaultSite.url) && !removedSites.has(defaultSite.url)) {
+          let targetCategory = userCategories.find(c => c.name === defaultCategory.name);
+          if (!targetCategory) {
+            targetCategory = { name: defaultCategory.name, sites: [] };
+            userCategories.push(targetCategory);
+          }
+          targetCategory.sites.push(defaultSite);
+        }
+      });
     });
-    return userCategories;
+    return userCategories.filter(cat => cat.sites && cat.sites.length > 0);
   }
 
-  private saveCategories(): void {
-    localStorage.setItem(this.userCategoriesKey, JSON.stringify(this.categories$.getValue()));
+  private saveCategories(showToast = true): void {
+    const settings = {
+        ...this.uiStateService.getCurrentSettings(),
+        lastModified: Date.now()
+    };
+    localStorage.setItem(this.userSettingsKey, JSON.stringify(settings));
+    this.extensionCommService.updateSettingsInExtension(settings);
+    if (showToast) {
+        this.toastService.show('ההגדרות נשמרו והסתנכרנו', 'info');
+    }
   }
 
+  private saveCategoriesToStorageOnly(): void {
+    const settings = {
+        ...this.uiStateService.getCurrentSettings(),
+        lastModified: Date.now()
+    };
+    localStorage.setItem(this.userSettingsKey, JSON.stringify(settings));
+  }
+  
   private getRemovedDefaultSites(): Set<string> {
     const removedRaw = localStorage.getItem(this.removedDefaultSitesKey);
     return new Set<string>(removedRaw ? JSON.parse(removedRaw) : []);
@@ -113,19 +165,17 @@ export class SiteDataService {
   }
 
   addSite(newSite: Site, categoryName: string): boolean {
-    const currentCategories = this.categories$.getValue();
+    const currentCategories = [...this.categories$.getValue()];
     if (currentCategories.some(c => c.sites.some(s => s.url === newSite.url))) {
       this.toastService.show('הערוץ כבר קיים ברשימה', 'error');
       return false;
     }
-
     const targetCategory = currentCategories.find(c => c.name === categoryName);
     if (targetCategory) {
       targetCategory.sites.push(newSite);
     } else {
       currentCategories.push({ name: categoryName, sites: [newSite] });
     }
-
     this.categories$.next(currentCategories);
     this.saveCategories();
     this.toastService.show(`הערוץ '${newSite.name}' נוסף בהצלחה`);
@@ -138,11 +188,9 @@ export class SiteDataService {
       removedSites.add(siteToRemove.url);
       this.saveRemovedDefaultSites(removedSites);
     }
-
     let currentCategories = this.categories$.getValue();
     currentCategories.forEach(cat => { cat.sites = cat.sites.filter(s => s.url !== siteToRemove.url); });
     currentCategories = currentCategories.filter(cat => cat.sites.length > 0);
-
     this.categories$.next(currentCategories);
     this.saveCategories();
     this.toastService.show(`הערוץ '${siteToRemove.name}' נמחק`);
@@ -150,23 +198,17 @@ export class SiteDataService {
 
   moveSiteToCategory(siteToMove: Site, fromCategoryName: string, toCategoryName: string): void {
     if (fromCategoryName === toCategoryName) return;
-
     const currentCategories = JSON.parse(JSON.stringify(this.categories$.getValue()));
     const fromCategory = currentCategories.find((c: Category) => c.name === fromCategoryName);
     const toCategory = currentCategories.find((c: Category) => c.name === toCategoryName);
-
     if (!fromCategory) return;
-
     fromCategory.sites = fromCategory.sites.filter((s: Site) => s.url !== siteToMove.url);
-
     if (toCategory) {
       toCategory.sites.push(siteToMove);
     } else {
       currentCategories.push({ name: toCategoryName, sites: [siteToMove] });
     }
-
-    const updatedCategories = currentCategories.filter((c: Category) => c.sites.length > 0);
-    this.updateCategories(updatedCategories);
+    this.updateCategories(currentCategories);
     this.toastService.show(`'${siteToMove.name}' הועבר לקטגוריית '${toCategoryName}'`, 'info');
   }
 
@@ -184,24 +226,19 @@ export class SiteDataService {
     const categories = [...this.categories$.getValue()];
     const category = categories.find(c => c.name === fromCategoryName);
     if (!category) return;
-
     const index = category.sites.findIndex(s => s.url === site.url);
     if (index === -1) return;
-
     if (direction === 'up' && index > 0) {
       [category.sites[index], category.sites[index - 1]] = [category.sites[index - 1], category.sites[index]];
     } else if (direction === 'down' && index < category.sites.length - 1) {
       [category.sites[index], category.sites[index + 1]] = [category.sites[index + 1], category.sites[index]];
-    } else {
-      return; // No move was possible
-    }
-
+    } else { return; }
     this.updateCategories(categories);
   }
 
   updateCategories(updatedCategories: Category[]): void {
-    const cleanedCategories = updatedCategories.filter(c => c.sites.length > 0);
+    const cleanedCategories = updatedCategories.filter(c => c.sites && c.sites.length > 0);
     this.categories$.next(cleanedCategories);
-    this.saveCategories();
+    this.saveCategories(false);
   }
 }

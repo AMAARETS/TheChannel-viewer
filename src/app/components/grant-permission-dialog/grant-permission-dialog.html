@@ -1,0 +1,17 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    @if(site$ | async; as site) {
+      <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
+        <h2 class="dialog-title">נדרשת הרשאה לערוץ '{{ site.name }}'</h2>
+        <div class="dialog-content">
+          <p>כדי לאפשר סנכרון והתחברות חלקה בערוץ זה, יש להעניק הרשאה לדומיין <strong>{{ siteDomain$ | async }}</strong>.</p>
+          <p>יש ללחוץ על אייקון התוסף (TheChannel Viewer) בסרגל הכלים של הדפדפן, לבחור את הדומיין מהרשימה וללחוץ "אישור ושמירה".</p>
+          <p>לאחר אישור ההרשאה, ניתן יהיה להתחבר לערוץ בצורה מלאה.</p>
+        </div>
+        <div class="dialog-actions">
+          <button #closeButton class="btn-primary" (click)="closeDialog()">הבנתי</button>
+        </div>
+      </div>
+    }
+  </div>
+}

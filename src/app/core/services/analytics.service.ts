@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 
-// הגדרת טיפוסים לאירועים השונים כדי לשמור על קוד נקי
-export type PageViewEvent = {
-  page_title: string;
-  page_path: string; // למשל /sites/ynet או /ads/welcome-page
-  page_location: string; // ה-URL המלא
-};
+// --- ההגדרה הבאה הוסרה כי היא שימשה רק את trackPageView ---
+// export type PageViewEvent = {
+//   page_title: string;
+//   page_path: string;
+//   page_location: string;
+// };
 
 export type ButtonClickEvent = {
   button_name: string; // למשל 'add_channel_dialog_open'
@@ -41,14 +41,7 @@ export class AnalyticsService {
 
   // --- פונקציות ייעודיות לכל סוג אירוע ---
 
-  /**
-   * עוקב אחר צפייה בדף (ערוץ או דף מותאם).
-   * זה האירוע המרכזי למעקב שביקשת.
-   */
-  public trackPageView(data: PageViewEvent): void {
-    this.pushEvent('page_view_app', data); // שם ייחודי כדי לא להתנגש עם page_view אוטומטי
-    console.log('Analytics: Page View', data);
-  }
+  // --- המתודה trackPageView הוסרה מכאן במלואה ---
 
   /**
    * עוקב אחר לחיצה על כפתורים חשובים.
@@ -64,5 +57,13 @@ export class AnalyticsService {
   public trackAddChannel(data: AddChannelEvent): void {
     this.pushEvent('add_channel', data);
     console.log('Analytics: Add Channel', data);
+  }
+
+  /**
+   * שולח "פעימת לב" ל-GTM כדי לסמן שהמשתמש עדיין פעיל,
+   * גם כאשר הוא נמצא בתוך iframe.
+   */
+  public trackIframeHeartbeat(): void {
+    this.pushEvent('iframe_heartbeat', {});
   }
 }
