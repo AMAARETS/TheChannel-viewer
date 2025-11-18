@@ -90,9 +90,12 @@ export class UiStateService {
   );
 
   constructor() {
-    const globalApi = (window as any).theChannel || {};
+    interface TheChannelAPI {
+      navigateTo?: (source: string, params?: Record<string, string>) => Promise<void>;
+    }
+    const globalApi: TheChannelAPI = ((window as Window & { theChannel?: TheChannelAPI }).theChannel) || {};
     globalApi.navigateTo = this.loadCustomContentFromSource.bind(this);
-    (window as unknown).theChannel = globalApi;
+    (window as Window & { theChannel?: TheChannelAPI }).theChannel = globalApi;
   }
 
   private get siteDataService(): SiteDataService {
