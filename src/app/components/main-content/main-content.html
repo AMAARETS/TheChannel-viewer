@@ -1,12 +1,8 @@
 <main class="main-content">
   @switch (activeView$ | async) {
     @case ('site') {
-      <!-- הוספת אירועי עכבר בנוסף למזהה הקיים -->
-      <div
-        class="iframe-container"
-        (mouseenter)="onIframeMouseEnter()"
-        (mouseleave)="onIframeMouseLeave()">
-        <iframe #iframeElement *ngIf="selectedSiteUrl$ | async as url" [src]="url" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
+      <div class="iframe-container">
+        <iframe *ngIf="selectedSiteUrl$ | async as url" [src]="url" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
         <div *ngIf="!(selectedSiteUrl$ | async)" class="placeholder">
           <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
         </div>
@@ -14,6 +10,7 @@
     }
 
     @case ('custom') {
+      <!-- FIX: הוספת עטיפה עם קלאס ייעודי -->
       <div class="custom-content-wrapper" [innerHTML]="sanitizedCustomContent$ | async">
         <!-- External HTML will be rendered here -->
       </div>

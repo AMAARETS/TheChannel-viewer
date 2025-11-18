@@ -1,51 +1,76 @@
-<nav class="sidebar" [class.collapsed]="(isExpanded$ | async) === false">
+<!-- Sidebar -->
+<nav class="sidebar"
+     [class.collapsed]="(isExpanded$ | async) === false"
+     (mouseenter)="onSidebarMouseEnter()"
+     (mouseleave)="onSidebarMouseLeave()">
   <div class="sidebar-header">
+    <!-- FIX 1: Toggle button moved BEFORE the logo in the DOM -->
+
     @if (isExpanded$ | async) {
+      <!-- IMPROVEMENT 1: Make the logo a link -->
       <a href="/" class="logo-link">
-        <div class="sidebar-logo"><span class="rotated-letter">ה</span>ערוץ</div>
+        <div class="sidebar-logo">
+          <span class="rotated-letter">ה</span>ערוץ
+        </div>
       </a>
     }
-    <button class="toggle-sidebar-btn" (click)="toggleSidebar()" [title]="(isSidebarCollapsed$ | async) ? 'הרחב' : 'כווץ'">
+        <button
+      class="toggle-sidebar-btn"
+      (click)="toggleSidebar()"
+      [title]="(isSidebarCollapsed$ | async) ? 'הרחב סרגל צד' : 'כווץ סרגל צד'"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M480-240 240-480l240-240 56 56-184 184 184 184-56 56Zm264 0L504-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
     </button>
   </div>
 
-  <app-search-bar [isExpanded]="(isExpanded$ | async)!" (searchChanged)="onSearchChanged($event)" (expandAndFocus)="expandAndFocusSearch()"></app-search-bar>
-
-  <!-- חדש: באנר התקנת התוסף בסרגל הצד -->
-  @if(showInstallBanner$ | async) {
-    <div class="install-banner-sidebar">
-      <span>חוויה משופרת עם <b>Viewer for Gmail</b></span>
-      <a href="https://chrome.google.com/webstore/detail/thechannel-viewer-for-gma/odiokhddkoempbdcanepmjbichfifggo" target="_blank">התקן עכשיו</a>
-    </div>
-  }
+  <app-search-bar
+    [isExpanded]="(isExpanded$ | async)!"
+    (searchChanged)="onSearchChanged($event)"
+    (expandAndFocus)="expandAndFocusSearch()">
+  </app-search-bar>
 
   <div class="scrollable-content">
     @switch (dataLoadingState$ | async) {
       @case ('loading') {
-        <div class="sidebar-message-container"><div class="spinner"></div><span>טוען ערוצים...</span></div>
+        <div class="sidebar-message-container">
+          <div class="spinner"></div>
+          <span>טוען ערוצים...</span>
+        </div>
       }
       @case ('error') {
-        <div class="sidebar-message-container"><span>שגיאה בטעינת הנתונים</span></div>
+        <div class="sidebar-message-container">
+          <span>שגיאה בטעינת הנתונים</span>
+        </div>
       }
       @case ('loaded') {
         @if ((filteredCategories$ | async); as filteredCategories) {
           <app-category-list
-            [categories]="filteredCategories" [isExpanded]="(isExpanded$ | async)!"
-            [activeSiteUrl]="(activeSiteUrl$ | async)" [collapsedState]="(categoryCollapseState$ | async)!"
-            (siteSelected)="onSelectSite($event)" (categoryToggled)="onToggleCategory($event)"
-            (contextMenuOpened)="onContextMenuOpen($event)" (categoriesUpdated)="onUpdateCategories($event)">
+            [categories]="filteredCategories"
+            [isExpanded]="(isExpanded$ | async)!"
+            [activeSiteUrl]="(activeSiteUrl$ | async)"
+            [collapsedState]="(categoryCollapseState$ | async)!"
+            (siteSelected)="onSelectSite($event)"
+            (categoryToggled)="onToggleCategory($event)"
+            (contextMenuOpened)="onContextMenuOpen($event)"
+            (categoriesUpdated)="onUpdateCategories($event)">
           </app-category-list>
+
           <app-available-sites
-            [sites]="(filteredAvailableSites$ | async)!" [isExpanded]="(isExpanded$ | async)!"
+            [sites]="(filteredAvailableSites$ | async)!"
+            [isExpanded]="(isExpanded$ | async)!"
             (siteAdded)="onAddSiteFromAvailable($event)">
           </app-available-sites>
+
           @if (searchTerm$ | async; as term) {
             @if (term && filteredCategories.length === 0 && (filteredAvailableSites$ | async)!.length === 0) {
-              <div class="sidebar-message-container"><span>לא נמצאו ערוצים</span></div>
+              <div class="sidebar-message-container">
+                <span>לא נמצאו ערוצים</span>
+              </div>
             }
           } @else if ((siteDataService.categories$ | async)!.length === 0) {
-            <div class="sidebar-message-container"><span>אין ערוצים להצגה.</span></div>
+            <div class="sidebar-message-container">
+              <span>אין ערוצים להצגה.<br>אפשר להוסיף ערוץ חדש.</span>
+            </div>
           }
         }
       }
@@ -54,27 +79,37 @@
 
   <div class="sidebar-footer">
     <button class="add-channel-btn" (click)="openAddSiteDialog()">
-      @if (isExpanded$ | async) { <span>הוסף ערוץ </span> }
+      @if (isExpanded$ | async) {
+        <span>הוסף ערוץ </span>
+      }
       <span>+</span>
     </button>
+
     @if (isExpanded$ | async) {
       <div class="sidebar-footer-links">
+        <!--button class="footer-link-btn" (click)="onShowAdvertisePage()">פרסם כאן</-button-->
         <button class="footer-link-btn" (click)="onShowContactPage()">צור קשר</button>
       </div>
     } @else {
       <div class="sidebar-footer-links-collapsed">
+        <!-- FIX 2: Replaced icon with a mail/envelope icon -->
         <button class="footer-link-btn-collapsed" (click)="onShowContactPage()" title="צור קשר">
-          <svg xmlns="http://www.w.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
         </button>
       </div>
     }
   </div>
 </nav>
 
+<!-- Global Context Menu Component -->
 <app-context-menu
-  [menuData]="contextMenuData" [allCategories]="(siteDataService.categories$ | async)!"
-  (closed)="onContextMenuClose()" (deleteClicked)="onDeleteSite($event)"
-  (categoryChangeClicked)="onChangeSiteCategory($event)" (newCategoryClicked)="onNewSiteCategory($event)"
-  (moveUpClicked)="onMoveSiteUp($event)" (moveDownClicked)="onMoveSiteDown($event)"
-  (copyLinkClicked)="onCopySiteLink($event)">
+  [menuData]="contextMenuData"
+  [allCategories]="(siteDataService.categories$ | async)!"
+  (closed)="onContextMenuClose()"
+  (deleteClicked)="onDeleteSite($event)"
+  (categoryChangeClicked)="onChangeSiteCategory($event)"
+  (newCategoryClicked)="onNewSiteCategory($event)"
+  (moveUpClicked)="onMoveSiteUp($event)"
+  (moveDownClicked)="onMoveSiteDown($event)"
+  (copyLinkClicked)="onCopySiteLink($event)"> <!-- IMPROVEMENT 2: Handle the new event -->
 </app-context-menu>

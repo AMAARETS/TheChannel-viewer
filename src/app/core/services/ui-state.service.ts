@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable, map, first } from 'rxjs';
 import { Site } from '../models/site.model';
 import { SiteDataService } from './site-data.service';
 import { AnalyticsService } from './analytics.service';
-import { ExtensionCommunicationService, AppSettings } from './extension-communication.service';
 
 export interface InputDialogConfig {
   title: string;
@@ -15,7 +14,7 @@ export interface InputDialogConfig {
 }
 
 export type DataLoadingState = 'loading' | 'loaded' | 'error';
-export type ActiveView = 'site' | 'custom';
+export type ActiveView = 'site' | 'advertise' | 'contact' | 'custom';
 
 @Injectable({
   providedIn: 'root',
@@ -24,27 +23,36 @@ export class UiStateService {
   private sanitizer = inject(DomSanitizer);
   private injector = inject(Injector);
   private analyticsService = inject(AnalyticsService);
-  private extensionCommService = inject(ExtensionCommunicationService);
   private _siteDataService: SiteDataService | null = null;
   private focusedElementBeforeDialog: HTMLElement | null = null;
 
   private injectedCss: HTMLLinkElement | null = null;
   private injectedJs: HTMLScriptElement | null = null;
+
+  // --- Dialog Queue Management ---
   private dialogQueue: (() => void)[] = [];
   private isDialogVisible = false;
 
+  // --- Local Storage Keys ---
+  private readonly sidebarCollapsedKey = 'sidebarCollapsed';
   private readonly lastViewedSiteUrlKey = 'lastViewedSiteUrl';
+  private readonly collapsedCategoriesKey = 'collapsedCategories';
   private readonly viewedTutorialsKey = 'viewedChannelTutorials';
   private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial';
   private readonly neverShowWelcomeDialogKey = 'neverShowWelcomeDialog';
 
+  // --- Data loading state ---
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
+
+  // --- Active View State ---
   activeView$ = new BehaviorSubject<ActiveView>('site');
+
   customContent$ = new BehaviorSubject<string | null>(null);
   sanitizedCustomContent$: Observable<SafeHtml | null> = this.customContent$.pipe(
     map((html) => (html ? this.sanitizer.bypassSecurityTrustHtml(html) : null))
   );
 
+  // --- Dialogs visibility state ---
   isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
   isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteToDelete$ = new BehaviorSubject<Site | null>(null);
@@ -54,12 +62,18 @@ export class UiStateService {
   isWelcomeDialogVisible$ = new BehaviorSubject<boolean>(false);
   isGoogleLoginUnsupportedDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteForUnsupportedLoginDialog$ = new BehaviorSubject<Site | null>(null);
-  isGrantPermissionDialogVisible$ = new BehaviorSubject<boolean>(false);
-  siteForGrantPermissionDialog$ = new BehaviorSubject<Site | null>(null);
 
-  isSidebarCollapsed$ = new BehaviorSubject<boolean>(false);
-  collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>({});
+  // --- Sidebar State ---
+  isSidebarCollapsed$ = new BehaviorSubject<boolean>(
+    this.loadFromStorage(this.sidebarCollapsedKey) ?? false
+  );
 
+  // --- Category Collapse State ---
+  collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>(
+    this.loadFromStorage(this.collapsedCategoriesKey) ?? {}
+  );
+
+  // --- Core Selection State ---
   private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
   selectedSite$: Observable<Site | null> = this.selectedSiteSubject.asObservable();
   activeSiteName$: Observable<string | null> = this.selectedSite$.pipe(
@@ -76,32 +90,25 @@ export class UiStateService {
   }
 
   private get siteDataService(): SiteDataService {
-    if (!this._siteDataService) this._siteDataService = this.injector.get(SiteDataService);
+    if (!this._siteDataService) {
+      this._siteDataService = this.injector.get(SiteDataService);
+    }
     return this._siteDataService;
   }
 
-  public loadInitialStateFromExtension(settings: AppSettings): void {
-    if (typeof settings.sidebarCollapsed === 'boolean')
-      this.isSidebarCollapsed$.next(settings.sidebarCollapsed);
-    if (settings.collapsedCategories) this.collapsedCategories$.next(settings.collapsedCategories);
-  }
-
-  public getCurrentSettings(): AppSettings {
-    return {
-      categories: this.siteDataService.categories$.getValue(),
-      sidebarCollapsed: this.isSidebarCollapsed$.getValue(),
-      collapsedCategories: this.collapsedCategories$.getValue(),
-    };
-  }
-
+  // --- Dialog Queue Public Methods ---
   enqueueDialog(dialogFn: () => void): void {
     this.dialogQueue.push(dialogFn);
   }
+
   processNextDialogInQueue(): void {
-    if (this.isDialogVisible || this.dialogQueue.length === 0) return;
+    if (this.isDialogVisible || this.dialogQueue.length === 0) {
+      return;
+    }
     const nextDialogFn = this.dialogQueue.shift()!;
     nextDialogFn();
   }
+
   private cleanupInjectedResources(): void {
     if (this.injectedCss) {
       document.head.removeChild(this.injectedCss);
@@ -119,34 +126,36 @@ export class UiStateService {
     params: Record<string, string> = {}
   ): Promise<void> {
     this.cleanupInjectedResources();
-    this.selectSite(null);
     const baseUrl = `/ads/${source}/`;
     try {
-      const htmlResponse = await fetch(`${baseUrl}index.html`);
-      if (!htmlResponse.ok) throw new Error(`קובץ index.html לא נמצא בתיקייה '${source}'`);
+      const htmlUrl = `${baseUrl}index.html`;
+      const htmlResponse = await fetch(htmlUrl);
+      if (!htmlResponse.ok) {
+        throw new Error(`קובץ index.html לא נמצא בתיקייה '${source}'`);
+      }
       const htmlContent = await htmlResponse.text();
-      const cssCheck = await fetch(`${baseUrl}style.css`, { method: 'HEAD' });
+      const cssUrl = `${baseUrl}style.css`;
+      const cssCheck = await fetch(cssUrl, { method: 'HEAD' });
       if (cssCheck.ok) {
         this.injectedCss = document.createElement('link');
         this.injectedCss.rel = 'stylesheet';
-        this.injectedCss.href = `${baseUrl}style.css`;
+        this.injectedCss.href = cssUrl;
         document.head.appendChild(this.injectedCss);
       }
       this.activeView$.next('custom');
       this.customContent$.next(htmlContent);
-      history.pushState(
-        null,
-        '',
-        `${window.location.pathname}?${new URLSearchParams({ view: 'custom', source, ...params })}`
-      );
-
-      // --- השורה הבאה הוסרה כי GA4 עוקב אחר שינוי זה באופן אוטומטי ---
-      // this.analyticsService.trackPageView({ page_title: `Custom Content: ${source}`, page_path: `/ads/${source}`, page_location: window.location.href });
-
-      const jsCheck = await fetch(`${baseUrl}script.js`, { method: 'HEAD' });
+      const urlParams = new URLSearchParams({ view: 'custom', source, ...params });
+      history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
+      this.analyticsService.trackPageView({
+        page_title: `Custom Content: ${source}`,
+        page_path: `/ads/${source}`,
+        page_location: window.location.href,
+      });
+      const jsUrl = `${baseUrl}script.js`;
+      const jsCheck = await fetch(jsUrl, { method: 'HEAD' });
       if (jsCheck.ok) {
         this.injectedJs = document.createElement('script');
-        this.injectedJs.src = `${baseUrl}script.js`;
+        this.injectedJs.src = jsUrl;
         this.injectedJs.defer = true;
         document.body.appendChild(this.injectedJs);
       }
@@ -160,56 +169,65 @@ export class UiStateService {
     }
   }
 
-  async selectSite(site: Site | null, categoryName?: string): Promise<void> {
-    if (this.activeView$.value !== 'site' && site) this.cleanupInjectedResources();
+  selectSite(site: Site | null, categoryName?: string): void {
+    this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
 
     if (site) {
-      localStorage.setItem(this.lastViewedSiteUrlKey, site.url);
+      this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
       const catName = categoryName || this.siteDataService.getCategoryForSite(site);
+
       if (catName) {
-        const params = new URLSearchParams({ name: site.name, url: site.url, category: catName });
-        history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
+        const params = new URLSearchParams();
+        params.set('name', site.name);
+        params.set('url', site.url);
+        params.set('category', catName);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        history.pushState(null, '', newUrl);
       }
 
-      // --- השורה הבאה הוסרה כי GA4 עוקב אחר שינוי זה באופן אוטומטי ---
-      // this.analyticsService.trackPageView({ page_title: site.name, page_path: `/sites/${catName || 'unknown'}/${site.name}`, page_location: site.url });
+      this.analyticsService.trackPageView({
+        page_title: site.name,
+        page_path: `/sites/${catName || 'unknown'}/${site.name}`,
+        page_location: site.url,
+      });
 
-      const isExtensionActive = this.extensionCommService.isExtensionActiveValue;
-
-      if (isExtensionActive) {
-        const domains = await this.extensionCommService.requestManagedDomains();
-        const siteDomain = new URL(site.url).hostname;
-        if (domains && domains.includes(siteDomain)) {
-          if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-            this.enqueueDialog(() => this.openLoginTutorialDialog());
-            this.markTutorialAsViewed(site.url);
-          }
-        } else if (!site.googleLoginSupported) {
-          this.enqueueDialog(() => this.openGrantPermissionDialog(site));
+      if (site.googleLoginSupported) {
+        if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
+          this.enqueueDialog(() => this.openLoginTutorialDialog());
+          this.markTutorialAsViewed(site.url);
         }
-      } else if (!site.googleLoginSupported) {
+      } else {
         this.enqueueDialog(() => this.openGoogleLoginUnsupportedDialog(site));
       }
     } else {
       history.pushState(null, '', window.location.pathname);
     }
-    if (!this.isDialogVisible) this.processNextDialogInQueue();
+
+    // --- FIX: Start queue processing if no other dialog is active ---
+    // This is the key fix. It handles cases where a user clicks a channel
+    // when no other dialogs are open. It won't run when adding a new site
+    // because `isDialogVisible` will be true at that moment.
+    if (!this.isDialogVisible) {
+      this.processNextDialogInQueue();
+    }
   }
 
   getActiveSite(): Site | null {
     return this.selectedSiteSubject.getValue();
   }
   getLastViewedSiteUrl(): string | null {
-    return localStorage.getItem(this.lastViewedSiteUrlKey);
+    return this.loadFromStorage(this.lastViewedSiteUrlKey);
   }
-
   toggleSidebar(): void {
-    this.isSidebarCollapsed$.next(!this.isSidebarCollapsed$.getValue());
+    const newState = !this.isSidebarCollapsed$.value;
+    this.isSidebarCollapsed$.next(newState);
+    this.saveToStorage(this.sidebarCollapsedKey, newState);
   }
   saveCollapsedCategories(state: Record<string, boolean>): void {
     this.collapsedCategories$.next(state);
+    this.saveToStorage(this.collapsedCategoriesKey, state);
   }
 
   openAddSiteDialog(): void {
@@ -239,7 +257,11 @@ export class UiStateService {
     this.isInputDialogVisible$.next(true);
   }
   closeInputDialog(value: string | null): void {
-    if (value) this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value));
+    if (value) {
+      this.inputDialogConfig$.pipe(first()).subscribe((config) => {
+        config?.callback(value);
+      });
+    }
     this.isInputDialogVisible$.next(false);
     this.inputDialogConfig$.next(null);
     this.restoreFocus();
@@ -250,20 +272,26 @@ export class UiStateService {
     this.isLoginTutorialDialogVisible$.next(true);
   }
   closeLoginTutorialDialog(disableGlobally = false): void {
-    if (disableGlobally) this.disableLoginTutorialGlobally();
+    if (disableGlobally) {
+      this.disableLoginTutorialGlobally();
+    }
     this.isLoginTutorialDialogVisible$.next(false);
     this.restoreFocus();
   }
+
   isWelcomeDialogGloballyDisabled(): boolean {
-    return localStorage.getItem(this.neverShowWelcomeDialogKey) === 'true';
+    return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true;
   }
+
   openWelcomeDialog(): void {
     this.saveFocus();
     this.isDialogVisible = true;
     this.isWelcomeDialogVisible$.next(true);
   }
   closeWelcomeDialog(disableGlobally = false): void {
-    if (disableGlobally) localStorage.setItem(this.neverShowWelcomeDialogKey, 'true');
+    if (disableGlobally) {
+      this.saveToStorage(this.neverShowWelcomeDialogKey, true);
+    }
     this.isWelcomeDialogVisible$.next(false);
     this.restoreFocus();
   }
@@ -279,42 +307,46 @@ export class UiStateService {
     this.restoreFocus();
   }
 
-  openGrantPermissionDialog(site: Site): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.siteForGrantPermissionDialog$.next(site);
-    this.isGrantPermissionDialogVisible$.next(true);
-  }
-  closeGrantPermissionDialog(): void {
-    this.isGrantPermissionDialogVisible$.next(false);
-    this.siteForGrantPermissionDialog$.next(null);
-    this.restoreFocus();
-  }
-
   private saveFocus(): void {
     this.focusedElementBeforeDialog = document.activeElement as HTMLElement;
   }
   private restoreFocus(): void {
     this.focusedElementBeforeDialog?.focus();
     this.focusedElementBeforeDialog = null;
-    this.isDialogVisible = false;
-    setTimeout(() => this.processNextDialogInQueue(), 0);
+    this.isDialogVisible = false; // A dialog is now closed
+    setTimeout(() => this.processNextDialogInQueue(), 0); // Check for the next one
+  }
+  private saveToStorage<T>(key: string, value: T): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Error saving to localStorage', e);
+    }
+  }
+  private loadFromStorage<T>(key: string): T | null {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (e) {
+      console.error('Error reading from localStorage', e);
+      return null;
+    }
   }
   private hasViewedTutorial(url: string): boolean {
-    const viewed = JSON.parse(localStorage.getItem(this.viewedTutorialsKey) || '[]');
-    return viewed.includes(url);
+    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
+    return viewedUrls.includes(url);
   }
   private markTutorialAsViewed(url: string): void {
-    const viewed = JSON.parse(localStorage.getItem(this.viewedTutorialsKey) || '[]');
-    if (!viewed.includes(url)) {
-      viewed.push(url);
-      localStorage.setItem(this.viewedTutorialsKey, JSON.stringify(viewed));
+    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
+    if (!viewedUrls.includes(url)) {
+      viewedUrls.push(url);
+      this.saveToStorage(this.viewedTutorialsKey, viewedUrls);
     }
   }
   private isLoginTutorialGloballyDisabled(): boolean {
-    return localStorage.getItem(this.neverShowLoginTutorialKey) === 'true';
+    return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true;
   }
   private disableLoginTutorialGlobally(): void {
-    localStorage.setItem(this.neverShowLoginTutorialKey, 'true');
+    this.saveToStorage(this.neverShowLoginTutorialKey, true);
   }
 }

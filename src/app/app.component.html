@@ -1,21 +1,22 @@
 <div class="app-layout">
-  <!-- הבאנר הוסר מכאן -->
+  <!-- This container holds the sidebar and the iframe area -->
   <div class="main-container">
     <app-sidebar></app-sidebar>
     <app-main-content></app-main-content>
   </div>
+
+  <!-- Advertisement Footer -->
   <footer class="ad-container">
     <div id="ad-placement-container"></div>
   </footer>
 </div>
 
-<!-- Global Components -->
+<!-- Global Components (Dialogs, Toasts) -->
 <app-add-site-dialog></app-add-site-dialog>
 <app-confirm-delete-dialog></app-confirm-delete-dialog>
 <app-input-dialog></app-input-dialog>
 <app-login-tutorial-dialog></app-login-tutorial-dialog>
 <app-toast></app-toast>
+<!-- NEW DIALOGS ADDED HERE -->
 <app-welcome-dialog></app-welcome-dialog>
 <app-google-login-unsupported-dialog></app-google-login-unsupported-dialog>
-<!-- חדש: הוספת הדיאלוג החדש לתבנית הראשית -->
-<app-grant-permission-dialog></app-grant-permission-dialog>
