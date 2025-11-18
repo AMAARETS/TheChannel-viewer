@@ -5,11 +5,15 @@
         <h2 class="dialog-title">נדרש אישור לחיבור הערוץ '{{ site.name }}'</h2>
         <div class="dialog-content">
           <p>כדי שההתחברות לחשבון גוגל תעבוד בערוץ זה גם מתוך הפלטפורמה, יש לתת אישור לכתובת שלו בממשק התוסף.</p>
-          <p style="display: flex; align-items: center; gap: 8px;">
+
+          <!-- *** שורה זו תוקנה *** -->
+          <p>
             יש ללחוץ על אייקון התוסף
-            <img [src]="getFaviconUrl()" alt="אייקון התוסף" style="width: 16px; height: 16px; vertical-align: middle;">
+            <img [src]="getFaviconUrl()" alt="אייקון התוסף"
+                 style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-inline: 4px;">
             בסרגל הכלים של הדפדפן, ולאשר את הוספת הדומיין: <strong>{{ siteDomain$ | async }}</strong>.
           </p>
+
           <p>לאחר האישור, תוכלו להתחבר לערוץ בצורה מלאה דרך הפלטפורמה.</p>
         </div>
         <div class="dialog-actions">
