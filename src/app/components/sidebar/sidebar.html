@@ -29,6 +29,14 @@
     (expandAndFocus)="expandAndFocusSearch()">
   </app-search-bar>
 
+  <!-- באנר התקנת התוסף בסרגל הצד -->
+  @if(showInstallBanner$ | async) {
+    <div class="install-banner-sidebar">
+      <span>חוויה משופרת עם <b>Viewer for Gmail</b></span>
+      <a href="https://chromewebstore.google.com/detail/viewer-for-gmail/YOUR_EXTENSION_ID" target="_blank" rel="noopener noreferrer">התקן עכשיו</a>
+    </div>
+  }
+
   <div class="scrollable-content">
     @switch (dataLoadingState$ | async) {
       @case ('loading') {

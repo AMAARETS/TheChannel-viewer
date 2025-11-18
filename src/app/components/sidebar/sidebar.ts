@@ -13,7 +13,8 @@ import { SiteDataService } from '../../core/services/site-data.service';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { Category, Site, AvailableSite } from '../../core/models/site.model';
-import { ToastService } from '../../core/services/toast.service'; // IMPROVEMENT 2: Import ToastService
+import { ToastService } from '../../core/services/toast.service';
+import { ExtensionCommunicationService } from '../../core/services/extension-communication.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -33,7 +34,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
   analyticsService = inject(AnalyticsService);
-  toastService = inject(ToastService); // IMPROVEMENT 2: Inject ToastService
+  toastService = inject(ToastService);
+  extensionCommService = inject(ExtensionCommunicationService);
 
   @ViewChild(SearchBarComponent) searchBar!: SearchBarComponent;
 
@@ -45,6 +47,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   searchTerm$ = new BehaviorSubject<string>('');
   filteredCategories$!: Observable<Category[]>;
   filteredAvailableSites$!: Observable<AvailableSite[]>;
+
+  showInstallBanner$: Observable<boolean>;
 
   private isTemporarilyExpanded$ = new BehaviorSubject<boolean>(false);
   isExpanded$: Observable<boolean>;
@@ -58,6 +62,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.isTemporarilyExpanded$
     ]).pipe(
       map(([isCollapsed, isTempExpanded]) => !isCollapsed || isTempExpanded)
+    );
+
+    this.showInstallBanner$ = this.extensionCommService.isExtensionActive$.pipe(
+      map((isActive) => !isActive)
     );
   }
 

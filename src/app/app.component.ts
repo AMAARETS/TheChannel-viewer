@@ -12,6 +12,7 @@ import { LoginTutorialDialogComponent } from './components/login-tutorial-dialog
 import { ToastComponent } from './components/toast/toast.component';
 import { WelcomeDialogComponent } from './components/welcome-dialog/welcome-dialog';
 import { GoogleLoginUnsupportedDialogComponent } from './components/google-login-unsupported-dialog/google-login-unsupported-dialog';
+import { GrantPermissionDialogComponent } from './components/grant-permission-dialog/grant-permission-dialog';
 
 // Import services
 import { SiteDataService } from './core/services/site-data.service';
@@ -32,6 +33,7 @@ import { Site, Category } from './core/models/site.model'; // Import Category
     ToastComponent,
     WelcomeDialogComponent,
     GoogleLoginUnsupportedDialogComponent,
+    GrantPermissionDialogComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -144,7 +146,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       try {
         new URL(url);
         return { name, url, category, googleLoginSupported: false };
-      } catch (e) {
+      } catch {
         return null;
       }
     }

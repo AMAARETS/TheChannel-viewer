@@ -227,3 +227,44 @@
 .footer-link-btn-collapsed:hover {
   background-color: #f1f3f4;
 }
+/* B
+anner for extension installation */
+.install-banner-sidebar {
+  margin: 0 16px 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  animation: pulse-bg 5s infinite alternate;
+}
+@keyframes pulse-bg {
+  from {
+    box-shadow: 0 0 8px #6a11cb;
+  }
+  to {
+    box-shadow: 0 0 8px #2575fc;
+  }
+}
+.install-banner-sidebar span {
+  display: block;
+  margin-bottom: 6px;
+}
+.install-banner-sidebar a {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 12px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.install-banner-sidebar a:hover {
+  transform: scale(1.05);
+}
+:host-context(.collapsed) .install-banner-sidebar {
+  display: none;
+}
