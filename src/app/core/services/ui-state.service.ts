@@ -178,7 +178,7 @@ export class UiStateService {
     }
   }
 
-  selectSite(site: Site | null, categoryName?: string): void {
+  async selectSite(site: Site | null, categoryName?: string): Promise<void> {
     this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
@@ -202,22 +202,26 @@ export class UiStateService {
         page_location: site.url,
       });
 
-      if (site.googleLoginSupported) {
-        if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-          this.enqueueDialog(() => this.openLoginTutorialDialog());
-          this.markTutorialAsViewed(site.url);
+      const isExtensionActive = this.extensionCommService.isExtensionActiveValue;
+
+      if (isExtensionActive) {
+        const domains = await this.extensionCommService.requestManagedDomains();
+        const siteDomain = new URL(site.url).hostname;
+        if (domains && domains.includes(siteDomain)) {
+          if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
+            this.enqueueDialog(() => this.openLoginTutorialDialog());
+            this.markTutorialAsViewed(site.url);
+          }
+        } else if (!site.googleLoginSupported) {
+          this.enqueueDialog(() => this.openGrantPermissionDialog(site));
         }
-      } else {
+      } else if (!site.googleLoginSupported) {
         this.enqueueDialog(() => this.openGoogleLoginUnsupportedDialog(site));
       }
     } else {
       history.pushState(null, '', window.location.pathname);
     }
 
-    // --- FIX: Start queue processing if no other dialog is active ---
-    // This is the key fix. It handles cases where a user clicks a channel
-    // when no other dialogs are open. It won't run when adding a new site
-    // because `isDialogVisible` will be true at that moment.
     if (!this.isDialogVisible) {
       this.processNextDialogInQueue();
     }
