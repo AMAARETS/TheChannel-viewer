@@ -13,6 +13,8 @@ import { ToastComponent } from './components/toast/toast.component';
 import { WelcomeDialogComponent } from './components/welcome-dialog/welcome-dialog';
 import { GoogleLoginUnsupportedDialogComponent } from './components/google-login-unsupported-dialog/google-login-unsupported-dialog';
 import { GrantPermissionDialogComponent } from './components/grant-permission-dialog/grant-permission-dialog';
+// *** שינוי: נוסף דיאלוג חדש ***
+import { InstallExtensionDialogComponent } from './components/install-extension-dialog/install-extension-dialog.component';
 
 // Import services
 import { SiteDataService } from './core/services/site-data.service';
@@ -34,6 +36,7 @@ import { Site, Category } from './core/models/site.model'; // Import Category
     WelcomeDialogComponent,
     GoogleLoginUnsupportedDialogComponent,
     GrantPermissionDialogComponent,
+    InstallExtensionDialogComponent, // *** שינוי: נוסף דיאלוג חדש ***
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -44,8 +47,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
 
   ngOnInit(): void {
-    // We wait until the essential category data is loaded for the first time.
-    // The `first()` operator ensures this subscription runs only once.
     this.siteDataService.categories$.pipe(
       first(categories => categories.length > 0)
     ).subscribe(categories => {
@@ -53,36 +54,20 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * Runs only once after initial data is loaded.
-   * Orchestrates the entire startup logic, including dialogs and site selection.
-   * FIX: Changed parameter type from Site[] to Category[]
-   */
   private initializeApp(categories: Category[]): void {
-    // Step 1: Handle any special view requests from URL params (like 'advertise' or 'contact').
-    // If such a view is loaded, we don't need to select a default site.
     const specialViewLoaded = this.handleUrlParametersOnLoad();
 
-    // Step 2: Enqueue the welcome dialog if it hasn't been permanently dismissed.
-    // This is always the first dialog to be considered.
     if (!this.uiStateService.isWelcomeDialogGloballyDisabled()) {
       this.uiStateService.enqueueDialog(() => this.uiStateService.openWelcomeDialog());
     }
 
-    // Step 3: If no special view was loaded, proceed with selecting a channel.
     if (!specialViewLoaded) {
       this.selectInitialSite(categories);
     }
 
-    // Step 4: After all startup logic has run and all necessary dialogs are enqueued,
-    // start processing the dialog queue.
     this.uiStateService.processNextDialogInQueue();
   }
 
-  /**
-   * Checks for URL parameters like ?view=contact and loads the appropriate content.
-   * @returns `true` if a special view was handled, `false` otherwise.
-   */
   private handleUrlParametersOnLoad(): boolean {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view');
@@ -107,11 +92,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     return false;
   }
 
-  /**
-   * Determines which site to select on load (from URL or local storage)
-   * and calls the selection service, which will in turn enqueue relevant dialogs.
-   * FIX: Changed parameter type from any[] to Category[]
-   */
   private selectInitialSite(categories: Category[]): void {
     const siteFromUrl = this.tryGetSiteFromUrl();
     const allSites = categories.flatMap(c => c.sites);
@@ -122,7 +102,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       if (!existingSite) {
         this.siteDataService.addSite({ name: siteFromUrl.name, url: siteFromUrl.url, googleLoginSupported: false }, siteFromUrl.category);
       }
-      // Select the site. This action will enqueue the 'unsupported login' or 'tutorial' dialog if needed.
       this.uiStateService.selectSite(existingSite || siteFromUrl, siteFromUrl.category);
 
     } else {

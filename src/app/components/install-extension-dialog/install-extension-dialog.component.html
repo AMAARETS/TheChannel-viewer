@@ -1,0 +1,25 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    @if(site$ | async; as site) {
+      <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
+        <h2 class="dialog-title">התחברות לערוץ '{{ site.name }}'</h2>
+        <div class="dialog-content">
+          <p>בערוץ זה, ההתחברות עם חשבון גוגל אפשרית רק בעזרת התוסף שלנו.</p>
+          <p><strong>התקנת התוסף תאפשר לך להתחבר בקלות לערוץ זה ולערוצים נוספים.</strong></p>
+          <p style="text-align: center; margin-top: 16px;">
+            <a href="https://chromewebstore.google.com/detail/viewer-for-gmail/YOUR_EXTENSION_ID" target="_blank" rel="noopener noreferrer" style="background-color: #1a73e8; color: white; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: 500;">
+              להתקנת התוסף Viewer for Gmail™
+            </a>
+          </p>
+        </div>
+        <div class="dialog-actions">
+           <div class="dont-show-again-container">
+            <input type="checkbox" id="dont-show-install-again" #dontShowAgainCheckbox>
+            <label for="dont-show-install-again">אל תציג שוב</label>
+          </div>
+          <button #closeButton class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">הבנתי</button>
+        </div>
+      </div>
+    }
+  </div>
+}

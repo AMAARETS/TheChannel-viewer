@@ -2,14 +2,22 @@
   <div class="dialog-overlay" (click)="closeDialog()">
     @if(site$ | async; as site) {
       <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
-        <h2 class="dialog-title">נדרשת הרשאה לערוץ '{{ site.name }}'</h2>
+        <h2 class="dialog-title">נדרש אישור לחיבור הערוץ '{{ site.name }}'</h2>
         <div class="dialog-content">
-          <p>כדי לאפשר סנכרון והתחברות חלקה בערוץ זה, יש להעניק הרשאה לדומיין <strong>{{ siteDomain$ | async }}</strong>.</p>
-          <p>יש ללחוץ על אייקון התוסף (TheChannel Viewer) בסרגל הכלים של הדפדפן, לבחור את הדומיין מהרשימה וללחוץ "אישור ושמירה".</p>
-          <p>לאחר אישור ההרשאה, ניתן יהיה להתחבר לערוץ בצורה מלאה.</p>
+          <p>כדי שההתחברות לחשבון גוגל תעבוד בערוץ זה גם מתוך הפלטפורמה, יש לתת אישור לכתובת שלו בממשק התוסף.</p>
+          <p style="display: flex; align-items: center; gap: 8px;">
+            יש ללחוץ על אייקון התוסף
+            <img [src]="getFaviconUrl()" alt="אייקון התוסף" style="width: 16px; height: 16px; vertical-align: middle;">
+            בסרגל הכלים של הדפדפן, ולאשר את הוספת הדומיין: <strong>{{ siteDomain$ | async }}</strong>.
+          </p>
+          <p>לאחר האישור, תוכלו להתחבר לערוץ בצורה מלאה דרך הפלטפורמה.</p>
         </div>
         <div class="dialog-actions">
-          <button #closeButton class="btn-primary" (click)="closeDialog()">הבנתי</button>
+          <div class="dont-show-again-container">
+            <input type="checkbox" id="dont-show-grant-again" #dontShowAgainCheckbox>
+            <label for="dont-show-grant-again">אל תציג שוב</label>
+          </div>
+          <button #closeButton class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">הבנתי</button>
         </div>
       </div>
     }

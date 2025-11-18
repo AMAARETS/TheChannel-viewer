@@ -1,17 +1,33 @@
 @if (isVisible$ | async) {
   <div class="dialog-overlay" (click)="closeDialog(dontShowAgainCheckbox)">
     <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
-      <h2 class="dialog-title">ברוכים הבאים ל'הערוץ'!</h2>
-      <div class="dialog-content">
-        <p>תודה שבחרת להשתמש בפלטפורמה שלנו.</p>
-        <p><strong>עדכון חשוב בנושא התחברות עם חשבון גוגל:</strong></p>
-        <ul>
-          <li>אנו עובדים במרץ כדי לאפשר התחברות חלקה עם חשבון גוגל בכל הערוצים המובנים. נכון לעכשיו, חלק מהערוצים עדיין אינם תומכים באפשרות זו, והם עובדים על כך בשיתוף איתנו.</li>
-          <li>ערוצים שאינם מופיעים ברשימה ניתן להוסיף ידנית באמצעות כפתור "הוסף ערוץ".</li>
-          <li>אם נתקלתם בבעיית התחברות בערוץ שהוספתם ידנית, מומלץ לפנות ישירות לבעלי הערוץ כדי שיסדירו את הנושא מולם.</li>
-        </ul>
-        <p>אנו מעריכים את סבלנותכם!</p>
-      </div>
+      <h2 class="dialog-title">👋 ברוכים הבאים ל'הערוץ'!</h2>
+
+      @if (isExtensionActive$ | async) {
+        <!-- מצב בו התוסף מותקן -->
+        <div class="dialog-content">
+          <p>תודה שבחרת להשתמש בפלטפורמה שלנו!</p>
+          <p>שמנו לב שהתוסף <strong>Viewer for Gmail™</strong> כבר מותקן אצלך - מעולה! זה אומר שתהנה מחווית התחברות חלקה וללא בעיות לכלל הערוצים ע"י חשבון הגוגל שלך.</p>
+          <p>אנו ממשיכים לעבוד כדי לשפר את החוויה כל הזמן.</p>
+          <p>מקווים שתהנה!</p>
+        </div>
+      } @else {
+        <!-- מצב בו התוסף אינו מותקן -->
+        <div class="dialog-content">
+          <p>תודה שבחרת להשתמש בפלטפורמה שלנו!</p>
+          <p><strong>כדי ליהנות מחוויה מלאה ונוחה יותר, ואפשרות להתחברות לכלל הערוצים ע"י חשבון גוגל, אנו ממליצים להתקין את התוסף הנלווה שלנו לדפדפן.</strong></p>
+          <ul>
+            <li>התוסף מאפשר התחברות מהירה וחלקה לחשבון גוגל בכלל הערוצים, גם אלו שלא תומכים בכך בעצמם.</li>
+            <li>בלעדיו, ייתכן שלא תוכלו להתחבר לערוצים מסויימים מתוך הפלטפורמה.</li>
+          </ul>
+          <p style="text-align: center; margin-top: 16px;">
+            <a href="https://chromewebstore.google.com/detail/viewer-for-gmail/YOUR_EXTENSION_ID" target="_blank" rel="noopener noreferrer" style="background-color: #1a73e8; color: white; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: 500;">
+              להתקנת התוסף (מומלץ)
+            </a>
+          </p>
+        </div>
+      }
+
       <div class="dialog-actions">
         <div class="dont-show-again-container">
           <input type="checkbox" id="dont-show-welcome-again" #dontShowAgainCheckbox>
