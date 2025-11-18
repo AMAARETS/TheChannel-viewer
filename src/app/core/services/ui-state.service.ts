@@ -63,6 +63,10 @@ export class UiStateService {
   isGoogleLoginUnsupportedDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteForUnsupportedLoginDialog$ = new BehaviorSubject<Site | null>(null);
 
+  // --- NEW: Grant Permission Dialog State ---
+  isGrantPermissionDialogVisible$ = new BehaviorSubject<boolean>(false);
+  siteForGrantPermissionDialog$ = new BehaviorSubject<Site | null>(null);
+
   // --- Sidebar State ---
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(
     this.loadFromStorage(this.sidebarCollapsedKey) ?? false
@@ -304,6 +308,20 @@ export class UiStateService {
   closeGoogleLoginUnsupportedDialog(): void {
     this.isGoogleLoginUnsupportedDialogVisible$.next(false);
     this.siteForUnsupportedLoginDialog$.next(null);
+    this.restoreFocus();
+  }
+
+  // --- NEW: Grant Permission Dialog Methods ---
+  openGrantPermissionDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteForGrantPermissionDialog$.next(site);
+    this.isGrantPermissionDialogVisible$.next(true);
+  }
+
+  closeGrantPermissionDialog(): void {
+    this.isGrantPermissionDialogVisible$.next(false);
+    this.siteForGrantPermissionDialog$.next(null);
     this.restoreFocus();
   }
 
