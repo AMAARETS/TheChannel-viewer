@@ -5,7 +5,7 @@ name: Build and Deploy to GitHub Pages
 on:
   push:
     branches:
-      - postMessage
+      - main
   workflow_dispatch:
 
 # הרשאות נדרשות כדי לאפשר ל-Action לפרוס ל-Pages
