@@ -4,6 +4,7 @@ import { forkJoin, BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { Category, Site, AvailableSite } from '../models/site.model';
 import { UiStateService } from './ui-state.service';
 import { ToastService } from './toast.service';
+import { ExtensionCommunicationService } from './extension-communication.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,7 @@ export class SiteDataService {
   private http = inject(HttpClient);
   private uiStateService = inject(UiStateService);
   private toastService = inject(ToastService);
+  private extensionCommService = inject(ExtensionCommunicationService);
 
   categories$ = new BehaviorSubject<Category[]>([]);
   availableSites$ = new BehaviorSubject<AvailableSite[]>([]);
@@ -45,8 +47,26 @@ export class SiteDataService {
     });
   }
 
-  private loadUserCategoriesAndMerge(defaultCategories: Category[]): void {
-    const userCategories: Category[] | null = this.loadCategoriesFromStorage();
+  private async loadUserCategoriesAndMerge(defaultCategories: Category[]): Promise<void> {
+    // Try to get settings from extension first
+    const extensionResponse = await this.extensionCommService.requestSettingsFromExtension();
+
+    let userCategories: Category[] | null = null;
+
+    if (extensionResponse?.settings) {
+      console.log('TheChannel: Using settings from extension');
+      userCategories = extensionResponse.settings.categories;
+      // Also update UI state from extension
+      if (extensionResponse.settings.sidebarCollapsed !== undefined) {
+        this.uiStateService.isSidebarCollapsed$.next(extensionResponse.settings.sidebarCollapsed);
+      }
+      if (extensionResponse.settings.collapsedCategories) {
+        this.uiStateService.saveCollapsedCategories(extensionResponse.settings.collapsedCategories);
+      }
+    } else {
+      console.log('TheChannel: Extension not available, using localStorage');
+      userCategories = this.loadCategoriesFromStorage();
+    }
 
     if (!userCategories) {
         this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
@@ -100,7 +120,21 @@ export class SiteDataService {
   }
 
   private saveCategories(): void {
-    localStorage.setItem(this.userCategoriesKey, JSON.stringify(this.categories$.getValue()));
+    const categories = this.categories$.getValue();
+    localStorage.setItem(this.userCategoriesKey, JSON.stringify(categories));
+
+    // Also sync to extension if active
+    if (this.extensionCommService.isExtensionActiveValue) {
+      const sidebarCollapsed = this.uiStateService.isSidebarCollapsed$.getValue();
+      const collapsedCategories = this.uiStateService.collapsedCategories$.getValue();
+
+      this.extensionCommService.updateSettingsInExtension({
+        categories,
+        sidebarCollapsed,
+        collapsedCategories,
+        lastModified: Date.now()
+      });
+    }
   }
 
   private getRemovedDefaultSites(): Set<string> {

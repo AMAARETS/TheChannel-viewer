@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, map, first } from 'rxjs';
 import { Site } from '../models/site.model';
 import { SiteDataService } from './site-data.service';
 import { AnalyticsService } from './analytics.service';
+import { ExtensionCommunicationService } from './extension-communication.service';
 
 export interface InputDialogConfig {
   title: string;
@@ -23,6 +24,7 @@ export class UiStateService {
   private sanitizer = inject(DomSanitizer);
   private injector = inject(Injector);
   private analyticsService = inject(AnalyticsService);
+  private extensionCommService = inject(ExtensionCommunicationService);
   private _siteDataService: SiteDataService | null = null;
   private focusedElementBeforeDialog: HTMLElement | null = null;
 
@@ -90,7 +92,7 @@ export class UiStateService {
   constructor() {
     const globalApi = (window as any).theChannel || {};
     globalApi.navigateTo = this.loadCustomContentFromSource.bind(this);
-    (window as any).theChannel = globalApi;
+    (window as unknown).theChannel = globalApi;
   }
 
   private get siteDataService(): SiteDataService {
@@ -228,10 +230,27 @@ export class UiStateService {
     const newState = !this.isSidebarCollapsed$.value;
     this.isSidebarCollapsed$.next(newState);
     this.saveToStorage(this.sidebarCollapsedKey, newState);
+    this.syncToExtension();
   }
   saveCollapsedCategories(state: Record<string, boolean>): void {
     this.collapsedCategories$.next(state);
     this.saveToStorage(this.collapsedCategoriesKey, state);
+    this.syncToExtension();
+  }
+
+  private syncToExtension(): void {
+    if (this.extensionCommService.isExtensionActiveValue) {
+      const categories = this.siteDataService.categories$.getValue();
+      const sidebarCollapsed = this.isSidebarCollapsed$.getValue();
+      const collapsedCategories = this.collapsedCategories$.getValue();
+
+      this.extensionCommService.updateSettingsInExtension({
+        categories,
+        sidebarCollapsed,
+        collapsedCategories,
+        lastModified: Date.now()
+      });
+    }
   }
 
   openAddSiteDialog(): void {
