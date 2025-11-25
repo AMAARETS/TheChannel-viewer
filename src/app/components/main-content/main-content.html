@@ -2,8 +2,20 @@
   @switch (activeView$ | async) {
     @case ('site') {
       <div class="iframe-container">
-        <iframe *ngIf="selectedSiteUrl$ | async as url" [src]="url" frameborder="0" allowfullscreen allow="clipboard-read; clipboard-write"></iframe>
-        <div *ngIf="!(selectedSiteUrl$ | async)" class="placeholder">
+        <iframe
+          *ngIf="selectedSiteUrl$ | async as url"
+          [src]="url"
+          frameborder="0"
+          allowfullscreen
+          allow="clipboard-read; clipboard-write"
+          (load)="onIframeLoaded()"></iframe>
+
+        <!-- חיווי טעינה -->
+        <div class="loading-overlay" *ngIf="isLoading()">
+          <div class="spinner"></div>
+        </div>
+
+        <div *ngIf="(selectedSiteUrl$ | async) === null" class="placeholder">
           <span>בחר ערוץ מהרשימה או הוסף ערוץ חדש</span>
         </div>
       </div>
