@@ -83,6 +83,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       return true;
     }
 
+    if (view === 'help') {
+      this.uiStateService.loadCustomContentFromSource('help');
+      return true;
+    }
+
     if (view === 'custom' && source) {
       const paramsObject = Object.fromEntries(params.entries());
       this.uiStateService.loadCustomContentFromSource(source, paramsObject);

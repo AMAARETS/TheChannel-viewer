@@ -15,7 +15,7 @@ export interface InputDialogConfig {
 }
 
 export type DataLoadingState = 'loading' | 'loaded' | 'error';
-export type ActiveView = 'site' | 'advertise' | 'contact' | 'custom';
+export type ActiveView = 'site' | 'advertise' | 'contact' | 'help' | 'custom';
 
 @Injectable({
   providedIn: 'root',

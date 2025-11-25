@@ -7,7 +7,9 @@
           [src]="url"
           frameborder="0"
           allowfullscreen
-          allow="clipboard-read; clipboard-write"
+          webkitallowfullscreen
+          mozallowfullscreen
+          allow="clipboard-read; clipboard-write; fullscreen; picture-in-picture;"
           (load)="onIframeLoaded()"
           (error)="onIframeError()"></iframe>
 

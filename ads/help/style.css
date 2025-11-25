@@ -1,0 +1,441 @@
+/* עיצוב דף העזרה - גרסה מוקטנת */
+
+.help-page .page-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* כותרת ראשית */
+.help-header {
+  padding: 40px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.header-icon {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 12px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.help-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.help-header .subtitle {
+  font-size: 1.05rem;
+  opacity: 0.9;
+  max-width: 550px;
+  margin: 0 auto;
+}
+
+/* ניווט בין מדריכים */
+.help-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px 25px;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  padding: 10px 20px;
+  border: 2px solid #667eea;
+  background-color: white;
+  color: #667eea;
+  border-radius: 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-tab:hover {
+  background-color: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.nav-tab.active {
+  background-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* סקציות מדריכים */
+.help-section {
+  display: none;
+  padding: 32px 25px;
+}
+
+.help-section.active {
+  display: block;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-header h2 {
+  font-size: 1.9rem;
+  color: #333;
+  margin: 0 0 10px;
+}
+
+.section-header p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* מיכל תוכן */
+.content-container {
+  max-width: 850px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* כרטיסי מידע */
+.info-card {
+  display: flex;
+  gap: 18px;
+  background-color: #ffffff;
+  padding: 22px;
+  border-radius: 10px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s;
+  text-align: right;
+}
+
+.info-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transform: translateX(-4px);
+}
+
+.info-card.highlight {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-color: #667eea;
+}
+
+.info-card.warning {
+  background-color: #fff8e1;
+  border-color: #ffc107;
+}
+
+.info-card.info {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.info-card.warning .card-icon {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.info-card.info .card-icon {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0 0 10px;
+}
+
+.card-content h4 {
+  font-size: 1.1rem;
+  color: #444;
+  margin: 16px 0 8px;
+}
+
+.card-content p {
+  color: #555;
+  line-height: 1.65;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.card-content a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.card-content a:hover {
+  text-decoration: underline;
+}
+
+/* רשימות */
+.simple-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.simple-list li {
+  padding: 6px 0 6px 24px;
+  position: relative;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.simple-list li::before {
+  content: "→";
+  position: absolute;
+  right: 0;
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.check-list {
+  padding: 0;
+  margin: 10px 0;
+}
+
+.check-item {
+  padding: 6px 24px 6px 0;
+  position: relative;
+  color: #555;
+  font-size: 0.95rem;
+  padding-right: 24px;
+}
+
+.check-item::before {
+  content: "✓";
+  position: absolute;
+  right: 0;
+  top: 6px;
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.numbered-list {
+  margin: 10px 0;
+  padding-right: 18px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.numbered-list li {
+  padding: 5px 0;
+}
+
+/* תמונות */
+.images-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  justify-content: center;
+}
+
+.images-row.small {
+  gap: 8px;
+}
+
+.help-image {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.help-image:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.images-row.small .help-image {
+  max-width: 140px;
+}
+
+/* גדלים ספציפיים לתמונות */
+.help-image.image-1 {
+  max-width: 200px;
+}
+
+.help-image.image-2 {
+  max-width: 220px;
+}
+
+.help-image.image-3 {
+  max-width: 400px;
+}
+
+.help-image.image-7 {
+  max-width: 220px;
+}
+
+/* תיבות מיוחדות */
+.checklist-box {
+  background-color: #f8f9fa;
+  border-right: 4px solid #667eea;
+  padding: 14px;
+  border-radius: 7px;
+  margin: 14px 0;
+}
+
+.checklist-box h4 {
+  margin: 0 0 10px;
+  color: #667eea;
+  font-size: 1.05rem;
+}
+
+.contact-box {
+  background-color: #e7f3ff;
+  border-right: 4px solid #2196f3;
+  padding: 14px;
+  border-radius: 7px;
+  margin: 14px 0;
+}
+
+.contact-box strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #1976d2;
+  font-size: 0.95rem;
+}
+
+.contact-box p {
+  font-size: 0.9rem;
+}
+
+.tip {
+  background-color: #fff9e6;
+  border-right: 3px solid #ffc107;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.tip p {
+  margin: 0 0 8px;
+}
+
+.tip .help-image {
+  display: block;
+  margin: 8px auto 0;
+}
+
+/* קריאה לפעולה */
+.help-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 25px;
+  text-align: center;
+}
+
+.help-cta h2 {
+  font-size: 1.8rem;
+  margin: 0 0 10px;
+}
+
+.help-cta p {
+  font-size: 1rem;
+  margin: 0 0 20px;
+  opacity: 0.9;
+}
+
+.cta-button {
+  background-color: white;
+  color: #667eea;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 45px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .help-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .help-header .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .info-card {
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .card-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+  }
+
+  .card-content h3 {
+    font-size: 1.2rem;
+  }
+
+  .help-navigation {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-tab {
+    width: 100%;
+  }
+
+  .images-row {
+    flex-direction: column;
+  }
+
+  .images-row.small .help-image {
+    max-width: 100%;
+  }
+}

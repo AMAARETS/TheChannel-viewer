@@ -205,6 +205,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.uiStateService.loadCustomContentFromSource('contact', {});
   }
 
+  onShowHelpPage(): void {
+    this.analyticsService.trackButtonClick({
+      button_name: 'sidebar_help',
+      button_location: 'sidebar',
+    });
+    this.uiStateService.loadCustomContentFromSource('help', {});
+  }
+
   toggleSidebar(): void {
     this.uiStateService.toggleSidebar();
   }
