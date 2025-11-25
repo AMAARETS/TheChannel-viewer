@@ -8,11 +8,13 @@
           frameborder="0"
           allowfullscreen
           allow="clipboard-read; clipboard-write"
-          (load)="onIframeLoaded()"></iframe>
+          (load)="onIframeLoaded()"
+          (error)="onIframeError()"></iframe>
 
         <!-- חיווי טעינה -->
         <div class="loading-overlay" *ngIf="isLoading()">
           <div class="spinner"></div>
+          <div class="loading-text">טוען...</div>
         </div>
 
         <div *ngIf="(selectedSiteUrl$ | async) === null" class="placeholder">
