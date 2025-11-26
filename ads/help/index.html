@@ -9,78 +9,12 @@
 
     <!-- ניווט בין המדריכים -->
     <div class="help-navigation">
-      <button class="nav-tab active" data-section="login">מדריך התחברות לערוצים</button>
-      <button class="nav-tab" data-section="extension">מדריך שימוש בתוסף</button>
-    </div>
-
-    <!-- מדריך התחברות לערוצים -->
-    <div class="help-section active" id="login-section">
-      <div class="section-header">
-        <h2>🔐 מדריך התחברות לערוצים</h2>
-        <p>איך להתחבר לערוצים באמצעות חשבון גוגל</p>
-      </div>
-
-      <div class="content-container">
-        <!-- כניסה מהירה -->
-        <div class="info-card highlight">
-          <div class="card-icon">⚡</div>
-          <div class="card-content">
-            <h3>כניסה מהירה לערוץ מחובר</h3>
-            <p>אם אתם כבר מחוברים לערוץ בדפדפן (לא רק רשומים, אלא מחוברים בפועל), פשוט בחרו את הערוץ מהרשימה והוא ייפתח אוטומטית עם החשבון שלכם.</p>
-          </div>
-        </div>
-
-        <!-- תהליך התחברות -->
-        <div class="info-card">
-          <div class="card-icon">🔑</div>
-          <div class="card-content">
-            <h3>התחברות לערוץ חדש</h3>
-            <p>אם עדיין לא התחברתם לערוץ, תצטרכו לפתוח אותו בכרטיסיה נפרדת ולהתחבר שם באמצעות גוגל.</p>
-
-            <div class="tip">
-              <p>💡 כדי לפתוח בכרטיסיה נפרדת, העבירו את העכבר מעל שם הערוץ ולחצו על הכפתור שמופיע.</p>
-              <img src="assets/help/image1.png" alt="כפתור בריחוף" class="help-image image-1">
-            </div>
-
-            <p>אחרי שהתחברתם בכרטיסיה הנפרדת, חזרו לאתר "הערוץ" ולחצו שוב על שם הערוץ. הפעם תיכנסו אליו אוטומטית עם החשבון שלכם!</p>
-          </div>
-        </div>
-
-        <!-- פתרון בעיות -->
-        <div class="info-card warning">
-          <div class="card-icon">⚠️</div>
-          <div class="card-content">
-            <h3>נתקלתם בבעיה?</h3>
-            <p>אם מופיעות לכם הודעות שגיאה, הנה כמה דברים לבדוק:</p>
-
-            <div class="images-row">
-              <img src="assets/help/image3.png" alt="דוגמת שגיאה" class="help-image image-3">
-            </div>
-
-            <div class="checklist-box">
-              <h4>רשימת בדיקות:</h4>
-              <div class="check-list">
-                <div class="check-item">האם הערוץ מוגדר בתוסף לאישור התחברות?</div>
-                <div class="check-item">האם אתם מחוברים לערוץ בחשבון גוגל כשאתם נכנסים אליו בכרטיסיה נפרדת?</div>
-                <div class="check-item">נסו לרענן את הדף ולנסות שוב</div>
-              </div>
-            </div>
-
-            <div class="contact-box">
-              <p><strong>עדיין לא עובד?</strong></p>
-              <p>אתם מוזמנים ליצור איתנו קשר ונבדוק את הבעיה. נא לציין:</p>
-              <ol class="numbered-list">
-                <li>את כתובת הערוץ שבו נתקלתם בבעיה</li>
-                <li>האם יש ערוצים אחרים שבהם כן הצלחתם להתחבר</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
+      <button class="nav-tab active" data-section="extension">מדריך שימוש בתוסף</button>
+      <button class="nav-tab" data-section="login">מדריך התחברות לערוצים</button>
     </div>
 
     <!-- מדריך שימוש בתוסף -->
-    <div class="help-section" id="extension-section">
+    <div class="help-section active" id="extension-section">
       <div class="section-header">
         <h2>🔌 מדריך שימוש בתוסף</h2>
         <p>הוראות התקנה ושימוש בתוסף TheChannel Viewer for Gmail</p>
@@ -144,6 +78,73 @@
           <div class="card-content">
             <h3>פרטיות ובטיחות</h3>
             <p>התוסף שומר על הפרטיות שלכם - הוא לא משנה את צורת ההתחברות לכל הערוצים אוטומטית, אלא רק לאלו שבחרתם בהגדרות.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- מדריך התחברות לערוצים -->
+    <div class="help-section" id="login-section">
+      <div class="section-header">
+        <h2>🔐 מדריך התחברות לערוצים</h2>
+        <p>איך להתחבר לערוצים באמצעות חשבון גוגל</p>
+        <p class="tip">💡 כמובן, כל זה רק לאחר שהאתר הוגדר למורשה כמו במדריך שימוש בתוסף, או בערוצים שתומכים בעצמם בהתחברות.</p>
+      </div>
+
+      <div class="content-container">
+        <!-- כניסה מהירה -->
+        <div class="info-card highlight">
+          <div class="card-icon">⚡</div>
+          <div class="card-content">
+            <h3>כניסה מהירה לערוץ מחובר</h3>
+            <p>אם אתם כבר מחוברים לערוץ בדפדפן (לא רק רשומים, אלא מחוברים בפועל), פשוט בחרו את הערוץ מהרשימה והוא ייפתח אוטומטית עם החשבון שלכם.</p>
+          </div>
+        </div>
+
+        <!-- תהליך התחברות -->
+        <div class="info-card">
+          <div class="card-icon">🔑</div>
+          <div class="card-content">
+            <h3>התחברות לערוץ חדש</h3>
+            <p>אם עדיין לא התחברתם לערוץ, תצטרכו לפתוח אותו בכרטיסיה נפרדת ולהתחבר שם באמצעות גוגל.</p>
+
+            <div class="tip">
+              <p>💡 כדי לפתוח בכרטיסיה נפרדת, העבירו את העכבר מעל שם הערוץ ולחצו על הכפתור שמופיע.</p>
+              <img src="assets/help/image1.png" alt="כפתור בריחוף" class="help-image image-1">
+            </div>
+
+            <p>אחרי שהתחברתם בכרטיסיה הנפרדת, חזרו לאתר "הערוץ" ולחצו שוב על שם הערוץ. הפעם תיכנסו אליו אוטומטית עם החשבון שלכם!</p>
+          </div>
+        </div>
+
+        <!-- פתרון בעיות -->
+        <div class="info-card warning">
+          <div class="card-icon">⚠️</div>
+          <div class="card-content">
+            <h3>נתקלתם בבעיה?</h3>
+            <p>אם מופיעות לכם הודעות שגיאה, הנה כמה דברים לבדוק:</p>
+
+            <div class="images-row">
+              <img src="assets/help/image3.png" alt="דוגמת שגיאה" class="help-image image-3">
+            </div>
+
+            <div class="checklist-box">
+              <h4>רשימת בדיקות:</h4>
+              <div class="check-list">
+                <div class="check-item">האם הערוץ מוגדר בתוסף לאישור התחברות?</div>
+                <div class="check-item">האם אתם מחוברים לערוץ בחשבון גוגל כשאתם נכנסים אליו בכרטיסיה נפרדת?</div>
+                <div class="check-item">נסו לרענן את הדף ולנסות שוב</div>
+              </div>
+            </div>
+
+            <div class="contact-box">
+              <p><strong>עדיין לא עובד?</strong></p>
+              <p>אתם מוזמנים ליצור איתנו קשר ונבדוק את הבעיה. נא לציין:</p>
+              <ol class="numbered-list">
+                <li>את כתובת הערוץ שבו נתקלתם בבעיה</li>
+                <li>האם יש ערוצים אחרים שבהם כן הצלחתם להתחבר</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>

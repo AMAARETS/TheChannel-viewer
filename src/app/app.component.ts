@@ -52,6 +52,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     ).subscribe(categories => {
       this.initializeApp(categories);
     });
+
+    // הוספת מאזין לכפתור "חזור" של הדפדפן
+    window.addEventListener('popstate', () => {
+      this.handleUrlParametersOnLoad(true);
+    });
   }
 
   private initializeApp(categories: Category[]): void {
@@ -68,30 +73,43 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.uiStateService.processNextDialogInQueue();
   }
 
-  private handleUrlParametersOnLoad(): boolean {
+  private handleUrlParametersOnLoad(skipHistoryUpdate = false): boolean {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view');
     const source = params.get('source');
 
     if (view === 'advertise') {
-      this.uiStateService.loadCustomContentFromSource('advertise');
+      this.uiStateService.loadCustomContentFromSource('advertise', {}, skipHistoryUpdate);
       return true;
     }
 
     if (view === 'contact') {
-      this.uiStateService.loadCustomContentFromSource('contact');
+      this.uiStateService.loadCustomContentFromSource('contact', {}, skipHistoryUpdate);
       return true;
     }
 
     if (view === 'help') {
-      this.uiStateService.loadCustomContentFromSource('help');
+      this.uiStateService.loadCustomContentFromSource('help', {}, skipHistoryUpdate);
       return true;
     }
 
     if (view === 'custom' && source) {
       const paramsObject = Object.fromEntries(params.entries());
-      this.uiStateService.loadCustomContentFromSource(source, paramsObject);
+      this.uiStateService.loadCustomContentFromSource(source, paramsObject, skipHistoryUpdate);
       return true;
+    }
+
+    // טיפול בניווט חזרה לאתר רגיל
+    const siteFromUrl = this.tryGetSiteFromUrl();
+    if (siteFromUrl) {
+      const categories = this.siteDataService.categories$.getValue();
+      const allSites = categories.flatMap(c => c.sites);
+      const existingSite = allSites.find(s => s.url === siteFromUrl.url);
+
+      if (existingSite) {
+        this.uiStateService.selectSite(existingSite, siteFromUrl.category, skipHistoryUpdate);
+        return true;
+      }
     }
 
     return false;

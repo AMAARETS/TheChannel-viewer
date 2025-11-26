@@ -125,7 +125,8 @@ export class UiStateService {
 
   async loadCustomContentFromSource(
     source: string,
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
+    skipHistoryUpdate = false
   ): Promise<void> {
     this.cleanupInjectedResources();
     const baseUrl = `/ads/${source}/`;
@@ -146,8 +147,10 @@ export class UiStateService {
       }
       this.activeView$.next('custom');
       this.customContent$.next(htmlContent);
-      const urlParams = new URLSearchParams({ view: 'custom', source, ...params });
-      history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
+      if (!skipHistoryUpdate) {
+        const urlParams = new URLSearchParams({ view: 'custom', source, ...params });
+        history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
+      }
       this.analyticsService.trackPageView({
         page_title: `Custom Content: ${source}`,
         page_path: `/ads/${source}`,
@@ -172,7 +175,7 @@ export class UiStateService {
   }
 
   // *** שינוי מרכזי: כל לוגיקת הדיאלוגים מרוכזת כאן ***
-  async selectSite(site: Site | null, categoryName?: string): Promise<void> {
+  async selectSite(site: Site | null, categoryName?: string, skipHistoryUpdate = false): Promise<void> {
     this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
@@ -180,7 +183,7 @@ export class UiStateService {
     if (site) {
       this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
       const catName = categoryName || this.siteDataService.getCategoryForSite(site);
-      if (catName) {
+      if (catName && !skipHistoryUpdate) {
         const params = new URLSearchParams({ name: site.name, url: site.url, category: catName });
         history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
       }
