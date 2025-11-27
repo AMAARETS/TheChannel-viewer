@@ -33,5 +33,12 @@
     "description": "אתר בנושא טיולים ומעיינות",
     "category": "טיולים",
     "googleLoginSupported": false
+  },
+  {
+    "name": "מיוזיק אונליין",
+    "url": "https://music.chatfree.app/",
+    "description": "עדכוני מוזיקה שוטפים",
+    "category": "מוזיקה",
+    "googleLoginSupported": false
   }
 ]

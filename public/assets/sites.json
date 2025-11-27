@@ -1,7 +1,7 @@
 [
   {
     "name": "חדשות",
-    "sites":[
+    "sites": [
       {
         "name": "הגיזרה",
         "url": "https://hagizra.news/",
@@ -20,8 +20,8 @@
     ]
   },
   {
-  "name": "קניות",
-    "sites":[
+    "name": "קניות",
+    "sites": [
       {
         "name": "My ali",
         "url": "https://myali.chatfree.app/",
@@ -36,10 +36,20 @@
   },
   {
     "name": "טיולים",
-    "sites":[
+    "sites": [
       {
         "name": "מעיינות נדירים - ישראל שפירא",
         "url": "https://channel.israelshapira.com/",
+        "googleLoginSupported": false
+      }
+    ]
+  },
+  {
+    "name": "מוזיקה",
+    "sites": [
+      {
+        "name": "מיוזיק אונליין",
+        "url": "https://music.chatfree.app/",
         "googleLoginSupported": false
       }
     ]
