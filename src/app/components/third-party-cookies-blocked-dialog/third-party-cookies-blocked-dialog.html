@@ -1,0 +1,28 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture>
+      <div class="icon-header">⚠️</div>
+      <h2 class="dialog-title">עוגיות צד ג' חסומות</h2>
+      <div class="dialog-content">
+        <p>זיהינו שהדפדפן שלך חוסם "עוגיות צד שלישי" (Third-Party Cookies).</p>
+        <p>מכיוון שהפלטפורמה כוללת כמה אתרים מוטמעים, יש צורך לשנות את ההגדרה או להחריג את האתר.</p>
+
+        <div class="instruction-box">
+          <strong>איך מתקנים?</strong>
+          <ol>
+            <li>יש להיכנס להגדרות הדפדפן.</li>
+            <li>לחפש הגדרות "פרטיות ואבטחה" ולהיכנס לקובצי cookie של צד שלישי.</li>
+            <li>יש לאפשר עוגיות צד שלישי (Allow third-party cookies) או להוסיף את הדומיין הנוכחי לרשימת המותרים.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <div class="dont-show-again-container">
+          <input type="checkbox" id="dont-show-cookies-again" #dontShowAgainCheckbox>
+          <label for="dont-show-cookies-again">אל תציג שוב</label>
+        </div>
+        <button #closeButton class="btn-primary" (click)="closeDialog(dontShowAgainCheckbox)">הבנתי</button>
+      </div>
+    </div>
+  </div>
+}

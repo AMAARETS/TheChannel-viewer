@@ -13,13 +13,14 @@ import { ToastComponent } from './components/toast/toast.component';
 import { WelcomeDialogComponent } from './components/welcome-dialog/welcome-dialog';
 import { GoogleLoginUnsupportedDialogComponent } from './components/google-login-unsupported-dialog/google-login-unsupported-dialog';
 import { GrantPermissionDialogComponent } from './components/grant-permission-dialog/grant-permission-dialog';
-// *** שינוי: נוסף דיאלוג חדש ***
 import { InstallExtensionDialogComponent } from './components/install-extension-dialog/install-extension-dialog.component';
+// *** שינוי: ייבוא הרכיב החדש ***
+import { ThirdPartyCookiesBlockedDialogComponent } from './components/third-party-cookies-blocked-dialog/third-party-cookies-blocked-dialog';
 
 // Import services
 import { SiteDataService } from './core/services/site-data.service';
 import { UiStateService } from './core/services/ui-state.service';
-import { Site, Category } from './core/models/site.model'; // Import Category
+import { Site, Category } from './core/models/site.model';
 
 @Component({
   selector: 'app-root',
@@ -36,7 +37,9 @@ import { Site, Category } from './core/models/site.model'; // Import Category
     WelcomeDialogComponent,
     GoogleLoginUnsupportedDialogComponent,
     GrantPermissionDialogComponent,
-    InstallExtensionDialogComponent, // *** שינוי: נוסף דיאלוג חדש ***
+    InstallExtensionDialogComponent,
+    // *** שינוי: הוספת הרכיב לרשימת ה-imports ***
+    ThirdPartyCookiesBlockedDialogComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -47,13 +50,15 @@ export class AppComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
 
   ngOnInit(): void {
+    // *** שינוי: הפעלת הבדיקה לחסימת עוגיות ***
+    this.uiStateService.checkAndAlertIfThirdPartyCookiesBlocked();
+
     this.siteDataService.categories$.pipe(
       first(categories => categories.length > 0)
     ).subscribe(categories => {
       this.initializeApp(categories);
     });
 
-    // הוספת מאזין לכפתור "חזור" של הדפדפן
     window.addEventListener('popstate', () => {
       this.handleUrlParametersOnLoad(true);
     });
@@ -99,7 +104,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       return true;
     }
 
-    // טיפול בניווט חזרה לאתר רגיל
     const siteFromUrl = this.tryGetSiteFromUrl();
     if (siteFromUrl) {
       const categories = this.siteDataService.categories$.getValue();
@@ -165,6 +169,5 @@ export class AppComponent implements OnInit, AfterViewInit {
     script.src = scriptSrc;
     script.async = true;
     script.defer = true;
-    //document.body.appendChild(script);
   }
 }

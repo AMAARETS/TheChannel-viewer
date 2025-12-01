@@ -7,7 +7,8 @@ const CustomEventFromExtension = 'THE_CHANNEL_FROM_EXTENSION';
 export const MESSAGE_TYPES = {
   APP_READY: 'THE_CHANNEL_APP_READY',
   SETTINGS_CHANGED: 'THE_CHANNEL_SETTINGS_CHANGED',
-  GET_MANAGED_DOMAINS: 'THE_CHANNEL_GET_MANAGED_DOMAINS', // <--- תיקון: שגיאת כתיב תוקנה
+  GET_MANAGED_DOMAINS: 'THE_CHANNEL_GET_MANAGED_DOMAINS',
+  REQUEST_PERMISSION: 'THE_CHANNEL_REQUEST_PERMISSION', // *** חדש ***
   EXTENSION_READY: 'THE_CHANNEL_EXTENSION_READY',
   SETTINGS_DATA: 'THE_CHANNEL_SETTINGS_DATA',
   MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA'
@@ -38,7 +39,6 @@ export class ExtensionCommunicationService {
   private isExtensionActive = new BehaviorSubject<boolean>(false);
   isExtensionActive$ = this.isExtensionActive.asObservable();
 
-  // <--- תיקון: הוספת getter לגישה סינכרונית בטוחה
   public get isExtensionActiveValue(): boolean {
     return this.isExtensionActive.value;
   }
@@ -149,6 +149,19 @@ export class ExtensionCommunicationService {
             }
         }, this.EXTENSION_RESPONSE_TIMEOUT);
     });
+  }
+
+  // *** פונקציה חדשה לבקשת הרשאה ***
+  public requestPermissionForDomain(domain: string): void {
+    if (this.isExtensionActive.value) {
+      console.log(`TheChannel: Requesting permission popup for domain: ${domain}`);
+      this.sendMessageToExtension({
+        type: MESSAGE_TYPES.REQUEST_PERMISSION,
+        payload: { domain }
+      });
+    } else {
+      console.warn('TheChannel: Cannot request permission, extension not active.');
+    }
   }
 
   public updateSettingsInExtension(settings: AppSettings): void {

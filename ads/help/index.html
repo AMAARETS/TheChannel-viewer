@@ -11,6 +11,8 @@
     <div class="help-navigation">
       <button class="nav-tab active" data-section="extension">מדריך שימוש בתוסף</button>
       <button class="nav-tab" data-section="login">מדריך התחברות לערוצים</button>
+      <!-- טאב חדש -->
+      <button class="nav-tab" data-section="cookies">פתרון בעיות עוגיות</button>
     </div>
 
     <!-- מדריך שימוש בתוסף -->
@@ -136,14 +138,66 @@
                 <div class="check-item">נסו לרענן את הדף ולנסות שוב</div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div class="contact-box">
-              <p><strong>עדיין לא עובד?</strong></p>
-              <p>אתם מוזמנים ליצור איתנו קשר ונבדוק את הבעיה. נא לציין:</p>
-              <ol class="numbered-list">
-                <li>את כתובת הערוץ שבו נתקלתם בבעיה</li>
-                <li>האם יש ערוצים אחרים שבהם כן הצלחתם להתחבר</li>
-              </ol>
+    <!-- מדריך פתרון בעיות עוגיות (חדש) -->
+    <div class="help-section" id="cookies-section">
+      <div class="section-header">
+        <h2>🍪 פתרון בעיות עוגיות (Cookies)</h2>
+        <p>אם האתר לא זוכר את ההתחברות שלכם, ייתכן שעוגיות צד ג' חסומות.</p>
+      </div>
+
+      <div class="content-container">
+
+        <!-- הסבר כללי -->
+        <div class="info-card">
+          <div class="card-icon">ℹ️</div>
+          <div class="card-content">
+            <h3>למה זה קורה?</h3>
+            <p>מכיוון שהאתר "הערוץ" מציג אתרים אחרים בתוך מסגרת (Iframe), הדפדפן מזהה את ניסיון ההתחברות כ"עוגיית צד שלישי" (Third-Party Cookie) ולעיתים קרובות חוסם אותה כברירת מחדל לאבטחה.</p>
+            <p>כדי שההתחברות תעבוד, עליכם לאשר לדפדפן לשמור עוגיות עבור האתרים שאתם צופים בהם.</p>
+          </div>
+        </div>
+
+        <!-- פתרון 1: אייקון העין -->
+        <div class="info-card highlight">
+          <div class="card-icon">👁️</div>
+          <div class="card-content">
+            <h3>פתרון מהיר: אייקון העין / המגן</h3>
+            <p>זוהי הדרך הקלה והמהירה ביותר לפתור את הבעיה:</p>
+
+            <ol class="numbered-list">
+              <li>הביטו ב<strong>שורת הכתובת</strong> של הדפדפן (למעלה).</li>
+              <li>בצד שמאל, חפשו אייקון קטן של <strong>עין עם קו עליה</strong>.</li>
+              <li>בתפריט שנפתח, הפעילו את האפשרות <strong>"קובצי cookie של צד שלישי"</strong>.</li>
+            </ol>
+
+            <div class="images-row">
+              <img src="assets/help/cookie-eye-2.png" alt="תפריט אישור עוגיות" class="help-image image-2">
+            </div>
+
+            <p class="tip">💡 לאחר האישור, הדף יתרענן וההתחברות אמורה לעבוד.</p>
+          </div>
+        </div>
+
+        <!-- פתרון 2: הגדרות דפדפן -->
+        <div class="info-card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-content">
+            <h3>פתרון דרך הגדרות הדפדפן (Chrome)</h3>
+            <p>ניתן לשנות את ההגדרות גם באופן כללי:</p>
+            <ol class="numbered-list">
+              <li>היכנסו ל<strong>הגדרות</strong> (Settings) בדפדפן.</li>
+              <li>בחרו ב-<strong>Privacy and security</strong> (פרטיות ואבטחה).</li>
+              <li>לחצו על <strong>Third-party cookies</strong> (עוגיות צד שלישי).</li>
+              <li>סמנו את האפשרות <strong>Allow third-party cookies</strong> (אפשר עוגיות צד שלישי) או הוסיפו את האתר לרשימת ההחרגות.</li>
+            </ol>
+
+            <div class="images-row">
+              <img src="assets/help/cookie-settings.png" alt="הגדרות עוגיות בכרום" class="help-image image-3">
             </div>
           </div>
         </div>

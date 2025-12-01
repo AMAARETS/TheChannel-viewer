@@ -40,9 +40,9 @@ export class UiStateService {
   private readonly viewedTutorialsKey = 'viewedChannelTutorials';
   private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial';
   private readonly neverShowWelcomeDialogKey = 'neverShowWelcomeDialog';
-  // *** שינוי: מפתחות אחסון חדשים ***
   private readonly neverShowGrantPermissionDialogKey = 'neverShowGrantPermissionDialog';
   private readonly neverShowInstallExtensionDialogKey = 'neverShowInstallExtensionDialog';
+  private readonly neverShowCookiesBlockedDialogKey = 'neverShowCookiesBlockedDialog';
 
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
   activeView$ = new BehaviorSubject<ActiveView>('site');
@@ -62,10 +62,10 @@ export class UiStateService {
   siteForUnsupportedLoginDialog$ = new BehaviorSubject<Site | null>(null);
   isGrantPermissionDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteForGrantPermissionDialog$ = new BehaviorSubject<Site | null>(null);
-
-  // *** שינוי: מצב עבור דיאלוג חדש ***
   isInstallExtensionDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteForInstallExtensionDialog$ = new BehaviorSubject<Site | null>(null);
+
+  isThirdPartyCookiesBlockedDialogVisible$ = new BehaviorSubject<boolean>(false);
 
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(
     this.loadFromStorage(this.sidebarCollapsedKey) ?? false
@@ -87,7 +87,8 @@ export class UiStateService {
     interface TheChannelAPI {
       navigateTo?: (source: string, params?: Record<string, string>) => Promise<void>;
     }
-    const globalApi: TheChannelAPI = ((window as Window & { theChannel?: TheChannelAPI }).theChannel) || {};
+    const globalApi: TheChannelAPI =
+      (window as Window & { theChannel?: TheChannelAPI }).theChannel || {};
     globalApi.navigateTo = this.loadCustomContentFromSource.bind(this);
     (window as Window & { theChannel?: TheChannelAPI }).theChannel = globalApi;
   }
@@ -109,6 +110,31 @@ export class UiStateService {
     }
     const nextDialogFn = this.dialogQueue.shift()!;
     nextDialogFn();
+  }
+
+  checkAndAlertIfThirdPartyCookiesBlocked(): void {
+    if (this.isCookiesBlockedDialogGloballyDisabled()) {
+      return;
+    }
+
+    const areCookiesEnabled = this.checkCookieSupport();
+
+    if (!areCookiesEnabled) {
+      this.enqueueDialog(() => this.openThirdPartyCookiesBlockedDialog());
+      this.processNextDialogInQueue();
+    }
+  }
+
+  private checkCookieSupport(): boolean {
+    try {
+      const testKey = 'test_3pc_check';
+      document.cookie = `${testKey}=1; SameSite=None; Secure`;
+      const cookieEnabled = document.cookie.indexOf(`${testKey}=`) !== -1;
+      document.cookie = `${testKey}=1; SameSite=None; Secure; expires=Thu, 01-Jan-1970 00:00:01 GMT`;
+      return cookieEnabled;
+    } catch (e) {
+      return false;
+    }
   }
 
   private cleanupInjectedResources(): void {
@@ -174,8 +200,11 @@ export class UiStateService {
     }
   }
 
-  // *** שינוי מרכזי: כל לוגיקת הדיאלוגים מרוכזת כאן ***
-  async selectSite(site: Site | null, categoryName?: string, skipHistoryUpdate = false): Promise<void> {
+  async selectSite(
+    site: Site | null,
+    categoryName?: string,
+    skipHistoryUpdate = false
+  ): Promise<void> {
     this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
@@ -193,38 +222,34 @@ export class UiStateService {
         page_location: site.url,
       });
 
-      // --- לוגיקת הדיאלוגים החדשה ---
       if (site.googleLoginSupported) {
-        // מקרה 1: האתר תומך בהתחברות גוגל
         if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
           this.enqueueDialog(() => this.openLoginTutorialDialog());
           this.markTutorialAsViewed(site.url);
         }
       } else {
-        // מקרה 2: האתר אינו תומך בהתחברות גוגל
         const isExtensionActive = this.extensionCommService.isExtensionActiveValue;
 
         if (!isExtensionActive) {
-          // 2.1: התוסף לא מותקן
           if (!this.isInstallExtensionDialogGloballyDisabled()) {
             this.enqueueDialog(() => this.openInstallExtensionDialog(site));
           }
         } else {
-          // 2.2: התוסף כן מותקן
+          // התוסף פעיל - נבדוק אם הדומיין כבר מאושר
           const domains = await this.extensionCommService.requestManagedDomains();
           const siteDomain = new URL(site.url).hostname;
 
           if (domains && domains.includes(siteDomain)) {
-            // 2.2.ב: התוסף מותקן והדומיין מורשה -> הצג מדריך התחברות
-             if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-                this.enqueueDialog(() => this.openLoginTutorialDialog());
-                this.markTutorialAsViewed(site.url);
+            // הדומיין מאושר - נבדוק אם צריך להציג הדרכה
+            if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
+              this.enqueueDialog(() => this.openLoginTutorialDialog());
+              this.markTutorialAsViewed(site.url);
             }
           } else {
-            // 2.2.א: התוסף מותקן אך הדומיין לא מורשה -> הצג מדריך הרשאות
-            if (!this.isGrantPermissionDialogGloballyDisabled()) {
-              this.enqueueDialog(() => this.openGrantPermissionDialog(site));
-            }
+            // *** השינוי העיקרי: ***
+            // אם הדומיין לא מאושר, במקום להציג דיאלוג אנגולר,
+            // אנחנו שולחים בקשה ישירה לתוסף לפתוח את הפופאפ הייעודי.
+            this.extensionCommService.requestPermissionForDomain(siteDomain);
           }
         }
       }
@@ -237,8 +262,12 @@ export class UiStateService {
     }
   }
 
-  getActiveSite(): Site | null { return this.selectedSiteSubject.getValue(); }
-  getLastViewedSiteUrl(): string | null { return this.loadFromStorage(this.lastViewedSiteUrlKey); }
+  getActiveSite(): Site | null {
+    return this.selectedSiteSubject.getValue();
+  }
+  getLastViewedSiteUrl(): string | null {
+    return this.loadFromStorage(this.lastViewedSiteUrlKey);
+  }
 
   toggleSidebar(): void {
     const newState = !this.isSidebarCollapsed$.value;
@@ -259,55 +288,139 @@ export class UiStateService {
       const sidebarCollapsed = this.isSidebarCollapsed$.getValue();
       const collapsedCategories = this.collapsedCategories$.getValue();
       this.extensionCommService.updateSettingsInExtension({
-        categories, sidebarCollapsed, collapsedCategories, lastModified: Date.now()
+        categories,
+        sidebarCollapsed,
+        collapsedCategories,
+        lastModified: Date.now(),
       });
     }
   }
 
   // --- ניהול דיאלוגים ---
-  openAddSiteDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isAddSiteDialogVisible$.next(true); }
-  closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); this.restoreFocus(); }
+  openAddSiteDialog(): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.isAddSiteDialogVisible$.next(true);
+  }
+  closeAddSiteDialog(): void {
+    this.isAddSiteDialogVisible$.next(false);
+    this.restoreFocus();
+  }
 
-  openConfirmDeleteDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteToDelete$.next(site); this.isConfirmDeleteDialogVisible$.next(true); }
-  closeConfirmDeleteDialog(): void { this.isConfirmDeleteDialogVisible$.next(false); this.siteToDelete$.next(null); this.restoreFocus(); }
+  openConfirmDeleteDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteToDelete$.next(site);
+    this.isConfirmDeleteDialogVisible$.next(true);
+  }
+  closeConfirmDeleteDialog(): void {
+    this.isConfirmDeleteDialogVisible$.next(false);
+    this.siteToDelete$.next(null);
+    this.restoreFocus();
+  }
 
-  openInputDialog(config: InputDialogConfig): void { this.saveFocus(); this.isDialogVisible = true; this.inputDialogConfig$.next(config); this.isInputDialogVisible$.next(true); }
+  openInputDialog(config: InputDialogConfig): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.inputDialogConfig$.next(config);
+    this.isInputDialogVisible$.next(true);
+  }
   closeInputDialog(value: string | null): void {
-    if (value) { this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value)); }
-    this.isInputDialogVisible$.next(false); this.inputDialogConfig$.next(null); this.restoreFocus();
+    if (value) {
+      this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value));
+    }
+    this.isInputDialogVisible$.next(false);
+    this.inputDialogConfig$.next(null);
+    this.restoreFocus();
   }
 
-  openLoginTutorialDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isLoginTutorialDialogVisible$.next(true); }
+  openLoginTutorialDialog(): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.isLoginTutorialDialogVisible$.next(true);
+  }
   closeLoginTutorialDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableLoginTutorialGlobally(); }
-    this.isLoginTutorialDialogVisible$.next(false); this.restoreFocus();
+    if (disableGlobally) {
+      this.disableLoginTutorialGlobally();
+    }
+    this.isLoginTutorialDialogVisible$.next(false);
+    this.restoreFocus();
   }
 
-  isWelcomeDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true; }
-  openWelcomeDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isWelcomeDialogVisible$.next(true); }
+  isWelcomeDialogGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true;
+  }
+  openWelcomeDialog(): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.isWelcomeDialogVisible$.next(true);
+  }
   closeWelcomeDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.saveToStorage(this.neverShowWelcomeDialogKey, true); }
-    this.isWelcomeDialogVisible$.next(false); this.restoreFocus();
+    if (disableGlobally) {
+      this.saveToStorage(this.neverShowWelcomeDialogKey, true);
+    }
+    this.isWelcomeDialogVisible$.next(false);
+    this.restoreFocus();
   }
 
-  openGoogleLoginUnsupportedDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForUnsupportedLoginDialog$.next(site); this.isGoogleLoginUnsupportedDialogVisible$.next(true); }
-  closeGoogleLoginUnsupportedDialog(): void { this.isGoogleLoginUnsupportedDialogVisible$.next(false); this.siteForUnsupportedLoginDialog$.next(null); this.restoreFocus(); }
+  openGoogleLoginUnsupportedDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteForUnsupportedLoginDialog$.next(site);
+    this.isGoogleLoginUnsupportedDialogVisible$.next(true);
+  }
+  closeGoogleLoginUnsupportedDialog(): void {
+    this.isGoogleLoginUnsupportedDialogVisible$.next(false);
+    this.siteForUnsupportedLoginDialog$.next(null);
+    this.restoreFocus();
+  }
 
-  openGrantPermissionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForGrantPermissionDialog$.next(site); this.isGrantPermissionDialogVisible$.next(true); }
-  // *** שינוי: נוספה לוגיקת "אל תציג שוב" ***
+  openGrantPermissionDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteForGrantPermissionDialog$.next(site);
+    this.isGrantPermissionDialogVisible$.next(true);
+  }
   closeGrantPermissionDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableGrantPermissionDialogGlobally(); }
-    this.isGrantPermissionDialogVisible$.next(false); this.siteForGrantPermissionDialog$.next(null); this.restoreFocus();
+    if (disableGlobally) {
+      this.disableGrantPermissionDialogGlobally();
+    }
+    this.isGrantPermissionDialogVisible$.next(false);
+    this.siteForGrantPermissionDialog$.next(null);
+    this.restoreFocus();
   }
 
-  // *** שינוי: פונקציות לדיאלוג החדש ***
-  openInstallExtensionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForInstallExtensionDialog$.next(site); this.isInstallExtensionDialogVisible$.next(true); }
+  openInstallExtensionDialog(site: Site): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.siteForInstallExtensionDialog$.next(site);
+    this.isInstallExtensionDialogVisible$.next(true);
+  }
   closeInstallExtensionDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableInstallExtensionDialogGlobally(); }
-    this.isInstallExtensionDialogVisible$.next(false); this.siteForInstallExtensionDialog$.next(null); this.restoreFocus();
+    if (disableGlobally) {
+      this.disableInstallExtensionDialogGlobally();
+    }
+    this.isInstallExtensionDialogVisible$.next(false);
+    this.siteForInstallExtensionDialog$.next(null);
+    this.restoreFocus();
   }
 
-  private saveFocus(): void { this.focusedElementBeforeDialog = document.activeElement as HTMLElement; }
+  openThirdPartyCookiesBlockedDialog(): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.isThirdPartyCookiesBlockedDialogVisible$.next(true);
+  }
+  closeThirdPartyCookiesBlockedDialog(disableGlobally = false): void {
+    if (disableGlobally) {
+      this.disableCookiesBlockedDialogGlobally();
+    }
+    this.isThirdPartyCookiesBlockedDialogVisible$.next(false);
+    this.restoreFocus();
+  }
+
+  private saveFocus(): void {
+    this.focusedElementBeforeDialog = document.activeElement as HTMLElement;
+  }
   private restoreFocus(): void {
     this.focusedElementBeforeDialog?.focus();
     this.focusedElementBeforeDialog = null;
@@ -315,10 +428,27 @@ export class UiStateService {
     setTimeout(() => this.processNextDialogInQueue(), 0);
   }
 
-  private saveToStorage<T>(key: string, value: T): void { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Error saving to localStorage', e); } }
-  private loadFromStorage<T>(key: string): T | null { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : null; } catch (e) { console.error('Error reading from localStorage', e); return null; } }
+  private saveToStorage<T>(key: string, value: T): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Error saving to localStorage', e);
+    }
+  }
+  private loadFromStorage<T>(key: string): T | null {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (e) {
+      console.error('Error reading from localStorage', e);
+      return null;
+    }
+  }
 
-  private hasViewedTutorial(url: string): boolean { const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? []; return viewedUrls.includes(url); }
+  private hasViewedTutorial(url: string): boolean {
+    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
+    return viewedUrls.includes(url);
+  }
   private markTutorialAsViewed(url: string): void {
     const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
     if (!viewedUrls.includes(url)) {
@@ -327,13 +457,31 @@ export class UiStateService {
     }
   }
 
-  private isLoginTutorialGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true; }
-  private disableLoginTutorialGlobally(): void { this.saveToStorage(this.neverShowLoginTutorialKey, true); }
+  private isLoginTutorialGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true;
+  }
+  private disableLoginTutorialGlobally(): void {
+    this.saveToStorage(this.neverShowLoginTutorialKey, true);
+  }
 
-  // *** שינוי: פונקציות עזר חדשות ***
-  private isGrantPermissionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowGrantPermissionDialogKey) === true; }
-  private disableGrantPermissionDialogGlobally(): void { this.saveToStorage(this.neverShowGrantPermissionDialogKey, true); }
+  private isGrantPermissionDialogGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowGrantPermissionDialogKey) === true;
+  }
+  private disableGrantPermissionDialogGlobally(): void {
+    this.saveToStorage(this.neverShowGrantPermissionDialogKey, true);
+  }
 
-  private isInstallExtensionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowInstallExtensionDialogKey) === true; }
-  private disableInstallExtensionDialogGlobally(): void { this.saveToStorage(this.neverShowInstallExtensionDialogKey, true); }
+  private isInstallExtensionDialogGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowInstallExtensionDialogKey) === true;
+  }
+  private disableInstallExtensionDialogGlobally(): void {
+    this.saveToStorage(this.neverShowInstallExtensionDialogKey, true);
+  }
+
+  private isCookiesBlockedDialogGloballyDisabled(): boolean {
+    return this.loadFromStorage<boolean>(this.neverShowCookiesBlockedDialogKey) === true;
+  }
+  private disableCookiesBlockedDialogGlobally(): void {
+    this.saveToStorage(this.neverShowCookiesBlockedDialogKey, true);
+  }
 }
