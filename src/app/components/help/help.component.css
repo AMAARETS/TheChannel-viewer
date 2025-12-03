@@ -1,0 +1,260 @@
+/* הגדרות הקומפוננטה עצמה - חייבת לתפוס את כל הגובה */
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* מונע גלילה כפולה, הגלילה תהיה בתוך ה-scroll-container */
+}
+
+/* מיכל הגלילה הראשי */
+.help-scroll-container {
+  height: 100%;
+  overflow-y: auto; /* מאפשר גלילה אנכית */
+  width: 100%;
+  background-color: #f0f2f5; /* צבע רקע כללי */
+  display: flex;
+  justify-content: center; /* מירכוז אופקי */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* הכרטיס המרכזי */
+.help-card {
+  width: 100%;
+  max-width: 900px; /* הגבלת רוחב */
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  overflow: hidden; /* כדי שהפינות העגולות יעבדו עם ה-Header */
+  display: flex;
+  flex-direction: column;
+  height: fit-content; /* הגובה לפי התוכן */
+  margin-bottom: 20px; /* מרווח קטן בסוף הגלילה */
+}
+
+/* --- מכאן העיצוב הפנימי נשאר דומה, אך מותאם --- */
+
+.help-header {
+  padding: 40px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.header-icon {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.help-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.help-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 20px 25px;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  flex-wrap: wrap;
+  position: sticky; /* ניווט דביק */
+  top: 0;
+  z-index: 10;
+}
+
+.nav-tab {
+  padding: 10px 20px;
+  border: 2px solid #667eea;
+  background-color: white;
+  color: #667eea;
+  border-radius: 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-tab:hover {
+  background-color: #f0f4ff;
+  transform: translateY(-2px);
+}
+
+.nav-tab.active {
+  background-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.help-section {
+  display: none;
+  padding: 32px 25px;
+  animation: fadeIn 0.4s ease;
+}
+
+.help-section.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-header h2 {
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.content-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-card {
+  display: flex;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  text-align: right;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.info-card:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.info-card.highlight {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-color: #667eea;
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+  color: #2d3748;
+}
+
+.card-content p {
+  margin: 0 0 12px;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.images-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.help-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tip {
+  background-color: #fffaf0;
+  border-right: 4px solid #ed8936;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 0.95rem;
+}
+
+.numbered-list {
+  padding-right: 20px;
+  margin: 10px 0;
+  color: #4a5568;
+}
+
+.numbered-list li {
+  margin-bottom: 8px;
+  padding-right: 8px;
+}
+
+.help-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 25px;
+  text-align: center;
+  margin-top: auto; /* דוחף למטה */
+}
+
+.cta-button {
+  background-color: white;
+  color: #667eea;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 16px;
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* התאמה למובייל */
+@media (max-width: 768px) {
+  .help-scroll-container {
+    padding: 10px;
+  }
+
+  .info-card {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+}

@@ -14,7 +14,6 @@ import { WelcomeDialogComponent } from './components/welcome-dialog/welcome-dial
 import { GoogleLoginUnsupportedDialogComponent } from './components/google-login-unsupported-dialog/google-login-unsupported-dialog';
 import { GrantPermissionDialogComponent } from './components/grant-permission-dialog/grant-permission-dialog';
 import { InstallExtensionDialogComponent } from './components/install-extension-dialog/install-extension-dialog.component';
-// *** שינוי: ייבוא הרכיב החדש ***
 import { ThirdPartyCookiesBlockedDialogComponent } from './components/third-party-cookies-blocked-dialog/third-party-cookies-blocked-dialog';
 
 // Import services
@@ -38,7 +37,6 @@ import { Site, Category } from './core/models/site.model';
     GoogleLoginUnsupportedDialogComponent,
     GrantPermissionDialogComponent,
     InstallExtensionDialogComponent,
-    // *** שינוי: הוספת הרכיב לרשימת ה-imports ***
     ThirdPartyCookiesBlockedDialogComponent
   ],
   templateUrl: './app.component.html',
@@ -50,7 +48,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
 
   ngOnInit(): void {
-    // *** שינוי: הפעלת הבדיקה לחסימת עוגיות ***
     this.uiStateService.checkAndAlertIfThirdPartyCookiesBlocked();
 
     this.siteDataService.categories$.pipe(
@@ -83,6 +80,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     const view = params.get('view');
     const source = params.get('source');
 
+    // טיפול בדף העזרה החדש
+    if (view === 'help') {
+      const section = params.get('section') || 'extension';
+      this.uiStateService.openHelpPage(section, skipHistoryUpdate);
+      return true;
+    }
+
     if (view === 'advertise') {
       this.uiStateService.loadCustomContentFromSource('advertise', {}, skipHistoryUpdate);
       return true;
@@ -90,11 +94,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (view === 'contact') {
       this.uiStateService.loadCustomContentFromSource('contact', {}, skipHistoryUpdate);
-      return true;
-    }
-
-    if (view === 'help') {
-      this.uiStateService.loadCustomContentFromSource('help', {}, skipHistoryUpdate);
       return true;
     }
 

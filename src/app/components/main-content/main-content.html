@@ -25,11 +25,24 @@
       </div>
     }
 
-    @case ('custom') {
-      <!-- FIX: הוספת עטיפה עם קלאס ייעודי -->
-      <div class="custom-content-wrapper" [innerHTML]="sanitizedCustomContent$ | async">
-        <!-- External HTML will be rendered here -->
+    <!-- כאן השינוי הגדול: שימוש בקומפוננטה אמיתית במקום הזרקת HTML -->
+    @case ('help') {
+      <div class="custom-content-wrapper">
+        <app-help [initialSection]="(helpSection$ | async)"></app-help>
       </div>
+    }
+
+    @case ('custom') {
+      <!-- עבור הדפים הישנים שעדיין משתמשים בטעינה חיצונית (Contact, Advertise) -->
+      <div class="custom-content-wrapper" [innerHTML]="sanitizedCustomContent$ | async"></div>
+    }
+
+    @case ('advertise') {
+       <div class="custom-content-wrapper" [innerHTML]="sanitizedCustomContent$ | async"></div>
+    }
+
+    @case ('contact') {
+       <div class="custom-content-wrapper" [innerHTML]="sanitizedCustomContent$ | async"></div>
     }
   }
 </main>

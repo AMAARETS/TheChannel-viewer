@@ -1,0 +1,124 @@
+<div class="help-scroll-container">
+  <div class="help-card">
+
+    <!-- כותרת ראשית -->
+    <div class="help-header">
+      <div class="header-icon">💡</div>
+      <h1>מרכז העזרה</h1>
+      <p class="subtitle">כל מה שצריך לדעת על שימוש באתר ובתוסף הכרום</p>
+    </div>
+
+    <!-- ניווט בין המדריכים -->
+    <div class="help-navigation">
+      <button class="nav-tab" [class.active]="activeSection === 'extension'" (click)="setActiveSection('extension')">מדריך תוסף</button>
+      <button class="nav-tab" [class.active]="activeSection === 'login'" (click)="setActiveSection('login')">מדריך התחברות</button>
+      <button class="nav-tab" [class.active]="activeSection === 'cookies'" (click)="setActiveSection('cookies')">בעיות עוגיות</button>
+    </div>
+
+    <!-- מדריך שימוש בתוסף -->
+    <div class="help-section" [class.active]="activeSection === 'extension'">
+      <div class="section-header">
+        <h2>🔌 מדריך שימוש בתוסף</h2>
+        <p>הוראות התקנה ושימוש בתוסף TheChannel Viewer for Gmail</p>
+      </div>
+
+      <div class="content-container">
+        <div class="info-card">
+          <div class="card-icon">🚀</div>
+          <div class="card-content">
+            <h3>כניסה לערוצים מג'ימייל</h3>
+            <p>אחרי ההתקנה, תראו כפתור חדש בסרגל הצד של ג'ימייל. לחיצה עליו תפתח את "הערוץ" ישירות מתוך ג'ימייל!</p>
+            <div class="images-row">
+              <img src="assets/help/image2.png" alt="כפתור בסרגל הצד" class="help-image">
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-content">
+            <h3>הוספת ערוצים (Grant Permissions)</h3>
+            <p>כדי להתחבר עם גוגל באתרים שאינם נתמכים מראש, יש ללחוץ על אייקון התוסף בדפדפן ולאשר את הדומיין הספציפי.</p>
+            <div class="images-row">
+              <img src="assets/help/image6.png" alt="פתיחת הגדרות" class="help-image">
+              <img src="assets/help/image7.png" alt="אישור ערוצים" class="help-image">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- מדריך התחברות לערוצים -->
+    <div class="help-section" [class.active]="activeSection === 'login'">
+      <div class="section-header">
+        <h2>🔐 מדריך התחברות לערוצים</h2>
+        <p>איך להתחבר לערוצים באמצעות חשבון גוגל</p>
+      </div>
+
+      <div class="content-container">
+        <div class="info-card highlight">
+          <div class="card-icon">⚡</div>
+          <div class="card-content">
+            <h3>כניסה מהירה לערוץ מחובר</h3>
+            <p>אם אתם כבר מחוברים לערוץ בדפדפן, פשוט בחרו את הערוץ והוא ייפתח כשהוא כבר מחובר לחשבון שלכם.</p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">🔑</div>
+          <div class="card-content">
+            <h3>התחברות לערוץ חדש</h3>
+            <p>אם אינכם מחוברים, יש לפתוח את הערוץ בכרטיסייה נפרדת (קליק ימני או אייקון החץ), לבצע שם התחברות, ואז לחזור לכאן ולרענן.</p>
+            <div class="tip">
+              <p>💡 השתמשו בכפתור "פתח בכרטיסייה חדשה" שמופיע כשמעבירים את העכבר על הערוץ ברשימה.</p>
+              <img src="assets/help/image1.png" alt="כפתור פתיחה בנפרד" class="help-image">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- פתרון בעיות עוגיות -->
+    <div class="help-section" [class.active]="activeSection === 'cookies'">
+      <div class="section-header">
+        <h2>🍪 פתרון בעיות עוגיות (Cookies)</h2>
+        <p>אם האתר לא זוכר את ההתחברות שלכם, בצעו את השלבים הבאים.</p>
+      </div>
+
+      <div class="content-container">
+        <div class="info-card highlight">
+          <div class="card-icon">👁️</div>
+          <div class="card-content">
+            <h3>פתרון מהיר: אייקון העין</h3>
+            <ol class="numbered-list">
+              <li>חפשו את אייקון העין (או עוגייה עם X) בשורת הכתובת למעלה.</li>
+              <li>לחצו עליו ובחרו <strong>"Allow cookies"</strong> או <strong>"Site not working?"</strong>.</li>
+              <li>רעננו את הדף.</li>
+            </ol>
+            <div class="images-row">
+              <img src="assets/help/cookie-eye-1.png" alt="אייקון העין" class="help-image">
+              <img src="assets/help/cookie-eye-2.png" alt="תפריט עוגיות" class="help-image">
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-content">
+            <h3>פתרון דרך הגדרות כרום</h3>
+            <p>היכנסו להגדרות > פרטיות ואבטחה > עוגיות צד שלישי (Third-party cookies) ואפשרו אותן, או הוסיפו את האתר לרשימת ההחרגות.</p>
+            <div class="images-row">
+              <img src="assets/help/cookie-settings.png" alt="הגדרות עוגיות" class="help-image">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-cta">
+      <h2>עדיין צריכים עזרה?</h2>
+      <button class="cta-button" (click)="navigateToContact()">צור קשר</button>
+    </div>
+
+  </div> <!-- סוף help-card -->
+</div> <!-- סוף help-scroll-container -->

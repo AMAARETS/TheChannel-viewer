@@ -46,6 +46,10 @@ export class UiStateService {
 
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
   activeView$ = new BehaviorSubject<ActiveView>('site');
+
+  // *** חדש: ניהול הטאב הפעיל בדף העזרה ***
+  helpSection$ = new BehaviorSubject<string>('extension');
+
   customContent$ = new BehaviorSubject<string | null>(null);
   sanitizedCustomContent$: Observable<SafeHtml | null> = this.customContent$.pipe(
     map((html) => (html ? this.sanitizer.bypassSecurityTrustHtml(html) : null))
@@ -87,8 +91,7 @@ export class UiStateService {
     interface TheChannelAPI {
       navigateTo?: (source: string, params?: Record<string, string>) => Promise<void>;
     }
-    const globalApi: TheChannelAPI =
-      (window as Window & { theChannel?: TheChannelAPI }).theChannel || {};
+    const globalApi: TheChannelAPI = ((window as Window & { theChannel?: TheChannelAPI }).theChannel) || {};
     globalApi.navigateTo = this.loadCustomContentFromSource.bind(this);
     (window as Window & { theChannel?: TheChannelAPI }).theChannel = globalApi;
   }
@@ -149,11 +152,44 @@ export class UiStateService {
     this.customContent$.next(null);
   }
 
+  // *** חדש: פתיחת דף העזרה הפנימי ***
+  openHelpPage(section: string = 'extension', skipHistoryUpdate = false): void {
+    this.cleanupInjectedResources();
+    this.activeView$.next('help');
+    this.helpSection$.next(section);
+    this.selectedSiteSubject.next(null);
+
+    if (!skipHistoryUpdate) {
+      const params = new URLSearchParams({ view: 'help', section });
+      history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
+    }
+
+    this.analyticsService.trackPageView({
+      page_title: `Help: ${section}`,
+      page_path: `/help/${section}`,
+      page_location: window.location.href,
+    });
+  }
+
+  // *** חדש: עדכון ה-URL בעת ניווט פנימי בדף העזרה ***
+  updateHelpUrl(section: string): void {
+    const params = new URLSearchParams({ view: 'help', section });
+    history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
   async loadCustomContentFromSource(
     source: string,
     params: Record<string, string> = {},
     skipHistoryUpdate = false
   ): Promise<void> {
+
+    // *** חדש: טיפול במקרה של דף עזרה ***
+    if (source === 'help') {
+        const section = params['section'] || 'extension';
+        this.openHelpPage(section, skipHistoryUpdate);
+        return;
+    }
+
     this.cleanupInjectedResources();
     const baseUrl = `/ads/${source}/`;
     try {
@@ -171,11 +207,23 @@ export class UiStateService {
         this.injectedCss.href = cssUrl;
         document.head.appendChild(this.injectedCss);
       }
-      this.activeView$.next('custom');
+
+      // עדכון ה-ActiveView בהתאם למקור
+      if (source === 'advertise') this.activeView$.next('advertise');
+      else if (source === 'contact') this.activeView$.next('contact');
+      else this.activeView$.next('custom');
+
       this.customContent$.next(htmlContent);
+      this.selectedSiteSubject.next(null); // ניקוי האתר הנבחר
+
       if (!skipHistoryUpdate) {
-        const urlParams = new URLSearchParams({ view: 'custom', source, ...params });
-        history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
+        const urlParams = new URLSearchParams({ view: source, ...params }); // השתמש ב-source המקורי (למשל 'custom')
+        // אם זה contact או advertise, אפשר לשמור על ה-view הנקי יותר:
+        if (source === 'contact' || source === 'advertise') {
+             history.pushState(null, '', `${window.location.pathname}?view=${source}`);
+        } else {
+             history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
+        }
       }
       this.analyticsService.trackPageView({
         page_title: `Custom Content: ${source}`,
@@ -200,11 +248,7 @@ export class UiStateService {
     }
   }
 
-  async selectSite(
-    site: Site | null,
-    categoryName?: string,
-    skipHistoryUpdate = false
-  ): Promise<void> {
+  async selectSite(site: Site | null, categoryName?: string, skipHistoryUpdate = false): Promise<void> {
     this.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
@@ -235,21 +279,19 @@ export class UiStateService {
             this.enqueueDialog(() => this.openInstallExtensionDialog(site));
           }
         } else {
-          // התוסף פעיל - נבדוק אם הדומיין כבר מאושר
+          // התוסף פעיל
           const domains = await this.extensionCommService.requestManagedDomains();
           const siteDomain = new URL(site.url).hostname;
 
           if (domains && domains.includes(siteDomain)) {
-            // הדומיין מאושר - נבדוק אם צריך להציג הדרכה
-            if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-              this.enqueueDialog(() => this.openLoginTutorialDialog());
-              this.markTutorialAsViewed(site.url);
+             // הדומיין מאושר
+             if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
+                this.enqueueDialog(() => this.openLoginTutorialDialog());
+                this.markTutorialAsViewed(site.url);
             }
           } else {
-            // *** השינוי העיקרי: ***
-            // אם הדומיין לא מאושר, במקום להציג דיאלוג אנגולר,
-            // אנחנו שולחים בקשה ישירה לתוסף לפתוח את הפופאפ הייעודי.
-            this.extensionCommService.requestPermissionForDomain(siteDomain);
+            // *** השינוי המיוחד מהקוד ששלחת: בקשת הרשאה ***
+            this.extensionCommService.requestPermissionForDomain(siteDomain, site.name);
           }
         }
       }
@@ -262,12 +304,8 @@ export class UiStateService {
     }
   }
 
-  getActiveSite(): Site | null {
-    return this.selectedSiteSubject.getValue();
-  }
-  getLastViewedSiteUrl(): string | null {
-    return this.loadFromStorage(this.lastViewedSiteUrlKey);
-  }
+  getActiveSite(): Site | null { return this.selectedSiteSubject.getValue(); }
+  getLastViewedSiteUrl(): string | null { return this.loadFromStorage(this.lastViewedSiteUrlKey); }
 
   toggleSidebar(): void {
     const newState = !this.isSidebarCollapsed$.value;
@@ -288,139 +326,59 @@ export class UiStateService {
       const sidebarCollapsed = this.isSidebarCollapsed$.getValue();
       const collapsedCategories = this.collapsedCategories$.getValue();
       this.extensionCommService.updateSettingsInExtension({
-        categories,
-        sidebarCollapsed,
-        collapsedCategories,
-        lastModified: Date.now(),
+        categories, sidebarCollapsed, collapsedCategories, lastModified: Date.now()
       });
     }
   }
 
   // --- ניהול דיאלוגים ---
-  openAddSiteDialog(): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.isAddSiteDialogVisible$.next(true);
-  }
-  closeAddSiteDialog(): void {
-    this.isAddSiteDialogVisible$.next(false);
-    this.restoreFocus();
-  }
+  openAddSiteDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isAddSiteDialogVisible$.next(true); }
+  closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); this.restoreFocus(); }
 
-  openConfirmDeleteDialog(site: Site): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.siteToDelete$.next(site);
-    this.isConfirmDeleteDialogVisible$.next(true);
-  }
-  closeConfirmDeleteDialog(): void {
-    this.isConfirmDeleteDialogVisible$.next(false);
-    this.siteToDelete$.next(null);
-    this.restoreFocus();
-  }
+  openConfirmDeleteDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteToDelete$.next(site); this.isConfirmDeleteDialogVisible$.next(true); }
+  closeConfirmDeleteDialog(): void { this.isConfirmDeleteDialogVisible$.next(false); this.siteToDelete$.next(null); this.restoreFocus(); }
 
-  openInputDialog(config: InputDialogConfig): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.inputDialogConfig$.next(config);
-    this.isInputDialogVisible$.next(true);
-  }
+  openInputDialog(config: InputDialogConfig): void { this.saveFocus(); this.isDialogVisible = true; this.inputDialogConfig$.next(config); this.isInputDialogVisible$.next(true); }
   closeInputDialog(value: string | null): void {
-    if (value) {
-      this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value));
-    }
-    this.isInputDialogVisible$.next(false);
-    this.inputDialogConfig$.next(null);
-    this.restoreFocus();
+    if (value) { this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value)); }
+    this.isInputDialogVisible$.next(false); this.inputDialogConfig$.next(null); this.restoreFocus();
   }
 
-  openLoginTutorialDialog(): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.isLoginTutorialDialogVisible$.next(true);
-  }
+  openLoginTutorialDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isLoginTutorialDialogVisible$.next(true); }
   closeLoginTutorialDialog(disableGlobally = false): void {
-    if (disableGlobally) {
-      this.disableLoginTutorialGlobally();
-    }
-    this.isLoginTutorialDialogVisible$.next(false);
-    this.restoreFocus();
+    if (disableGlobally) { this.disableLoginTutorialGlobally(); }
+    this.isLoginTutorialDialogVisible$.next(false); this.restoreFocus();
   }
 
-  isWelcomeDialogGloballyDisabled(): boolean {
-    return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true;
-  }
-  openWelcomeDialog(): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.isWelcomeDialogVisible$.next(true);
-  }
+  isWelcomeDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true; }
+  openWelcomeDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isWelcomeDialogVisible$.next(true); }
   closeWelcomeDialog(disableGlobally = false): void {
-    if (disableGlobally) {
-      this.saveToStorage(this.neverShowWelcomeDialogKey, true);
-    }
-    this.isWelcomeDialogVisible$.next(false);
-    this.restoreFocus();
+    if (disableGlobally) { this.saveToStorage(this.neverShowWelcomeDialogKey, true); }
+    this.isWelcomeDialogVisible$.next(false); this.restoreFocus();
   }
 
-  openGoogleLoginUnsupportedDialog(site: Site): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.siteForUnsupportedLoginDialog$.next(site);
-    this.isGoogleLoginUnsupportedDialogVisible$.next(true);
-  }
-  closeGoogleLoginUnsupportedDialog(): void {
-    this.isGoogleLoginUnsupportedDialogVisible$.next(false);
-    this.siteForUnsupportedLoginDialog$.next(null);
-    this.restoreFocus();
-  }
+  openGoogleLoginUnsupportedDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForUnsupportedLoginDialog$.next(site); this.isGoogleLoginUnsupportedDialogVisible$.next(true); }
+  closeGoogleLoginUnsupportedDialog(): void { this.isGoogleLoginUnsupportedDialogVisible$.next(false); this.siteForUnsupportedLoginDialog$.next(null); this.restoreFocus(); }
 
-  openGrantPermissionDialog(site: Site): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.siteForGrantPermissionDialog$.next(site);
-    this.isGrantPermissionDialogVisible$.next(true);
-  }
+  openGrantPermissionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForGrantPermissionDialog$.next(site); this.isGrantPermissionDialogVisible$.next(true); }
   closeGrantPermissionDialog(disableGlobally = false): void {
-    if (disableGlobally) {
-      this.disableGrantPermissionDialogGlobally();
-    }
-    this.isGrantPermissionDialogVisible$.next(false);
-    this.siteForGrantPermissionDialog$.next(null);
-    this.restoreFocus();
+    if (disableGlobally) { this.disableGrantPermissionDialogGlobally(); }
+    this.isGrantPermissionDialogVisible$.next(false); this.siteForGrantPermissionDialog$.next(null); this.restoreFocus();
   }
 
-  openInstallExtensionDialog(site: Site): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.siteForInstallExtensionDialog$.next(site);
-    this.isInstallExtensionDialogVisible$.next(true);
-  }
+  openInstallExtensionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForInstallExtensionDialog$.next(site); this.isInstallExtensionDialogVisible$.next(true); }
   closeInstallExtensionDialog(disableGlobally = false): void {
-    if (disableGlobally) {
-      this.disableInstallExtensionDialogGlobally();
-    }
-    this.isInstallExtensionDialogVisible$.next(false);
-    this.siteForInstallExtensionDialog$.next(null);
-    this.restoreFocus();
+    if (disableGlobally) { this.disableInstallExtensionDialogGlobally(); }
+    this.isInstallExtensionDialogVisible$.next(false); this.siteForInstallExtensionDialog$.next(null); this.restoreFocus();
   }
 
-  openThirdPartyCookiesBlockedDialog(): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.isThirdPartyCookiesBlockedDialogVisible$.next(true);
-  }
+  openThirdPartyCookiesBlockedDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isThirdPartyCookiesBlockedDialogVisible$.next(true); }
   closeThirdPartyCookiesBlockedDialog(disableGlobally = false): void {
-    if (disableGlobally) {
-      this.disableCookiesBlockedDialogGlobally();
-    }
-    this.isThirdPartyCookiesBlockedDialogVisible$.next(false);
-    this.restoreFocus();
+    if (disableGlobally) { this.disableCookiesBlockedDialogGlobally(); }
+    this.isThirdPartyCookiesBlockedDialogVisible$.next(false); this.restoreFocus();
   }
 
-  private saveFocus(): void {
-    this.focusedElementBeforeDialog = document.activeElement as HTMLElement;
-  }
+  private saveFocus(): void { this.focusedElementBeforeDialog = document.activeElement as HTMLElement; }
   private restoreFocus(): void {
     this.focusedElementBeforeDialog?.focus();
     this.focusedElementBeforeDialog = null;
@@ -428,27 +386,10 @@ export class UiStateService {
     setTimeout(() => this.processNextDialogInQueue(), 0);
   }
 
-  private saveToStorage<T>(key: string, value: T): void {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      console.error('Error saving to localStorage', e);
-    }
-  }
-  private loadFromStorage<T>(key: string): T | null {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : null;
-    } catch (e) {
-      console.error('Error reading from localStorage', e);
-      return null;
-    }
-  }
+  private saveToStorage<T>(key: string, value: T): void { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Error saving to localStorage', e); } }
+  private loadFromStorage<T>(key: string): T | null { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : null; } catch (e) { console.error('Error reading from localStorage', e); return null; } }
 
-  private hasViewedTutorial(url: string): boolean {
-    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
-    return viewedUrls.includes(url);
-  }
+  private hasViewedTutorial(url: string): boolean { const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? []; return viewedUrls.includes(url); }
   private markTutorialAsViewed(url: string): void {
     const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
     if (!viewedUrls.includes(url)) {
@@ -457,31 +398,15 @@ export class UiStateService {
     }
   }
 
-  private isLoginTutorialGloballyDisabled(): boolean {
-    return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true;
-  }
-  private disableLoginTutorialGlobally(): void {
-    this.saveToStorage(this.neverShowLoginTutorialKey, true);
-  }
+  private isLoginTutorialGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true; }
+  private disableLoginTutorialGlobally(): void { this.saveToStorage(this.neverShowLoginTutorialKey, true); }
 
-  private isGrantPermissionDialogGloballyDisabled(): boolean {
-    return this.loadFromStorage<boolean>(this.neverShowGrantPermissionDialogKey) === true;
-  }
-  private disableGrantPermissionDialogGlobally(): void {
-    this.saveToStorage(this.neverShowGrantPermissionDialogKey, true);
-  }
+  private isGrantPermissionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowGrantPermissionDialogKey) === true; }
+  private disableGrantPermissionDialogGlobally(): void { this.saveToStorage(this.neverShowGrantPermissionDialogKey, true); }
 
-  private isInstallExtensionDialogGloballyDisabled(): boolean {
-    return this.loadFromStorage<boolean>(this.neverShowInstallExtensionDialogKey) === true;
-  }
-  private disableInstallExtensionDialogGlobally(): void {
-    this.saveToStorage(this.neverShowInstallExtensionDialogKey, true);
-  }
+  private isInstallExtensionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowInstallExtensionDialogKey) === true; }
+  private disableInstallExtensionDialogGlobally(): void { this.saveToStorage(this.neverShowInstallExtensionDialogKey, true); }
 
-  private isCookiesBlockedDialogGloballyDisabled(): boolean {
-    return this.loadFromStorage<boolean>(this.neverShowCookiesBlockedDialogKey) === true;
-  }
-  private disableCookiesBlockedDialogGlobally(): void {
-    this.saveToStorage(this.neverShowCookiesBlockedDialogKey, true);
-  }
+  private isCookiesBlockedDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowCookiesBlockedDialogKey) === true; }
+  private disableCookiesBlockedDialogGlobally(): void { this.saveToStorage(this.neverShowCookiesBlockedDialogKey, true); }
 }

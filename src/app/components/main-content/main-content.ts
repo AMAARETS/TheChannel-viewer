@@ -2,11 +2,13 @@ import { Component, inject, ChangeDetectionStrategy, signal, DestroyRef } from '
 import { CommonModule } from '@angular/common';
 import { UiStateService } from '../../core/services/ui-state.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+// ייבוא הקומפוננטה החדשה
+import { HelpComponent } from '../help/help.component';
 
 @Component({
   selector: 'app-main-content',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HelpComponent],
   templateUrl: './main-content.html',
   styleUrl: './main-content.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -19,19 +21,17 @@ export class MainContentComponent {
   selectedSiteUrl$ = this.uiStateService.sanitizedSelectedSiteUrl$;
   activeView$ = this.uiStateService.activeView$;
   sanitizedCustomContent$ = this.uiStateService.sanitizedCustomContent$;
+  helpSection$ = this.uiStateService.helpSection$;
 
   // חיווי טעינה
   isLoading = signal(false);
 
   constructor() {
-    // מעקב אחרי שינויים ב-URL כדי להציג ספינר
     this.uiStateService.selectedSite$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((site) => {
         if (site) {
           this.isLoading.set(true);
-
-          // גיבוי: הסתר את הספינר אחרי 5 שניות גם אם load לא נורה
           this.clearLoadingTimeout();
           this.loadingTimeout = setTimeout(() => {
             this.isLoading.set(false);
@@ -42,7 +42,6 @@ export class MainContentComponent {
 
   onIframeLoaded() {
     this.clearLoadingTimeout();
-    // המתן רגע קצר כדי לתת לאתר להשלים רינדור
     setTimeout(() => {
       this.isLoading.set(false);
     }, 300);

@@ -8,7 +8,7 @@ export const MESSAGE_TYPES = {
   APP_READY: 'THE_CHANNEL_APP_READY',
   SETTINGS_CHANGED: 'THE_CHANNEL_SETTINGS_CHANGED',
   GET_MANAGED_DOMAINS: 'THE_CHANNEL_GET_MANAGED_DOMAINS',
-  REQUEST_PERMISSION: 'THE_CHANNEL_REQUEST_PERMISSION', // *** חדש ***
+  REQUEST_PERMISSION: 'THE_CHANNEL_REQUEST_PERMISSION',
   EXTENSION_READY: 'THE_CHANNEL_EXTENSION_READY',
   SETTINGS_DATA: 'THE_CHANNEL_SETTINGS_DATA',
   MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA'
@@ -151,13 +151,13 @@ export class ExtensionCommunicationService {
     });
   }
 
-  // *** פונקציה חדשה לבקשת הרשאה ***
-  public requestPermissionForDomain(domain: string): void {
+  // *** עדכון: הוספת פרמטר name ***
+  public requestPermissionForDomain(domain: string, name: string): void {
     if (this.isExtensionActive.value) {
-      console.log(`TheChannel: Requesting permission popup for domain: ${domain}`);
+      console.log(`TheChannel: Requesting permission popup for site: ${name} (${domain})`);
       this.sendMessageToExtension({
         type: MESSAGE_TYPES.REQUEST_PERMISSION,
-        payload: { domain }
+        payload: { domain, name }
       });
     } else {
       console.warn('TheChannel: Cannot request permission, extension not active.');
