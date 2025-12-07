@@ -2,9 +2,23 @@
   {
     "name": "הגיזרה",
     "url": "https://hagizra.news/",
-    "description": "חדשות חמות",
+    "description": "ערוץ העדכונים המוביל בציבור החרדי!",
     "category": "חדשות",
     "googleLoginSupported": false
+  },
+  {
+    "name":"החתול השחור",
+    "url":"https://black-cat.thechats.click/",
+    "description":"אַקְטוּאָלְיָה וְהוּמוֹר",
+    "category":"הומור",
+    "googleLoginSupported":false
+  },
+  {
+    "name":"באזר המציאות",
+    "url":"https://aliexpress.thechats.click/",
+    "description":"הסודות של אלי אקספרס",
+    "category":"קניות",
+    "googleLoginSupported":false
   },
   {
     "name": "היכל התורה",
