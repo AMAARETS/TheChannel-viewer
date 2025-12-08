@@ -160,7 +160,7 @@ export class UiStateService {
     this.selectedSiteSubject.next(null);
 
     if (!skipHistoryUpdate) {
-      const params = new URLSearchParams({ view: 'help', section });
+      const params = this.preserveUnknownParams({ view: 'help', section });
       history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
     }
 
@@ -173,8 +173,31 @@ export class UiStateService {
 
   // *** חדש: עדכון ה-URL בעת ניווט פנימי בדף העזרה ***
   updateHelpUrl(section: string): void {
-    const params = new URLSearchParams({ view: 'help', section });
+    const params = this.preserveUnknownParams({ view: 'help', section });
     history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
+  /**
+   * שומר פרמטרים לא מוכרים (כמו UTM) ומוסיף/מעדכן את הפרמטרים החדשים
+   */
+  private preserveUnknownParams(newParams: Record<string, string>): URLSearchParams {
+    const knownParams = ['name', 'url', 'category', 'view', 'section', 'source'];
+    const currentParams = new URLSearchParams(window.location.search);
+    const resultParams = new URLSearchParams();
+
+    // שמירת כל הפרמטרים שאינם מוכרים (כמו utm_source, utm_medium וכו')
+    currentParams.forEach((value, key) => {
+      if (!knownParams.includes(key)) {
+        resultParams.set(key, value);
+      }
+    });
+
+    // הוספת/עדכון הפרמטרים החדשים
+    Object.entries(newParams).forEach(([key, value]) => {
+      resultParams.set(key, value);
+    });
+
+    return resultParams;
   }
 
   async loadCustomContentFromSource(
@@ -217,11 +240,12 @@ export class UiStateService {
       this.selectedSiteSubject.next(null); // ניקוי האתר הנבחר
 
       if (!skipHistoryUpdate) {
-        const urlParams = new URLSearchParams({ view: source, ...params }); // השתמש ב-source המקורי (למשל 'custom')
         // אם זה contact או advertise, אפשר לשמור על ה-view הנקי יותר:
         if (source === 'contact' || source === 'advertise') {
-             history.pushState(null, '', `${window.location.pathname}?view=${source}`);
+             const urlParams = this.preserveUnknownParams({ view: source });
+             history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
         } else {
+             const urlParams = this.preserveUnknownParams({ view: source, ...params });
              history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
         }
       }
@@ -257,7 +281,7 @@ export class UiStateService {
       this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
       const catName = categoryName || this.siteDataService.getCategoryForSite(site);
       if (catName && !skipHistoryUpdate) {
-        const params = new URLSearchParams({ name: site.name, url: site.url, category: catName });
+        const params = this.preserveUnknownParams({ name: site.name, url: site.url, category: catName });
         history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
       }
       this.analyticsService.trackPageView({
