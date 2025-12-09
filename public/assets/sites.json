@@ -26,6 +26,11 @@
         "name": "היכל התורה",
         "url": "https://torani.chatfree.app/",
         "googleLoginSupported": true
+      },
+      {
+        "name":"מורשת מרן",
+        "url":"https://news.moreshet-maran.com/",
+        "googleLoginSupported":false
       }
     ]
   },

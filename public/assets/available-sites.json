@@ -28,6 +28,13 @@
     "googleLoginSupported": true
   },
   {
+    "name":"מורשת מרן",
+    "url":"https://news.moreshet-maran.com/",
+    "description":"הנעשה והנשמע בעולם התורה",
+    "category":"תורני",
+    "googleLoginSupported":false
+  },
+  {
     "name": "My ali",
     "url": "https://myali.chatfree.app/",
     "description": "אתר קניות",
