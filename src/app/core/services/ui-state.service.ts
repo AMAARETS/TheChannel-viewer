@@ -48,7 +48,7 @@ export class UiStateService {
   activeView$ = new BehaviorSubject<ActiveView>('site');
 
   // *** חדש: ניהול הטאב הפעיל בדף העזרה ***
-  helpSection$ = new BehaviorSubject<string>('extension');
+  helpSection$ = new BehaviorSubject('extension');
 
   customContent$ = new BehaviorSubject<string | null>(null);
   sanitizedCustomContent$: Observable<SafeHtml | null> = this.customContent$.pipe(
@@ -84,7 +84,7 @@ export class UiStateService {
     map((site) => site?.name ?? null)
   );
   sanitizedSelectedSiteUrl$: Observable<SafeResourceUrl | null> = this.selectedSite$.pipe(
-    map((site) => (site ? this.sanitizer.bypassSecurityTrustResourceUrl(site.url) : null))
+    map((site) => (site ? this.sanitizer.bypassSecurityTrustResourceUrl(this.addUtmParameters(site.url)) : null))
   );
 
   constructor() {
@@ -135,7 +135,7 @@ export class UiStateService {
       const cookieEnabled = document.cookie.indexOf(`${testKey}=`) !== -1;
       document.cookie = `${testKey}=1; SameSite=None; Secure; expires=Thu, 01-Jan-1970 00:00:01 GMT`;
       return cookieEnabled;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -153,7 +153,7 @@ export class UiStateService {
   }
 
   // *** חדש: פתיחת דף העזרה הפנימי ***
-  openHelpPage(section: string = 'extension', skipHistoryUpdate = false): void {
+  openHelpPage(section = 'extension', skipHistoryUpdate = false): void {
     this.cleanupInjectedResources();
     this.activeView$.next('help');
     this.helpSection$.next(section);
@@ -175,6 +175,34 @@ export class UiStateService {
   updateHelpUrl(section: string): void {
     const params = this.preserveUnknownParams({ view: 'help', section });
     history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
+  /**
+   * מוסיף פרמטרי UTM ל-URL של האתר
+   */
+  private addUtmParameters(url: string): string {
+    try {
+      const urlObj = new URL(url);
+
+      // פרמטרי UTM שיתווספו לכל אתר
+      const utmParams = {
+        utm_source: 'haharuts',
+        utm_medium: 'iframe'
+      };
+
+      // הוספת פרמטרי UTM רק אם הם לא קיימים כבר
+      Object.entries(utmParams).forEach(([key, value]) => {
+        if (!urlObj.searchParams.has(key)) {
+          urlObj.searchParams.set(key, value);
+        }
+      });
+
+      return urlObj.toString();
+    } catch (error) {
+      // אם יש שגיאה בפרסור ה-URL, נחזיר את ה-URL המקורי
+      console.warn('Error adding UTM parameters to URL:', url, error);
+      return url;
+    }
   }
 
   /**
