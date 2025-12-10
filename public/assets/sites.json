@@ -6,6 +6,11 @@
         "name": "הגיזרה",
         "url": "https://hagizra.news/",
         "googleLoginSupported": false
+      },
+      {
+        "name":"מורשת מרן אונליין",
+        "url":"https://news.moreshet-maran.com/",
+        "googleLoginSupported":false
       }
     ]
   },
@@ -26,11 +31,6 @@
         "name": "היכל התורה",
         "url": "https://torani.chatfree.app/",
         "googleLoginSupported": true
-      },
-      {
-        "name":"מורשת מרן",
-        "url":"https://news.moreshet-maran.com/",
-        "googleLoginSupported":false
       }
     ]
   },
