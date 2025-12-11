@@ -35,6 +35,16 @@
     ]
   },
   {
+    "name": "מוזיקה",
+    "sites": [
+      {
+        "name": "מיוזיק אונליין",
+        "url": "https://music.chatfree.app/",
+        "googleLoginSupported": false
+      }
+    ]
+  },
+  {
     "name": "קניות",
     "sites": [
       {
@@ -60,16 +70,6 @@
       {
         "name": "מעיינות נדירים - ישראל שפירא",
         "url": "https://channel.israelshapira.com/",
-        "googleLoginSupported": false
-      }
-    ]
-  },
-  {
-    "name": "מוזיקה",
-    "sites": [
-      {
-        "name": "מיוזיק אונליין",
-        "url": "https://music.chatfree.app/",
         "googleLoginSupported": false
       }
     ]
