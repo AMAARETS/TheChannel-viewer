@@ -131,6 +131,9 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.uiStateService.selectSite(existingSite || siteFromUrl, siteFromUrl.category);
 
     } else {
+      // כניסה אוטומטית לערוץ האחרון - מבוטל זמנית
+      // המשתמש יישאר במסך בחירת ערוץ במקום להיכנס אוטומטית לערוץ האחרון
+      /*
       const lastViewedUrl = this.uiStateService.getLastViewedSiteUrl();
       if (lastViewedUrl) {
         const lastSite = allSites.find(s => s.url === lastViewedUrl);
@@ -138,6 +141,7 @@ export class AppComponent implements OnInit, AfterViewInit {
           this.uiStateService.selectSite(lastSite);
         }
       }
+      */
     }
   }
 
