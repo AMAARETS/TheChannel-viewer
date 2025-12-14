@@ -1,6 +1,8 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { Category, Site } from '../../../core/models/site.model';
+import { ExtensionCommunicationService } from '../../../core/services/extension-communication.service';
+import { map, Observable } from 'rxjs';
 
 export interface ContextMenuOpenEvent {
   site: Site;
@@ -18,7 +20,7 @@ export interface ContextMenuOpenEvent {
   styleUrl: './category-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CategoryListComponent {
+export class CategoryListComponent implements OnInit {
   @Input() categories: Category[] = [];
   @Input() isExpanded = true;
   @Input() activeSiteUrl: string | null = null;
@@ -29,6 +31,11 @@ export class CategoryListComponent {
   @Output() contextMenuOpened = new EventEmitter<ContextMenuOpenEvent>();
   @Output() categoriesUpdated = new EventEmitter<Category[]>();
 
+  private extensionCommService = inject(ExtensionCommunicationService);
+
+  // Set של דומיינים שלא נקראו, לחיפוש מהיר
+  unreadDomainsSet$: Observable<Set<string>> | undefined;
+
   private draggedSite: { site: Site, fromCategory: Category } | null = null;
   private draggedCategory: Category | null = null;
 
@@ -37,6 +44,22 @@ export class CategoryListComponent {
     '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
     '#2196F3', '#009688', '#4CAF50', '#FF9800', '#795548'
   ];
+
+  ngOnInit() {
+    this.unreadDomainsSet$ = this.extensionCommService.unreadDomains$.pipe(
+      map(domains => new Set(domains))
+    );
+  }
+
+  isUnread(siteUrl: string, unreadSet: Set<string> | null): boolean {
+    if (!unreadSet || unreadSet.size === 0) return false;
+    try {
+      const hostname = new URL(siteUrl).hostname;
+      return unreadSet.has(hostname);
+    } catch {
+      return false;
+    }
+  }
 
   isCategoryCollapsed(categoryName: string): boolean {
     return this.collapsedState[categoryName] ?? false;

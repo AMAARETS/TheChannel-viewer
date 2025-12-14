@@ -56,7 +56,6 @@
   list-style-type: none;
   padding: 4px;
   margin: 0;
-  /* --- FIX for animation --- */
   overflow: hidden;
   transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, visibility 0.3s;
   max-height: 1000px; /* Large enough value */
@@ -92,9 +91,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* --- IMPROVEMENT 3 & 4: Font style and size adjustment --- */
-  font-family:  'Poppins', Roboto, Arial, sans-serif; /* Explicitly set Google's font */
-  font-size: 15.5px; /* Slightly increased font size */
+  font-family:  'Poppins', Roboto, Arial, sans-serif;
+  font-size: 15.5px;
   font-weight: 200;
 }
 .site-list li.active {
@@ -102,6 +100,28 @@
   color: #1967d2;
   font-weight: 700;
 }
+
+/* --- Unread Styles --- */
+.site-list li.unread .site-name {
+  font-weight: 700 !important; /* Bold text for unread */
+  color: #202124;
+}
+
+.unread-badge {
+  display: none;
+  width: 8px;
+  height: 8px;
+  background-color: #1a73e8; /* Google Blue */
+  border-radius: 50%;
+  margin-right: 8px; /* RTL margin */
+  flex-shrink: 0;
+}
+
+.site-list li.unread .unread-badge {
+  display: block;
+}
+/* --------------------- */
+
 
 /* Action Buttons (Open new tab, Menu) */
 .site-actions {
@@ -195,4 +215,8 @@
 }
 :host-context(.collapsed) .site-icon {
   margin: 0;
+}
+/* הסתרת הנקודה במצב מכווץ, כי אין מקום */
+:host-context(.collapsed) .unread-badge {
+  display: none;
 }

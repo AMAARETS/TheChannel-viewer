@@ -1,67 +1,78 @@
 <div class="channel-list-container">
-  @for (category of categories; track category.name) {
-    <div
-      class="category-drop-zone"
-      draggable="true"
-      (dragstart)="onCategoryDragStart($event, category)"
-      (dragover)="onCategoryDragOver($event)"
-      (dragleave)="onCategoryDragLeave($event)"
-      (drop)="onCategoryDrop($event, category)"
-      (dragend)="onCategoryDragEnd()"
-      (dragenter)="onCategoryDragEnter($event)"
-    >
-      @if (isExpanded) {
-        <h3 class="category-header"
-            (click)="categoryToggled.emit(category.name)"
-            (keydown.enter)="categoryToggled.emit(category.name)"
-            tabindex="0"
-            role="button"
-            [attr.aria-expanded]="!isCategoryCollapsed(category.name)">
-          <span class="category-arrow" [class.expanded]="!isCategoryCollapsed(category.name)"></span>
-          {{ category.name }}
-        </h3>
-      } @else {
-        <h3 class="category-header-collapsed" [title]="category.name">
-          {{ getFirstLetter(category.name) }}
-        </h3>
-      }
-
-      <ul class="site-list"
-          [class.collapsed]="isCategoryCollapsed(category.name)"
-          (dragover)="onCategoryDragOverForSite($event, category)"
-          (dragleave)="onCategoryDragLeaveForSite($event)"
-          (drop)="onDropInEmptyCategory($event, category)">
-        @for (site of category.sites; track site.url; let i = $index; let isFirst = $first; let isLast = $last) {
-          <li #listItem
-              (click)="siteSelected.emit({ site: site, category: category })"
-              (keydown.enter)="siteSelected.emit({ site: site, category: category })"
-              [class.active]="site.url === activeSiteUrl"
-              [title]="site.name"
-              draggable="true"
-              (dragstart)="onSiteDragStart($event, site, category)"
-              (dragover)="onSiteDragOver($event, listItem)"
-              (dragleave)="onSiteDragLeave($event, listItem)"
-              (drop)="onDropOnSite($event, site, category)"
-              (dragend)="onSiteDragEnd()"
+  @if (unreadDomainsSet$ | async; as unreadSet) {
+    @for (category of categories; track category.name) {
+      <div
+        class="category-drop-zone"
+        draggable="true"
+        (dragstart)="onCategoryDragStart($event, category)"
+        (dragover)="onCategoryDragOver($event)"
+        (dragleave)="onCategoryDragLeave($event)"
+        (drop)="onCategoryDrop($event, category)"
+        (dragend)="onCategoryDragEnd()"
+        (dragenter)="onCategoryDragEnter($event)"
+      >
+        @if (isExpanded) {
+          <h3 class="category-header"
+              (click)="categoryToggled.emit(category.name)"
+              (keydown.enter)="categoryToggled.emit(category.name)"
               tabindex="0"
-              role="button">
-            @if (!hasFaviconError(site)) {
-              <img [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
-            } @else {
-              <div class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
-            }
-            @if (isExpanded) {
-              <span class="site-name">{{ site.name }}</span>
-              <div class="site-actions" (click)="$event.stopPropagation()">
+              role="button"
+              [attr.aria-expanded]="!isCategoryCollapsed(category.name)">
+            <span class="category-arrow" [class.expanded]="!isCategoryCollapsed(category.name)"></span>
+            {{ category.name }}
+          </h3>
+        } @else {
+          <h3 class="category-header-collapsed" [title]="category.name">
+            {{ getFirstLetter(category.name) }}
+          </h3>
+        }
+
+        <ul class="site-list"
+            [class.collapsed]="isCategoryCollapsed(category.name)"
+            (dragover)="onCategoryDragOverForSite($event, category)"
+            (dragleave)="onCategoryDragLeaveForSite($event)"
+            (drop)="onDropInEmptyCategory($event, category)">
+          @for (site of category.sites; track site.url; let i = $index; let isFirst = $first; let isLast = $last) {
+            <!-- הוספת המחלקה unread אם האתר לא נקרא -->
+            <li #listItem
+                (click)="siteSelected.emit({ site: site, category: category })"
+                (keydown.enter)="siteSelected.emit({ site: site, category: category })"
+                [class.active]="site.url === activeSiteUrl"
+                [class.unread]="isUnread(site.url, unreadSet)"
+                [title]="site.name"
+                draggable="true"
+                (dragstart)="onSiteDragStart($event, site, category)"
+                (dragover)="onSiteDragOver($event, listItem)"
+                (dragleave)="onSiteDragLeave($event, listItem)"
+                (drop)="onDropOnSite($event, site, category)"
+                (dragend)="onSiteDragEnd()"
+                tabindex="0"
+                role="button">
+
+              <!-- אייקון האתר -->
+              @if (!hasFaviconError(site)) {
+                <img [src]="getFaviconUrl(site.url)" (error)="onFaviconError(site)" class="site-icon" alt="">
+              } @else {
+                <div class="site-icon fallback-icon" [ngStyle]="{'background-color': getColorForSite(site.name)}">{{ getFirstLetter(site.name) }}</div>
+              }
+
+              @if (isExpanded) {
+                <span class="site-name">{{ site.name }}</span>
+
+                <!-- עיגול לא נקרא (יוצג רק אם המחלקה unread קיימת) -->
+                <span class="unread-badge"></span>
+
+                <div class="site-actions" (click)="$event.stopPropagation()">
                 <a [href]="site.url" target="_blank" class="action-btn" title="פתח בכרטיסייה חדשה"><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></a>
                 <button class="action-btn menu-btn" (click)="contextMenuOpened.emit({site, category, event: $event, isFirst, isLast})" title="אפשרויות נוספות">
                   <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
-                </button>
-              </div>
-            }
-          </li>
-        }
-      </ul>
-    </div>
+                  </button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
   }
 </div>

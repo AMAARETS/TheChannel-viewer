@@ -11,7 +11,8 @@ export const MESSAGE_TYPES = {
   REQUEST_PERMISSION: 'THE_CHANNEL_REQUEST_PERMISSION',
   EXTENSION_READY: 'THE_CHANNEL_EXTENSION_READY',
   SETTINGS_DATA: 'THE_CHANNEL_SETTINGS_DATA',
-  MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA'
+  MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA',
+  UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE' // הוסף
 };
 
 export interface AppSettings {
@@ -38,6 +39,10 @@ enum CommsChannel {
 export class ExtensionCommunicationService {
   private isExtensionActive = new BehaviorSubject<boolean>(false);
   isExtensionActive$ = this.isExtensionActive.asObservable();
+
+  // Observable עבור רשימת הדומיינים שיש בהם הודעות חדשות
+  private unreadDomainsSubject = new BehaviorSubject<string[]>([]);
+  unreadDomains$ = this.unreadDomainsSubject.asObservable();
 
   public get isExtensionActiveValue(): boolean {
     return this.isExtensionActive.value;
@@ -103,6 +108,14 @@ export class ExtensionCommunicationService {
             this.domainsPromiseResolver = null;
         }
     }
+
+    // טיפול בעדכון סטטוס לא נקרא
+    if (type === MESSAGE_TYPES.UNREAD_STATUS_UPDATE) {
+        if (Array.isArray(payload)) {
+            // console.log('TheChannel: Received unread status update.', payload);
+            this.unreadDomainsSubject.next(payload);
+        }
+    }
   }
 
   private sendMessageToExtension(message: object): void {
@@ -120,11 +133,11 @@ export class ExtensionCommunicationService {
           return resolve(null);
       }
       this.settingsPromiseResolver = resolve;
-      console.log("TheChannel: Requesting settings from extension...");
+      // console.log("TheChannel: Requesting settings from extension...");
       this.sendMessageToExtension({ type: MESSAGE_TYPES.APP_READY });
       setTimeout(() => {
         if (this.settingsPromiseResolver) {
-          console.log('TheChannel: Extension did not respond in time for settings.');
+          // console.log('TheChannel: Extension did not respond in time for settings.');
           this.settingsPromiseResolver(null);
           this.settingsPromiseResolver = null;
           this.isExtensionActive.next(false);
@@ -139,11 +152,11 @@ export class ExtensionCommunicationService {
             return resolve(null);
         }
         this.domainsPromiseResolver = resolve;
-        console.log("TheChannel: Requesting managed domains from extension...");
+        // console.log("TheChannel: Requesting managed domains from extension...");
         this.sendMessageToExtension({ type: MESSAGE_TYPES.GET_MANAGED_DOMAINS });
         setTimeout(() => {
             if (this.domainsPromiseResolver) {
-                console.log('TheChannel: Extension did not respond in time for domains.');
+                // console.log('TheChannel: Extension did not respond in time for domains.');
                 this.domainsPromiseResolver(null);
                 this.domainsPromiseResolver = null;
             }
@@ -151,7 +164,6 @@ export class ExtensionCommunicationService {
     });
   }
 
-  // *** עדכון: הוספת פרמטר name ***
   public requestPermissionForDomain(domain: string, name: string): void {
     if (this.isExtensionActive.value) {
       console.log(`TheChannel: Requesting permission popup for site: ${name} (${domain})`);
@@ -166,7 +178,7 @@ export class ExtensionCommunicationService {
 
   public updateSettingsInExtension(settings: AppSettings): void {
     if (this.isExtensionActive.value) {
-      console.log('TheChannel: Sending updated settings to extension.', settings);
+      // console.log('TheChannel: Sending updated settings to extension.', settings);
       this.sendMessageToExtension({
         type: MESSAGE_TYPES.SETTINGS_CHANGED,
         payload: {
