@@ -12,7 +12,9 @@ export const MESSAGE_TYPES = {
   EXTENSION_READY: 'THE_CHANNEL_EXTENSION_READY',
   SETTINGS_DATA: 'THE_CHANNEL_SETTINGS_DATA',
   MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA',
-  UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE' // הוסף
+  GET_UNREAD_STATUS: 'THE_CHANNEL_GET_UNREAD_STATUS',
+  UNREAD_STATUS_DATA: 'THE_CHANNEL_UNREAD_STATUS_DATA',
+  UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE'
 };
 
 export interface AppSettings {
@@ -90,6 +92,8 @@ export class ExtensionCommunicationService {
         if (!this.isExtensionActive.value) {
             console.log(`TheChannel: Extension confirmed active via message type '${type}'.`);
             this.isExtensionActive.next(true);
+            // ברגע שאנחנו יודעים שהתוסף פעיל, נבקש את הסטטוס הראשוני
+            this.requestUnreadStatus();
         }
     }
 
@@ -109,8 +113,8 @@ export class ExtensionCommunicationService {
         }
     }
 
-    // טיפול בעדכון סטטוס לא נקרא
-    if (type === MESSAGE_TYPES.UNREAD_STATUS_UPDATE) {
+    // טיפול במידע על הודעות לא נקראות (גם מתשובה לבקשה וגם מעדכון דחיפה)
+    if (type === MESSAGE_TYPES.UNREAD_STATUS_DATA || type === MESSAGE_TYPES.UNREAD_STATUS_UPDATE) {
         if (Array.isArray(payload)) {
             // console.log('TheChannel: Received unread status update.', payload);
             this.unreadDomainsSubject.next(payload);
@@ -123,6 +127,13 @@ export class ExtensionCommunicationService {
       window.dispatchEvent(new CustomEvent(CustomEventToExtension, { detail: message }));
     } else if (this.activeChannel === CommsChannel.IFRAME) {
       window.parent.postMessage(message, 'https://mail.google.com');
+    }
+  }
+
+  // פונקציה לבקשת סטטוס יזומה (Pull)
+  public requestUnreadStatus(): void {
+    if (this.isExtensionActive.value) {
+        this.sendMessageToExtension({ type: MESSAGE_TYPES.GET_UNREAD_STATUS });
     }
   }
 
