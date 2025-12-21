@@ -5,7 +5,7 @@
      (mouseleave)="onSidebarMouseLeave()">
   <div class="sidebar-header">
     @if (isExpanded$ | async) {
-      <a href="/" class="logo-link">
+      <a href="/" class="logo-link" (click)="onLogoClick($event)">
         <div class="sidebar-logo">
           <span class="rotated-letter">ה</span>ערוץ
         </div>

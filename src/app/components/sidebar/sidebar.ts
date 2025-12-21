@@ -266,4 +266,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
   onSidebarMouseLeave(): void {
     this.isTemporarilyExpanded$.next(false);
   }
+
+  onLogoClick(event: MouseEvent): void {
+    // בדיקה האם זו לחיצה רגילה (כפתור שמאלי ללא מקשי עזר)
+    const isNormalClick = event.button === 0 &&
+                          !event.ctrlKey &&
+                          !event.metaKey &&
+                          !event.shiftKey &&
+                          !event.altKey;
+
+    if (isNormalClick) {
+      event.preventDefault(); // עצירת הטעינה מחדש של הדפדפן
+      this.uiStateService.resetToHome();
+
+      // ניקוי שדה החיפוש אם הוא פתוח
+      this.searchTerm$.next('');
+      if (this.searchBar) {
+        this.searchBar.clearSearch();
+      }
+    }
+    // אם זה לא Normal Click (למשל קליק אמצעי או Ctrl+קליק), הדפדפן ימשיך כרגיל ל-href
+  }
 }

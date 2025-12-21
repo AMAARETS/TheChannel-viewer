@@ -450,6 +450,32 @@ export class UiStateService {
     }
   }
 
+  resetToHome(): void {
+    // 1. ניקוי תוכן דינאמי (עזרה, צור קשר וכו')
+    this.cleanupInjectedResources();
+    // 2. ניקוי הערוץ הנבחר (החזרת ה-Iframe למצב ריק/פלייסולדר)
+    this.selectedSiteSubject.next(null);
+    this.activeView$.next('site');
+
+    // 3. טיפול חכם ב-URL: שמירה על UTM וניקוי פרמטרי ניווט
+    const currentParams = new URLSearchParams(window.location.search);
+    const knownNavigationParams = ['name', 'url', 'category', 'view', 'section', 'source'];
+
+    const newParams = new URLSearchParams();
+    currentParams.forEach((value, key) => {
+      // אנחנו מוסיפים ל-URL החדש רק פרמטרים שהם לא ברשימת הניווט שלנו
+      if (!knownNavigationParams.includes(key)) {
+        newParams.set(key, value);
+      }
+    });
+
+    const queryString = newParams.toString();
+    const newUrl = window.location.pathname + (queryString ? '?' + queryString : '');
+
+    // עדכון הכתובת ללא רענון דף
+    history.pushState(null, '', newUrl);
+  }
+
   private isLoginTutorialGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true; }
   private disableLoginTutorialGlobally(): void { this.saveToStorage(this.neverShowLoginTutorialKey, true); }
 
