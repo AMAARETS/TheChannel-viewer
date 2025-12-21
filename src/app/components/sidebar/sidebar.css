@@ -80,23 +80,52 @@
   overflow-y: auto;
   scrollbar-width: none; /* For Firefox */
   -ms-overflow-style: none;  /* For IE and Edge */
+  scrollbar-gutter: stable;
 }
+
+/* 1. הגדרת רוחב הסרגל */
 .scrollable-content::-webkit-scrollbar {
-  width: 0;
+  width: 8px; /* רוחב נוח וקריא */
 }
-.scrollable-content:hover::-webkit-scrollbar {
-  width: 8px;
+
+/* 2. הסרה מוחלטת של החיצים (כמו בגוגל צ'אט) */
+.scrollable-content::-webkit-scrollbar-button {
+  display: none !important;
 }
+
+/* 3. המסילה (Track) - תמיד שקופה */
 .scrollable-content::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* 4. ה"פס" הנגרר (Thumb) */
 .scrollable-content::-webkit-scrollbar-thumb {
-  background-color: #cccccc;
-  border-radius: 4px;
-  border: 2px solid #ffffff;
+  background-color: transparent; /* שקוף כשלא נוגעים */
+  border-radius: 10px;
+  /* יצירת מרווח מהצדדים כדי שייראה "צף" */
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
+
+/* הצגת ה"פס" רק כאשר המשתמש מרחף על אזור הסרגל */
+.scrollable-content:hover::-webkit-scrollbar-thumb {
+  background-color: #dadce0; /* אפור עדין מודרני */
+}
+
+/* כהה יותר כשעומדים ישירות על הסרגל */
 .scrollable-content::-webkit-scrollbar-thumb:hover {
-  background-color: #b3b3b3;
+  background-color: #bdc1c6 !important;
+}
+
+/* תמיכה ב-Firefox */
+@supports (scrollbar-width: thin) {
+  .scrollable-content {
+    scrollbar-width: none; /* מוסתר ב-FF כברירת מחדל */
+  }
+  .scrollable-content:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #dadce0 transparent;
+  }
 }
 
 /* --- NEW: Styles for loading/empty states --- */
