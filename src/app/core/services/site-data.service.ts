@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { forkJoin, BehaviorSubject, catchError, of, tap, Observable, map } from 'rxjs';
 import { Category, Site, AvailableSite } from '../models/site.model';
 import { UiStateService } from './ui-state.service';
 import { ToastService } from './toast.service';
@@ -23,9 +23,14 @@ export class SiteDataService {
   categories$ = new BehaviorSubject<Category[]>([]);
   availableSites$ = new BehaviorSubject<AvailableSite[]>([]);
 
+  // חשיפת סטטוס המושתקים
+  mutedDomains$ = this.extensionCommService.mutedDomains$;
+
   constructor() {
     this.loadInitialData();
+    this.listenToExternalUpdates();
   }
+
 
   private loadInitialData(): void {
     this.uiStateService.dataLoadingState$.next('loading');
@@ -47,8 +52,35 @@ export class SiteDataService {
     });
   }
 
+  private listenToExternalUpdates(): void {
+  this.extensionCommService.settingsUpdate$.subscribe(response => {
+    if (response && response.settings) {
+      // מניעת לולאה: אם ה-timestamp ב-Extension חדש יותר ממה שיש לנו כרגע ב-UI
+      // (אפשר להוסיף בדיקת timestamp אם רוצים להיות מאוד מדויקים,
+      // אבל אנגולר יטפל בכך שה-UI לא יתרענן אם הנתונים זהים)
+
+      this.uiStateService.dataLoadingState$.next('loaded');
+      this.categories$.next(response.settings.categories);
+
+      // עדכון מצב הסרגל אם השתנה בטאב אחר
+      if (response.settings.sidebarCollapsed !== undefined) {
+        this.uiStateService.isSidebarCollapsed$.next(response.settings.sidebarCollapsed);
+      }
+      if (response.settings.collapsedCategories) {
+        this.uiStateService.collapsedCategories$.next(response.settings.collapsedCategories);
+      }
+    }
+  });
+
+  // בונוס: סנכרון בין טאבים של Localhost גם ללא תוסף (באמצעות LocalStorage Event)
+  window.addEventListener('storage', (event) => {
+    if (event.key === this.userCategoriesKey && event.newValue) {
+      this.categories$.next(JSON.parse(event.newValue));
+    }
+  });
+}
+
   private async loadUserCategoriesAndMerge(defaultCategories: Category[]): Promise<void> {
-    // Try to get settings from extension first
     const extensionResponse = await this.extensionCommService.requestSettingsFromExtension();
 
     let userCategories: Category[] | null = null;
@@ -56,12 +88,16 @@ export class SiteDataService {
     if (extensionResponse?.settings) {
       console.log('TheChannel: Using settings from extension');
       userCategories = extensionResponse.settings.categories;
-      // Also update UI state from extension
+
       if (extensionResponse.settings.sidebarCollapsed !== undefined) {
         this.uiStateService.isSidebarCollapsed$.next(extensionResponse.settings.sidebarCollapsed);
       }
       if (extensionResponse.settings.collapsedCategories) {
         this.uiStateService.saveCollapsedCategories(extensionResponse.settings.collapsedCategories);
+      }
+      if (extensionResponse.settings.removedDefaultSites) {
+          const removedSet = new Set(extensionResponse.settings.removedDefaultSites);
+          this.saveRemovedDefaultSites(removedSet);
       }
     } else {
       console.log('TheChannel: Extension not available, using localStorage');
@@ -123,15 +159,16 @@ export class SiteDataService {
     const categories = this.categories$.getValue();
     localStorage.setItem(this.userCategoriesKey, JSON.stringify(categories));
 
-    // Also sync to extension if active
     if (this.extensionCommService.isExtensionActiveValue) {
       const sidebarCollapsed = this.uiStateService.isSidebarCollapsed$.getValue();
       const collapsedCategories = this.uiStateService.collapsedCategories$.getValue();
+      const removedDefaultSites = Array.from(this.getRemovedDefaultSites());
 
       this.extensionCommService.updateSettingsInExtension({
         categories,
         sidebarCollapsed,
         collapsedCategories,
+        removedDefaultSites,
         lastModified: Date.now()
       });
     }
@@ -145,6 +182,24 @@ export class SiteDataService {
   private saveRemovedDefaultSites(removedSet: Set<string>): void {
     localStorage.setItem(this.removedDefaultSitesKey, JSON.stringify(Array.from(removedSet)));
   }
+
+  // --- Mute Functionality ---
+  toggleMuteForSite(site: Site): void {
+      try {
+          const domain = new URL(site.url).hostname;
+          this.extensionCommService.toggleMuteDomain(domain);
+      } catch (e) {
+          console.error('Invalid URL for mute toggle', site.url);
+      }
+  }
+
+  isSiteMuted(siteUrl: string, mutedSet: Set<string>): boolean {
+      try {
+          const domain = new URL(siteUrl).hostname;
+          return mutedSet.has(domain);
+      } catch { return false; }
+  }
+  // --------------------------
 
   addSite(newSite: Site, categoryName: string): boolean {
     const currentCategories = this.categories$.getValue();

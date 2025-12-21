@@ -14,13 +14,17 @@ export const MESSAGE_TYPES = {
   MANAGED_DOMAINS_DATA: 'THE_CHANNEL_MANAGED_DOMAINS_DATA',
   GET_UNREAD_STATUS: 'THE_CHANNEL_GET_UNREAD_STATUS',
   UNREAD_STATUS_DATA: 'THE_CHANNEL_UNREAD_STATUS_DATA',
-  UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE'
+  UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE',
+  GET_MUTED_DOMAINS: 'THE_CHANNEL_GET_MUTED_DOMAINS',
+  MUTED_DOMAINS_DATA: 'THE_CHANNEL_MUTED_DOMAINS_DATA',
+  TOGGLE_MUTE_DOMAIN: 'THE_CHANNEL_TOGGLE_MUTE_DOMAIN'
 };
 
 export interface AppSettings {
   categories: any[];
   sidebarCollapsed: boolean;
   collapsedCategories: Record<string, boolean>;
+  removedDefaultSites?: string[];
   lastModified?: number;
 }
 
@@ -42,9 +46,14 @@ export class ExtensionCommunicationService {
   private isExtensionActive = new BehaviorSubject<boolean>(false);
   isExtensionActive$ = this.isExtensionActive.asObservable();
 
-  // Observable עבור רשימת הדומיינים שיש בהם הודעות חדשות
   private unreadDomainsSubject = new BehaviorSubject<string[]>([]);
   unreadDomains$ = this.unreadDomainsSubject.asObservable();
+
+  private mutedDomainsSubject = new BehaviorSubject<Set<string>>(new Set());
+  mutedDomains$ = this.mutedDomainsSubject.asObservable();
+
+  private settingsUpdateSubject = new BehaviorSubject<ExtensionSettingsResponse | null>(null);
+  settingsUpdate$ = this.settingsUpdateSubject.asObservable();
 
   public get isExtensionActiveValue(): boolean {
     return this.isExtensionActive.value;
@@ -80,7 +89,8 @@ export class ExtensionCommunicationService {
       data = event.detail;
     } else if (event instanceof MessageEvent) {
       if (this.activeChannel !== CommsChannel.IFRAME) return;
-      if (event.origin !== 'https://mail.google.com') return;
+      // *** תיקון: אפשור הודעות גם מלוקלהוסט לפיתוח ***
+      if (event.origin !== 'https://mail.google.com' && !event.origin.includes('localhost')) return;
       data = event.data;
     } else {
       return;
@@ -92,13 +102,14 @@ export class ExtensionCommunicationService {
         if (!this.isExtensionActive.value) {
             console.log(`TheChannel: Extension confirmed active via message type '${type}'.`);
             this.isExtensionActive.next(true);
-            // ברגע שאנחנו יודעים שהתוסף פעיל, נבקש את הסטטוס הראשוני
             this.requestUnreadStatus();
+            this.requestMutedDomains();
         }
     }
 
     if (type === MESSAGE_TYPES.SETTINGS_DATA) {
       console.log('TheChannel: Received settings from extension.', payload);
+      this.settingsUpdateSubject.next(payload);
       if (this.settingsPromiseResolver) {
         this.settingsPromiseResolver(payload);
         this.settingsPromiseResolver = null;
@@ -113,11 +124,15 @@ export class ExtensionCommunicationService {
         }
     }
 
-    // טיפול במידע על הודעות לא נקראות (גם מתשובה לבקשה וגם מעדכון דחיפה)
     if (type === MESSAGE_TYPES.UNREAD_STATUS_DATA || type === MESSAGE_TYPES.UNREAD_STATUS_UPDATE) {
         if (Array.isArray(payload)) {
-            // console.log('TheChannel: Received unread status update.', payload);
             this.unreadDomainsSubject.next(payload);
+        }
+    }
+
+    if (type === MESSAGE_TYPES.MUTED_DOMAINS_DATA) {
+        if (Array.isArray(payload)) {
+            this.mutedDomainsSubject.next(new Set(payload));
         }
     }
   }
@@ -126,14 +141,31 @@ export class ExtensionCommunicationService {
     if (this.activeChannel === CommsChannel.DIRECT) {
       window.dispatchEvent(new CustomEvent(CustomEventToExtension, { detail: message }));
     } else if (this.activeChannel === CommsChannel.IFRAME) {
-      window.parent.postMessage(message, 'https://mail.google.com');
+      // אם אנחנו בפיתוח לוקאלי בתוך אייפריים, ייתכן שצריך לשלוח לכתובת שונה,
+      // אבל בדרך כלל בפיתוח רצים בטאב נפרד (DIRECT) או בתוך ג'ימייל (IFRAME)
+      window.parent.postMessage(message, '*'); // שימוש ב-* לפיתוח קל יותר
     }
   }
 
-  // פונקציה לבקשת סטטוס יזומה (Pull)
+
   public requestUnreadStatus(): void {
     if (this.isExtensionActive.value) {
         this.sendMessageToExtension({ type: MESSAGE_TYPES.GET_UNREAD_STATUS });
+    }
+  }
+
+  public requestMutedDomains(): void {
+    if (this.isExtensionActive.value) {
+        this.sendMessageToExtension({ type: MESSAGE_TYPES.GET_MUTED_DOMAINS });
+    }
+  }
+
+  public toggleMuteDomain(domain: string): void {
+    if (this.isExtensionActive.value) {
+        this.sendMessageToExtension({
+            type: MESSAGE_TYPES.TOGGLE_MUTE_DOMAIN,
+            payload: { domain }
+        });
     }
   }
 
@@ -144,11 +176,9 @@ export class ExtensionCommunicationService {
           return resolve(null);
       }
       this.settingsPromiseResolver = resolve;
-      // console.log("TheChannel: Requesting settings from extension...");
       this.sendMessageToExtension({ type: MESSAGE_TYPES.APP_READY });
       setTimeout(() => {
         if (this.settingsPromiseResolver) {
-          // console.log('TheChannel: Extension did not respond in time for settings.');
           this.settingsPromiseResolver(null);
           this.settingsPromiseResolver = null;
           this.isExtensionActive.next(false);
@@ -163,11 +193,9 @@ export class ExtensionCommunicationService {
             return resolve(null);
         }
         this.domainsPromiseResolver = resolve;
-        // console.log("TheChannel: Requesting managed domains from extension...");
         this.sendMessageToExtension({ type: MESSAGE_TYPES.GET_MANAGED_DOMAINS });
         setTimeout(() => {
             if (this.domainsPromiseResolver) {
-                // console.log('TheChannel: Extension did not respond in time for domains.');
                 this.domainsPromiseResolver(null);
                 this.domainsPromiseResolver = null;
             }
@@ -189,14 +217,14 @@ export class ExtensionCommunicationService {
 
   public updateSettingsInExtension(settings: AppSettings): void {
     if (this.isExtensionActive.value) {
-      // console.log('TheChannel: Sending updated settings to extension.', settings);
       this.sendMessageToExtension({
         type: MESSAGE_TYPES.SETTINGS_CHANGED,
         payload: {
             settings: {
                 categories: settings.categories,
                 sidebarCollapsed: settings.sidebarCollapsed,
-                collapsedCategories: settings.collapsedCategories
+                collapsedCategories: settings.collapsedCategories,
+                removedDefaultSites: settings.removedDefaultSites
             },
             lastModified: settings.lastModified
         }

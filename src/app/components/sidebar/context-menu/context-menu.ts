@@ -8,6 +8,7 @@ export interface ContextMenuData {
   event: MouseEvent;
   isFirst: boolean;
   isLast: boolean;
+  isMuted: boolean; // שדה חדש
 }
 
 @Component({
@@ -27,8 +28,9 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Output() newCategoryClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() moveUpClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() moveDownClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
-  // IMPROVEMENT 2: Add new event emitter for copy link
   @Output() copyLinkClicked = new EventEmitter<{ site: Site, category: Category }>();
+  // אירוע חדש ללחיצה על השתק/בטל השתקה
+  @Output() toggleMuteClicked = new EventEmitter<Site>();
 
   position = { top: '0px', left: '0px', bottom: 'auto' };
   isOpeningUp = false;
@@ -63,7 +65,7 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   private calculatePosition(event: MouseEvent): void {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    const MENU_ESTIMATED_HEIGHT = 250;
+    const MENU_ESTIMATED_HEIGHT = 280; // הוגדל מעט בגלל הכפתור הנוסף
 
     this.isOpeningUp = (rect.bottom + MENU_ESTIMATED_HEIGHT > viewportHeight);
 
@@ -91,10 +93,15 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     this.deleteClicked.emit(site);
   }
 
-  // IMPROVEMENT 2: Add handler for copy link click
   onCopyLink(site: Site, category: Category, event: Event): void {
     event.stopPropagation();
     this.copyLinkClicked.emit({ site, category });
+  }
+
+  // פונקציה חדשה לטיפול בהשתקה
+  onToggleMute(site: Site, event: Event): void {
+    event.stopPropagation();
+    this.toggleMuteClicked.emit(site);
   }
 
   onChangeCategory(site: Site, fromCategory: Category, toCategory: Category): void {

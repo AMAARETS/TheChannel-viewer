@@ -43,6 +43,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
   activeSiteUrl$: Observable<string | null> = this.uiStateService.selectedSite$.pipe(map(s => s?.url ?? null));
   categoryCollapseState$: Observable<Record<string, boolean>> = this.uiStateService.collapsedCategories$;
+  mutedDomains$ = this.siteDataService.mutedDomains$; // הוספת המשתנה
 
   searchTerm$ = new BehaviorSubject<string>('');
   filteredCategories$!: Observable<Category[]>;
@@ -122,14 +123,26 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   onAddSiteFromAvailable(site: AvailableSite): void {
     const categoryName = site.category || 'כללי';
-    // FIX: Pass the 'site' object directly, as it conforms to the 'Site' interface
-    // and contains the required 'googleLoginSupported' property.
     this.siteDataService.addSite(site, categoryName);
     this.searchBar.clearSearch();
   }
 
   onContextMenuOpen(data: ContextMenuOpenEvent): void {
-    this.contextMenuData = data;
+    // בדיקה סינכרונית האם האתר מושתק לצורך בניית התפריט
+    const mutedSet = new Set(this.getExtensionMutedDomainsSync());
+    const isMuted = this.siteDataService.isSiteMuted(data.site.url, mutedSet);
+
+    this.contextMenuData = {
+        ...data,
+        isMuted: isMuted // הוספת הסטטוס לנתוני התפריט
+    };
+  }
+
+  // פונקציית עזר לשליפת הערך הנוכחי (הכי עדכני)
+  private getExtensionMutedDomainsSync(): Set<string> {
+      let currentSet = new Set<string>();
+      this.mutedDomains$.subscribe(set => currentSet = set).unsubscribe();
+      return currentSet;
   }
 
   onContextMenuClose(): void {
@@ -141,7 +154,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.onContextMenuClose();
   }
 
-  // IMPROVEMENT 2: Add method to handle copying the site link
   onCopySiteLink(event: { site: Site, category: Category }): void {
     const { site, category } = event;
     const url = `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(site.name)}&url=${encodeURIComponent(site.url)}&category=${encodeURIComponent(category.name)}`;
@@ -153,6 +165,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.toastService.show('שגיאה בהעתקת הקישור', 'error');
     });
 
+    this.onContextMenuClose();
+  }
+
+  // פונקציה לטיפול בלחיצה על השתקה
+  onToggleSiteMute(site: Site): void {
+    if (!this.extensionCommService.isExtensionActiveValue) {
+        this.toastService.show('אפשרות זו זמינה רק כאשר התוסף מותקן ופעיל', 'error');
+        return;
+    }
+    this.siteDataService.toggleMuteForSite(site);
+    this.toastService.show('הגדרת ההתראות עודכנה', 'success');
     this.onContextMenuClose();
   }
 
