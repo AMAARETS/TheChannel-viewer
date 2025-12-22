@@ -1,0 +1,16 @@
+@if (isVisible$ | async) {
+  <div class="dialog-overlay">
+    <div #dialogBox class="dialog-box" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" cdkTrapFocus cdkTrapFocusAutoCapture tabindex="0">
+      <h2 class="dialog-title">עריכת ערוץ</h2>
+      <div class="dialog-content">
+        <h3 class="dialog-subtitle">פרטי הערוץ</h3>
+        <input #siteNameInput type="text" placeholder="שם הערוץ">
+        <input #siteUrlInput type="text" placeholder="כתובת האתר" dir="ltr">
+      </div>
+      <div class="dialog-actions">
+        <button class="btn-secondary" (click)="closeDialog()">ביטול</button>
+        <button class="btn-primary" (click)="saveSite(siteNameInput, siteUrlInput)">שמור שינויים</button>
+      </div>
+    </div>
+  </div>
+}

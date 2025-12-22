@@ -154,6 +154,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.onContextMenuClose();
   }
 
+  onEditSite(event: { site: Site, category: Category }): void {
+    this.uiStateService.openEditSiteDialog(event.site, event.category.name);
+    this.onContextMenuClose();
+  }
+
   onCopySiteLink(event: { site: Site, category: Category }): void {
     const { site, category } = event;
     const url = `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(site.name)}&url=${encodeURIComponent(site.url)}&category=${encodeURIComponent(category.name)}`;

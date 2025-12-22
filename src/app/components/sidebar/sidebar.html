@@ -111,6 +111,7 @@
   [menuData]="contextMenuData"
   [allCategories]="(siteDataService.categories$ | async)!"
   (closed)="onContextMenuClose()"
+  (editClicked)="onEditSite($event)"
   (deleteClicked)="onDeleteSite($event)"
   (categoryChangeClicked)="onChangeSiteCategory($event)"
   (newCategoryClicked)="onNewSiteCategory($event)"

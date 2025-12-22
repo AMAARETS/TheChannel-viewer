@@ -2,8 +2,10 @@
   <div class="context-menu"
        [ngStyle]="position"
        [class.opens-up]="isOpeningUp"
-       (click)="$event.stopPropagation()">
+       (click)="$event.stopPropagation()" tabindex="0">
 
+    <div class="context-menu-item" (click)="onEdit(menuData.site, menuData.category, $event)" (keydown.enter)="onEdit(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">עריכת ערוץ</div>
+    <hr class="context-divider">
     <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
     <div class="context-menu-item" (click)="onCopyLink(menuData.site, menuData.category, $event)" (keydown.enter)="onCopyLink(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">העתק קישור</div>
 

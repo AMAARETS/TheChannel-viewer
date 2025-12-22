@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, BehaviorSubject, catchError, of, tap, Observable, map } from 'rxjs';
+import { forkJoin, BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { Category, Site, AvailableSite } from '../models/site.model';
 import { UiStateService } from './ui-state.service';
 import { ToastService } from './toast.service';
@@ -188,7 +188,7 @@ export class SiteDataService {
       try {
           const domain = new URL(site.url).hostname;
           this.extensionCommService.toggleMuteDomain(domain);
-      } catch (e) {
+      } catch {
           console.error('Invalid URL for mute toggle', site.url);
       }
   }
@@ -235,6 +235,52 @@ export class SiteDataService {
     this.categories$.next(currentCategories);
     this.saveCategories();
     this.toastService.show(`הערוץ '${siteToRemove.name}' נמחק`);
+  }
+
+  updateSite(originalSite: Site, updatedSite: Site, categoryName: string): boolean {
+    const currentCategories = [...this.categories$.getValue()];
+    const category = currentCategories.find(c => c.name === categoryName);
+
+    if (!category) {
+      this.toastService.show('קטגוריה לא נמצאה', 'error');
+      return false;
+    }
+
+    const siteIndex = category.sites.findIndex(s => s.url === originalSite.url);
+    if (siteIndex === -1) {
+      this.toastService.show('הערוץ לא נמצא', 'error');
+      return false;
+    }
+
+    // בדיקה אם ה-URL החדש כבר קיים (אלא אם זה אותו ערוץ)
+    if (updatedSite.url !== originalSite.url) {
+      const urlExists = currentCategories.some(c =>
+        c.sites.some(s => s.url === updatedSite.url)
+      );
+      if (urlExists) {
+        this.toastService.show('כתובת זו כבר קיימת ברשימה', 'error');
+        return false;
+      }
+    }
+
+    // יצירת עותק חדש של הקטגוריה עם הערוץ המעודכן
+    const updatedCategory = {
+      ...category,
+      sites: [...category.sites]
+    };
+    updatedCategory.sites[siteIndex] = updatedSite;
+
+    // החלפת הקטגוריה ברשימה
+    const categoryIndex = currentCategories.findIndex(c => c.name === categoryName);
+    currentCategories[categoryIndex] = updatedCategory;
+
+    this.categories$.next(currentCategories);
+    this.saveCategories();
+
+    // עדכון האתר הנבחר אם זה הוא שנערך
+    this.uiStateService.updateSelectedSite(originalSite.url, updatedSite);
+
+    return true;
   }
 
   moveSiteToCategory(siteToMove: Site, fromCategoryName: string, toCategoryName: string): void {

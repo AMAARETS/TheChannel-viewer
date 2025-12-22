@@ -23,6 +23,7 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Input() menuData: ContextMenuData | null = null;
   @Input() allCategories: Category[] = [];
   @Output() closed = new EventEmitter<void>();
+  @Output() editClicked = new EventEmitter<{ site: Site, category: Category }>();
   @Output() deleteClicked = new EventEmitter<Site>();
   @Output() categoryChangeClicked = new EventEmitter<{ site: Site, fromCategory: Category, toCategory: Category }>();
   @Output() newCategoryClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
@@ -105,6 +106,11 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
 
   close(): void {
     this.closed.emit();
+  }
+
+  onEdit(site: Site, category: Category, event: Event): void {
+    event.stopPropagation();
+    this.editClicked.emit({ site, category });
   }
 
   onDelete(site: Site, event: Event): void {

@@ -56,6 +56,8 @@ export class UiStateService {
   );
 
   isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
+  isEditSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
+  editSiteDialogData$ = new BehaviorSubject<{ site: Site; categoryName: string } | null>(null);
   isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
   siteToDelete$ = new BehaviorSubject<Site | null>(null);
   isInputDialogVisible$ = new BehaviorSubject<boolean>(false);
@@ -357,6 +359,14 @@ export class UiStateService {
   }
 
   getActiveSite(): Site | null { return this.selectedSiteSubject.getValue(); }
+
+  updateSelectedSite(originalUrl: string, updatedSite: Site): void {
+    const currentSite = this.selectedSiteSubject.getValue();
+    if (currentSite && currentSite.url === originalUrl) {
+      this.selectedSiteSubject.next(updatedSite);
+    }
+  }
+
   getLastViewedSiteUrl(): string | null { return this.loadFromStorage(this.lastViewedSiteUrlKey); }
 
   toggleSidebar(): void {
@@ -386,6 +396,18 @@ export class UiStateService {
   // --- ניהול דיאלוגים ---
   openAddSiteDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isAddSiteDialogVisible$.next(true); }
   closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); this.restoreFocus(); }
+
+  openEditSiteDialog(site: Site, categoryName: string): void {
+    this.saveFocus();
+    this.isDialogVisible = true;
+    this.editSiteDialogData$.next({ site, categoryName });
+    this.isEditSiteDialogVisible$.next(true);
+  }
+  closeEditSiteDialog(): void {
+    this.isEditSiteDialogVisible$.next(false);
+    this.editSiteDialogData$.next(null);
+    this.restoreFocus();
+  }
 
   openConfirmDeleteDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteToDelete$.next(site); this.isConfirmDeleteDialogVisible$.next(true); }
   closeConfirmDeleteDialog(): void { this.isConfirmDeleteDialogVisible$.next(false); this.siteToDelete$.next(null); this.restoreFocus(); }
