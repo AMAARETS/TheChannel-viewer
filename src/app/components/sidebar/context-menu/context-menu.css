@@ -33,7 +33,7 @@
 .context-submenu {
   position: absolute;
   top: -5px;
-  right: 100%;
+  left: 100%;
   display: none;
   background-color: #ffffff;
   border: 1px solid #dadce0;

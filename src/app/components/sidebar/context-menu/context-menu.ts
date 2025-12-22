@@ -66,22 +66,41 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const MENU_ESTIMATED_HEIGHT = 280; // הוגדל מעט בגלל הכפתור הנוסף
+    const MENU_ESTIMATED_WIDTH = 150; // רוחב משוער של התפריט
+    const OFFSET_FROM_BUTTON = 25; // מרווח נוסף לשמאל מסוף הכפתור
 
-    this.isOpeningUp = (rect.bottom + MENU_ESTIMATED_HEIGHT > viewportHeight);
+    // חישוב מיקום אופקי - התפריט יפתח לשמאל עם מרווח
+    const leftPosition = rect.right - MENU_ESTIMATED_WIDTH - OFFSET_FROM_BUTTON;
 
-    if (this.isOpeningUp) {
-      this.position = {
-        top: 'auto',
-        bottom: `${viewportHeight - rect.top}px`,
-        left: `${rect.left}px`
-      };
-    } else {
-      this.position = {
-        top: `${rect.bottom}px`,
-        bottom: 'auto',
-        left: `${rect.left}px`
-      };
+    // חישוב מיקום אנכי - השליש העליון של התפריט מול אמצע הכפתור
+    const buttonCenterY = rect.top + (rect.height / 2);
+    const menuThirdHeight = MENU_ESTIMATED_HEIGHT / 3;
+    let topPosition = buttonCenterY - menuThirdHeight;
+
+    // בדיקה אם התפריט חורג מהחלק העליון של המסך
+    if (topPosition < 0) {
+      topPosition = 10; // מרווח קטן מהחלק העליון
     }
+
+    // בדיקה אם התפריט חורג מהחלק התחתון של המסך (לפי גובה העמוד כולו)
+    if (topPosition + MENU_ESTIMATED_HEIGHT > viewportHeight) {
+      // רק אם באמת אין מקום, נזיז את התפריט למעלה
+      const availableSpace = viewportHeight - rect.bottom;
+      if (availableSpace < 50) { // אם יש פחות מ-50 פיקסלים מתחת לכפתור
+        const overflow = (topPosition + MENU_ESTIMATED_HEIGHT) - viewportHeight;
+        topPosition = topPosition - overflow - 10;
+      }
+    }
+
+    // עדכון המיקום
+    this.position = {
+      top: `${topPosition}px`,
+      bottom: 'auto',
+      left: `${leftPosition}px`
+    };
+
+    // עדכון הסטטוס של פתיחה למעלה
+    this.isOpeningUp = topPosition < buttonCenterY - menuThirdHeight;
   }
 
   close(): void {
