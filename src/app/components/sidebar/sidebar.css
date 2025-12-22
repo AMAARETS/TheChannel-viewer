@@ -2,7 +2,7 @@
 
 /* --- Main Sidebar Container Styling --- */
 .sidebar {
-  width: 180px;
+  width: 244px;
   background-color: #ffffff;
   color: #202124;
   display: flex;
@@ -296,6 +296,6 @@ anner for extension installation */
 .install-banner-sidebar a:hover {
   transform: scale(1.05);
 }
-:host-context(.collapsed) .install-banner-sidebar {
+.sidebar.collapsed .install-banner-sidebar {
   display: none;
 }
