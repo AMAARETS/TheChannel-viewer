@@ -1,4 +1,4 @@
-/* משתמש באותם סגנונות כמו add-site-dialog */
+/* עיצוב מעודכן להתאמה לשאר הדיאלוגים בפרויקט */
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -13,78 +13,87 @@
 }
 
 .dialog-box {
-  background: white;
-  border-radius: 8px;
+  background-color: #fff;
   padding: 24px;
-  width: 90%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
   max-width: 500px;
   max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 .dialog-title {
-  margin: 0 0 20px 0;
+  margin: 0 0 16px;
   font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
+  color: #202124;
+  font-weight: 500;
 }
 
 .dialog-subtitle {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
-  color: #555;
+  color: #3c4043;
+  margin: 16px 0 8px;
+}
+
+.dialog-content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .dialog-content input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
+  padding: 10px;
   border-radius: 4px;
-  font-size: 14px;
+  border: 1px solid #dadce0;
   box-sizing: border-box;
+  font-size: 14px;
 }
 
 .dialog-content input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  outline: 0;
+  border: 2px solid #1a73e8;
+  padding: 9px;
 }
 
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 10px 20px;
-  border: none;
+.dialog-actions button {
+  padding: 8px 24px;
   border-radius: 4px;
-  font-size: 14px;
+  border: none;
   cursor: pointer;
+  font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .btn-primary {
-  background-color: #007bff;
-  color: white;
+  background-color: #1a73e8;
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #185abc;
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  color: white;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
 }
 
 .btn-secondary:hover {
-  background-color: #545b62;
+  background-color: #f1f3f4;
 }
