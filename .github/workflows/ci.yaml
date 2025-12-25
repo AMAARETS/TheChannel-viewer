@@ -31,7 +31,7 @@ jobs:
 
       # 3. התקנת התלויות של הפרויקט
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       # 4. בניית פרויקט האנגולר
       - name: Build Angular App
