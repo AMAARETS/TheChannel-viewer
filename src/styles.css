@@ -1,8 +1,5 @@
 /* src/styles.css */
 
-/* Google Fonts for a modern look */
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap');
-
 /* Basic reset and global styles */
 html, body {
   margin: 0;
