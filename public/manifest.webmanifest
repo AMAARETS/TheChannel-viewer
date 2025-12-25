@@ -1,7 +1,9 @@
 {
+  "id": "/",
   "name": "The-channel",
-  "short_name": "The-channel",
-  "display": "standalone",
+  "short_name": "הערוץ",
+  "theme_color": "#1976d2",
+  "background_color": "#fafafa",
   "scope": "./",
   "start_url": "./",
   "icons": [
