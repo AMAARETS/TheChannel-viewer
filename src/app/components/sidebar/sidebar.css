@@ -74,59 +74,53 @@
   transform: rotate(15deg);
 }
 
-/* Scrollable Content Area */
 .scrollable-content {
   flex-grow: 1;
   overflow-y: auto;
-  scrollbar-width: none; /* For Firefox */
-  -ms-overflow-style: none;  /* For IE and Edge */
+
+  /* 1. Reserve space for the scrollbar always */
   scrollbar-gutter: stable;
+
+  /* 2. Firefox: Always thin, transparent by default */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent; /* Thumb Track */
 }
 
-/* 1. הגדרת רוחב הסרגל */
+/* Firefox: Show color on hover */
+.scrollable-content:hover {
+  scrollbar-color: #dadce0 transparent;
+}
+
+/* 3. WebKit (Chrome, Edge, Safari) Settings */
 .scrollable-content::-webkit-scrollbar {
-  width: 8px; /* רוחב נוח וקריא */
+  width: 8px; /* Fixed width always reserved */
 }
 
-/* 2. הסרה מוחלטת של החיצים (כמו בגוגל צ'אט) */
 .scrollable-content::-webkit-scrollbar-button {
   display: none !important;
 }
 
-/* 3. המסילה (Track) - תמיד שקופה */
 .scrollable-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* 4. ה"פס" הנגרר (Thumb) */
 .scrollable-content::-webkit-scrollbar-thumb {
-  background-color: transparent; /* שקוף כשלא נוגעים */
+  background-color: transparent; /* Invisible by default */
   border-radius: 10px;
-  /* יצירת מרווח מהצדדים כדי שייראה "צף" */
-  border: 2px solid transparent;
+  border: 2px solid transparent; /* Creates padding effect */
   background-clip: padding-box;
 }
 
-/* הצגת ה"פס" רק כאשר המשתמש מרחף על אזור הסרגל */
+/* WebKit: Show color on hover over the container */
 .scrollable-content:hover::-webkit-scrollbar-thumb {
-  background-color: #dadce0; /* אפור עדין מודרני */
+  background-color: #dadce0;
 }
 
-/* כהה יותר כשעומדים ישירות על הסרגל */
+/* WebKit: Darker color when hovering the scrollbar itself */
 .scrollable-content::-webkit-scrollbar-thumb:hover {
   background-color: #bdc1c6 !important;
 }
 
-/* תמיכה ב-Firefox */
-@supports (scrollbar-width: thin) {
-  .scrollable-content {
-    scrollbar-width: none; /* מוסתר ב-FF כברירת מחדל */
-  }
-  .scrollable-content:hover {
-    scrollbar-width: thin;
-    scrollbar-color: #dadce0 transparent;
-  }
-}
 
 /* --- NEW: Styles for loading/empty states --- */
 .sidebar-message-container {

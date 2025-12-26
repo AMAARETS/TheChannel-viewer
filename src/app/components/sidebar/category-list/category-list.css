@@ -46,7 +46,7 @@
 .category-drop-zone {
   transition: background-color 0.2s ease;
   border-radius: 20px;
-  margin: 0 2px;
+  margin: 0 1px;
 }
 .category-drop-zone:hover {
   background-color: #f1f3f4;
