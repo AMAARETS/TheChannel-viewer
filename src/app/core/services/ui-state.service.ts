@@ -1,21 +1,21 @@
 import { Injectable, inject, Injector } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
-import { BehaviorSubject, Observable, map, first } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Site } from '../models/site.model';
 import { SiteDataService } from './site-data.service';
 import { AnalyticsService } from './analytics.service';
 import { ExtensionCommunicationService } from './extension-communication.service';
 
-export interface InputDialogConfig {
-  title: string;
-  label: string;
-  placeholder?: string;
-  confirmButtonText: string;
-  callback: (value: string) => void;
-}
+// Modular Services
+import { UserPreferencesService } from './ui/user-preferences.service';
+import { DialogService } from './ui/dialog.service';
+import { NavigationService } from './ui/navigation.service';
+import { ContentLoaderService } from './ui/content-loader.service';
+import { InputDialogConfig, DataLoadingState, ActiveView } from './ui/ui-types';
 
-export type DataLoadingState = 'loading' | 'loaded' | 'error';
-export type ActiveView = 'site' | 'advertise' | 'contact' | 'help' | 'custom';
+// Re-export types for compatibility with existing components
+// FIX: Added 'type' keyword to satisfy isolatedModules requirement
+export type { InputDialogConfig, DataLoadingState, ActiveView } from './ui/ui-types';
 
 @Injectable({
   providedIn: 'root',
@@ -25,68 +25,56 @@ export class UiStateService {
   private injector = inject(Injector);
   private analyticsService = inject(AnalyticsService);
   private extensionCommService = inject(ExtensionCommunicationService);
+
+  // Inject Modular Services
+  private preferences = inject(UserPreferencesService);
+  private dialogs = inject(DialogService);
+  private navigation = inject(NavigationService);
+  private contentLoader = inject(ContentLoaderService);
+
   private _siteDataService: SiteDataService | null = null;
-  private focusedElementBeforeDialog: HTMLElement | null = null;
 
-  private injectedCss: HTMLLinkElement | null = null;
-  private injectedJs: HTMLScriptElement | null = null;
-
-  private dialogQueue: (() => void)[] = [];
-  private isDialogVisible = false;
-
-  private readonly sidebarCollapsedKey = 'sidebarCollapsed';
-  private readonly lastViewedSiteUrlKey = 'lastViewedSiteUrl';
-  private readonly collapsedCategoriesKey = 'collapsedCategories';
-  private readonly viewedTutorialsKey = 'viewedChannelTutorials';
-  private readonly neverShowLoginTutorialKey = 'neverShowLoginTutorial';
-  private readonly neverShowWelcomeDialogKey = 'neverShowWelcomeDialog';
-  private readonly neverShowGrantPermissionDialogKey = 'neverShowGrantPermissionDialog';
-  private readonly neverShowInstallExtensionDialogKey = 'neverShowInstallExtensionDialog';
-  private readonly neverShowCookiesBlockedDialogKey = 'neverShowCookiesBlockedDialog';
-
+  // --- State Subjects ---
   dataLoadingState$ = new BehaviorSubject<DataLoadingState>('loading');
   activeView$ = new BehaviorSubject<ActiveView>('site');
-
-  // *** חדש: ניהול הטאב הפעיל בדף העזרה ***
   helpSection$ = new BehaviorSubject('extension');
-
-  customContent$ = new BehaviorSubject<string | null>(null);
-  sanitizedCustomContent$: Observable<SafeHtml | null> = this.customContent$.pipe(
-    map((html) => (html ? this.sanitizer.bypassSecurityTrustHtml(html) : null))
-  );
-
-  isAddSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
-  isEditSiteDialogVisible$ = new BehaviorSubject<boolean>(false);
-  editSiteDialogData$ = new BehaviorSubject<{ site: Site; categoryName: string } | null>(null);
-  isConfirmDeleteDialogVisible$ = new BehaviorSubject<boolean>(false);
-  siteToDelete$ = new BehaviorSubject<Site | null>(null);
-  isInputDialogVisible$ = new BehaviorSubject<boolean>(false);
-  inputDialogConfig$ = new BehaviorSubject<InputDialogConfig | null>(null);
-  isLoginTutorialDialogVisible$ = new BehaviorSubject<boolean>(false);
-  isWelcomeDialogVisible$ = new BehaviorSubject<boolean>(false);
-  isGoogleLoginUnsupportedDialogVisible$ = new BehaviorSubject<boolean>(false);
-  siteForUnsupportedLoginDialog$ = new BehaviorSubject<Site | null>(null);
-  isGrantPermissionDialogVisible$ = new BehaviorSubject<boolean>(false);
-  siteForGrantPermissionDialog$ = new BehaviorSubject<Site | null>(null);
-  isInstallExtensionDialogVisible$ = new BehaviorSubject<boolean>(false);
-  siteForInstallExtensionDialog$ = new BehaviorSubject<Site | null>(null);
-
-  isThirdPartyCookiesBlockedDialogVisible$ = new BehaviorSubject<boolean>(false);
-
-  isSidebarCollapsed$ = new BehaviorSubject<boolean>(
-    this.loadFromStorage(this.sidebarCollapsedKey) ?? false
-  );
-  collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>(
-    this.loadFromStorage(this.collapsedCategoriesKey) ?? {}
-  );
 
   private selectedSiteSubject = new BehaviorSubject<Site | null>(null);
   selectedSite$: Observable<Site | null> = this.selectedSiteSubject.asObservable();
+
+  // --- Derived Observables ---
   activeSiteName$: Observable<string | null> = this.selectedSite$.pipe(
     map((site) => site?.name ?? null)
   );
   sanitizedSelectedSiteUrl$: Observable<SafeResourceUrl | null> = this.selectedSite$.pipe(
-    map((site) => (site ? this.sanitizer.bypassSecurityTrustResourceUrl(this.addUtmParameters(site.url)) : null))
+    map((site) => (site ? this.sanitizer.bypassSecurityTrustResourceUrl(this.navigation.addUtmParameters(site.url)) : null))
+  );
+  sanitizedCustomContent$ = this.contentLoader.sanitizedCustomContent$;
+
+  // --- Expose Dialog Observables (Delegated to DialogService) ---
+  isAddSiteDialogVisible$ = this.dialogs.isAddSiteDialogVisible$;
+  isEditSiteDialogVisible$ = this.dialogs.isEditSiteDialogVisible$;
+  editSiteDialogData$ = this.dialogs.editSiteDialogData$;
+  isConfirmDeleteDialogVisible$ = this.dialogs.isConfirmDeleteDialogVisible$;
+  siteToDelete$ = this.dialogs.siteToDelete$;
+  isInputDialogVisible$ = this.dialogs.isInputDialogVisible$;
+  inputDialogConfig$ = this.dialogs.inputDialogConfig$;
+  isLoginTutorialDialogVisible$ = this.dialogs.isLoginTutorialDialogVisible$;
+  isWelcomeDialogVisible$ = this.dialogs.isWelcomeDialogVisible$;
+  isGoogleLoginUnsupportedDialogVisible$ = this.dialogs.isGoogleLoginUnsupportedDialogVisible$;
+  siteForUnsupportedLoginDialog$ = this.dialogs.siteForUnsupportedLoginDialog$;
+  isGrantPermissionDialogVisible$ = this.dialogs.isGrantPermissionDialogVisible$;
+  siteForGrantPermissionDialog$ = this.dialogs.siteForGrantPermissionDialog$;
+  isInstallExtensionDialogVisible$ = this.dialogs.isInstallExtensionDialogVisible$;
+  siteForInstallExtensionDialog$ = this.dialogs.siteForInstallExtensionDialog$;
+  isThirdPartyCookiesBlockedDialogVisible$ = this.dialogs.isThirdPartyCookiesBlockedDialogVisible$;
+
+  // --- UI State Preferences ---
+  isSidebarCollapsed$ = new BehaviorSubject<boolean>(
+    this.preferences.loadFromStorage(this.preferences.sidebarCollapsedKey) ?? false
+  );
+  collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>(
+    this.preferences.loadFromStorage(this.preferences.collapsedCategoriesKey) ?? {}
   );
 
   constructor() {
@@ -105,27 +93,22 @@ export class UiStateService {
     return this._siteDataService;
   }
 
+  // --- Logic Coordination ---
+
   enqueueDialog(dialogFn: () => void): void {
-    this.dialogQueue.push(dialogFn);
+    this.dialogs.enqueueDialog(dialogFn);
   }
 
   processNextDialogInQueue(): void {
-    if (this.isDialogVisible || this.dialogQueue.length === 0) {
-      return;
-    }
-    const nextDialogFn = this.dialogQueue.shift()!;
-    nextDialogFn();
+    this.dialogs.processNextDialogInQueue();
   }
 
   checkAndAlertIfThirdPartyCookiesBlocked(): void {
-    if (this.isCookiesBlockedDialogGloballyDisabled()) {
+    if (this.preferences.isCookiesBlockedDialogGloballyDisabled()) {
       return;
     }
-
-    const areCookiesEnabled = this.checkCookieSupport();
-
-    if (!areCookiesEnabled) {
-      this.enqueueDialog(() => this.openThirdPartyCookiesBlockedDialog());
+    if (!this.checkCookieSupport()) {
+      this.enqueueDialog(() => this.dialogs.openThirdPartyCookiesBlockedDialog());
       this.processNextDialogInQueue();
     }
   }
@@ -142,28 +125,16 @@ export class UiStateService {
     }
   }
 
-  private cleanupInjectedResources(): void {
-    if (this.injectedCss) {
-      document.head.removeChild(this.injectedCss);
-      this.injectedCss = null;
-    }
-    if (this.injectedJs) {
-      document.body.removeChild(this.injectedJs);
-      this.injectedJs = null;
-    }
-    this.customContent$.next(null);
-  }
+  // --- Navigation & Content Logic ---
 
-  // *** חדש: פתיחת דף העזרה הפנימי ***
   openHelpPage(section = 'extension', skipHistoryUpdate = false): void {
-    this.cleanupInjectedResources();
+    this.contentLoader.cleanupInjectedResources();
     this.activeView$.next('help');
     this.helpSection$.next(section);
     this.selectedSiteSubject.next(null);
 
     if (!skipHistoryUpdate) {
-      const params = this.preserveUnknownParams({ view: 'help', section });
-      history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
+      this.navigation.updateUrl({ view: 'help', section });
     }
 
     this.analyticsService.trackPageView({
@@ -173,61 +144,8 @@ export class UiStateService {
     });
   }
 
-  // *** חדש: עדכון ה-URL בעת ניווט פנימי בדף העזרה ***
   updateHelpUrl(section: string): void {
-    const params = this.preserveUnknownParams({ view: 'help', section });
-    history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-  }
-
-  /**
-   * מוסיף פרמטרי UTM ל-URL של האתר
-   */
-  private addUtmParameters(url: string): string {
-    try {
-      const urlObj = new URL(url);
-
-      // פרמטרי UTM שיתווספו לכל אתר
-      const utmParams = {
-        utm_source: 'haharuts',
-        utm_medium: 'iframe'
-      };
-
-      // הוספת פרמטרי UTM רק אם הם לא קיימים כבר
-      Object.entries(utmParams).forEach(([key, value]) => {
-        if (!urlObj.searchParams.has(key)) {
-          urlObj.searchParams.set(key, value);
-        }
-      });
-
-      return urlObj.toString();
-    } catch (error) {
-      // אם יש שגיאה בפרסור ה-URL, נחזיר את ה-URL המקורי
-      console.warn('Error adding UTM parameters to URL:', url, error);
-      return url;
-    }
-  }
-
-  /**
-   * שומר פרמטרים לא מוכרים (כמו UTM) ומוסיף/מעדכן את הפרמטרים החדשים
-   */
-  private preserveUnknownParams(newParams: Record<string, string>): URLSearchParams {
-    const knownParams = ['name', 'url', 'category', 'view', 'section', 'source'];
-    const currentParams = new URLSearchParams(window.location.search);
-    const resultParams = new URLSearchParams();
-
-    // שמירת כל הפרמטרים שאינם מוכרים (כמו utm_source, utm_medium וכו')
-    currentParams.forEach((value, key) => {
-      if (!knownParams.includes(key)) {
-        resultParams.set(key, value);
-      }
-    });
-
-    // הוספת/עדכון הפרמטרים החדשים
-    Object.entries(newParams).forEach(([key, value]) => {
-      resultParams.set(key, value);
-    });
-
-    return resultParams;
+    this.navigation.updateUrl({ view: 'help', section }, false); // replaceState
   }
 
   async loadCustomContentFromSource(
@@ -236,125 +154,95 @@ export class UiStateService {
     skipHistoryUpdate = false
   ): Promise<void> {
 
-    // *** חדש: טיפול במקרה של דף עזרה ***
     if (source === 'help') {
-        const section = params['section'] || 'extension';
-        this.openHelpPage(section, skipHistoryUpdate);
-        return;
+      const section = params['section'] || 'extension';
+      this.openHelpPage(section, skipHistoryUpdate);
+      return;
     }
 
-    this.cleanupInjectedResources();
-    const baseUrl = `/ads/${source}/`;
     try {
-      const htmlUrl = `${baseUrl}index.html`;
-      const htmlResponse = await fetch(htmlUrl);
-      if (!htmlResponse.ok) {
-        throw new Error(`קובץ index.html לא נמצא בתיקייה '${source}'`);
-      }
-      const htmlContent = await htmlResponse.text();
-      const cssUrl = `${baseUrl}style.css`;
-      const cssCheck = await fetch(cssUrl, { method: 'HEAD' });
-      if (cssCheck.ok) {
-        this.injectedCss = document.createElement('link');
-        this.injectedCss.rel = 'stylesheet';
-        this.injectedCss.href = cssUrl;
-        document.head.appendChild(this.injectedCss);
-      }
+      await this.contentLoader.loadFromSource(source);
 
-      // עדכון ה-ActiveView בהתאם למקור
+      // Update active view
       if (source === 'advertise') this.activeView$.next('advertise');
       else if (source === 'contact') this.activeView$.next('contact');
       else this.activeView$.next('custom');
 
-      this.customContent$.next(htmlContent);
-      this.selectedSiteSubject.next(null); // ניקוי האתר הנבחר
+      this.selectedSiteSubject.next(null);
 
       if (!skipHistoryUpdate) {
-        // אם זה contact או advertise, אפשר לשמור על ה-view הנקי יותר:
-        if (source === 'contact' || source === 'advertise') {
-             const urlParams = this.preserveUnknownParams({ view: source });
-             history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
-        } else {
-             const urlParams = this.preserveUnknownParams({ view: source, ...params });
-             history.pushState(null, '', `${window.location.pathname}?${urlParams.toString()}`);
-        }
+        this.navigation.updateUrl({ view: source, ...params });
       }
+
       this.analyticsService.trackPageView({
         page_title: `Custom Content: ${source}`,
         page_path: `/ads/${source}`,
         page_location: window.location.href,
       });
-      const jsUrl = `${baseUrl}script.js`;
-      const jsCheck = await fetch(jsUrl, { method: 'HEAD' });
-      if (jsCheck.ok) {
-        this.injectedJs = document.createElement('script');
-        this.injectedJs.src = jsUrl;
-        this.injectedJs.defer = true;
-        document.body.appendChild(this.injectedJs);
-      }
+
     } catch (error) {
-      console.error('Error loading dynamic content:', error);
-      const errorHtml = `<div style="padding:20px; color:red; text-align:right;"><h2>שגיאה בטעינת התוכן</h2><p>${
-        (error as Error).message
-      }</p></div>`;
-      this.activeView$.next('custom');
-      this.customContent$.next(errorHtml);
+       this.activeView$.next('custom');
+       // Error handled in contentLoader but view updated here
     }
   }
 
   async selectSite(site: Site | null, categoryName?: string, skipHistoryUpdate = false): Promise<void> {
-    this.cleanupInjectedResources();
+    this.contentLoader.cleanupInjectedResources();
     this.selectedSiteSubject.next(site);
     this.activeView$.next('site');
 
     if (site) {
-      this.saveToStorage(this.lastViewedSiteUrlKey, site.url);
+      this.preferences.saveToStorage(this.preferences.lastViewedSiteUrlKey, site.url);
       const catName = categoryName || this.siteDataService.getCategoryForSite(site);
+
       if (catName && !skipHistoryUpdate) {
-        const params = this.preserveUnknownParams({ name: site.name, url: site.url, category: catName });
-        history.pushState(null, '', `${window.location.pathname}?${params.toString()}`);
+        this.navigation.updateUrl({ name: site.name, url: site.url, category: catName });
       }
+
       this.analyticsService.trackPageView({
         page_title: site.name,
         page_path: `/sites/${catName || 'unknown'}/${site.name}`,
         page_location: site.url,
       });
 
-      if (site.googleLoginSupported) {
-        if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-          this.enqueueDialog(() => this.openLoginTutorialDialog());
-          this.markTutorialAsViewed(site.url);
-        }
-      } else {
-        const isExtensionActive = this.extensionCommService.isExtensionActiveValue;
+      this.handleSiteTutorials(site);
 
-        if (!isExtensionActive) {
-          if (!this.isInstallExtensionDialogGloballyDisabled()) {
-            this.enqueueDialog(() => this.openInstallExtensionDialog(site));
-          }
-        } else {
-          // התוסף פעיל
-          const domains = await this.extensionCommService.requestManagedDomains();
-          const siteDomain = new URL(site.url).hostname;
-
-          if (domains && domains.includes(siteDomain)) {
-             // הדומיין מאושר
-             if (!this.isLoginTutorialGloballyDisabled() && !this.hasViewedTutorial(site.url)) {
-                this.enqueueDialog(() => this.openLoginTutorialDialog());
-                this.markTutorialAsViewed(site.url);
-            }
-          } else {
-            // *** השינוי המיוחד מהקוד ששלחת: בקשת הרשאה ***
-            this.extensionCommService.requestPermissionForDomain(siteDomain, site.name);
-          }
-        }
-      }
     } else {
-      history.pushState(null, '', window.location.pathname);
+      // Just clear selection in URL if site is null
+      if (!skipHistoryUpdate) {
+          history.pushState(null, '', window.location.pathname);
+      }
     }
 
-    if (!this.isDialogVisible) {
-      this.processNextDialogInQueue();
+    this.processNextDialogInQueue();
+  }
+
+  private async handleSiteTutorials(site: Site): Promise<void> {
+    if (site.googleLoginSupported) {
+      if (!this.preferences.isLoginTutorialGloballyDisabled() && !this.preferences.hasViewedTutorial(site.url)) {
+        this.enqueueDialog(() => this.dialogs.openLoginTutorialDialog());
+        this.preferences.markTutorialAsViewed(site.url);
+      }
+    } else {
+      const isExtensionActive = this.extensionCommService.isExtensionActiveValue;
+
+      if (!isExtensionActive) {
+        if (!this.preferences.isInstallExtensionDialogGloballyDisabled()) {
+          this.enqueueDialog(() => this.dialogs.openInstallExtensionDialog(site));
+        }
+      } else {
+        const domains = await this.extensionCommService.requestManagedDomains();
+        const siteDomain = new URL(site.url).hostname;
+
+        if (domains && domains.includes(siteDomain)) {
+          if (!this.preferences.isLoginTutorialGloballyDisabled() && !this.preferences.hasViewedTutorial(site.url)) {
+            this.enqueueDialog(() => this.dialogs.openLoginTutorialDialog());
+            this.preferences.markTutorialAsViewed(site.url);
+          }
+        } else {
+          this.extensionCommService.requestPermissionForDomain(siteDomain, site.name);
+        }
+      }
     }
   }
 
@@ -367,18 +255,29 @@ export class UiStateService {
     }
   }
 
-  getLastViewedSiteUrl(): string | null { return this.loadFromStorage(this.lastViewedSiteUrlKey); }
+  getLastViewedSiteUrl(): string | null {
+    return this.preferences.loadFromStorage(this.preferences.lastViewedSiteUrlKey);
+  }
+
+  resetToHome(): void {
+    this.contentLoader.cleanupInjectedResources();
+    this.selectedSiteSubject.next(null);
+    this.activeView$.next('site');
+    this.navigation.resetUrlToHome();
+  }
+
+  // --- Sidebar State Management ---
 
   toggleSidebar(): void {
     const newState = !this.isSidebarCollapsed$.value;
     this.isSidebarCollapsed$.next(newState);
-    this.saveToStorage(this.sidebarCollapsedKey, newState);
+    this.preferences.saveToStorage(this.preferences.sidebarCollapsedKey, newState);
     this.syncToExtension();
   }
 
   saveCollapsedCategories(state: Record<string, boolean>): void {
     this.collapsedCategories$.next(state);
-    this.saveToStorage(this.collapsedCategoriesKey, state);
+    this.preferences.saveToStorage(this.preferences.collapsedCategoriesKey, state);
     this.syncToExtension();
   }
 
@@ -393,120 +292,51 @@ export class UiStateService {
     }
   }
 
-  // --- ניהול דיאלוגים ---
-  openAddSiteDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isAddSiteDialogVisible$.next(true); }
-  closeAddSiteDialog(): void { this.isAddSiteDialogVisible$.next(false); this.restoreFocus(); }
+  // --- Dialog Delegates (Passthrough) ---
 
-  openEditSiteDialog(site: Site, categoryName: string): void {
-    this.saveFocus();
-    this.isDialogVisible = true;
-    this.editSiteDialogData$.next({ site, categoryName });
-    this.isEditSiteDialogVisible$.next(true);
-  }
-  closeEditSiteDialog(): void {
-    this.isEditSiteDialogVisible$.next(false);
-    this.editSiteDialogData$.next(null);
-    this.restoreFocus();
-  }
+  openAddSiteDialog(): void { this.dialogs.openAddSiteDialog(); }
+  closeAddSiteDialog(): void { this.dialogs.closeAddSiteDialog(); }
 
-  openConfirmDeleteDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteToDelete$.next(site); this.isConfirmDeleteDialogVisible$.next(true); }
-  closeConfirmDeleteDialog(): void { this.isConfirmDeleteDialogVisible$.next(false); this.siteToDelete$.next(null); this.restoreFocus(); }
+  openEditSiteDialog(site: Site, categoryName: string): void { this.dialogs.openEditSiteDialog(site, categoryName); }
+  closeEditSiteDialog(): void { this.dialogs.closeEditSiteDialog(); }
 
-  openInputDialog(config: InputDialogConfig): void { this.saveFocus(); this.isDialogVisible = true; this.inputDialogConfig$.next(config); this.isInputDialogVisible$.next(true); }
-  closeInputDialog(value: string | null): void {
-    if (value) { this.inputDialogConfig$.pipe(first()).subscribe((config) => config?.callback(value)); }
-    this.isInputDialogVisible$.next(false); this.inputDialogConfig$.next(null); this.restoreFocus();
-  }
+  openConfirmDeleteDialog(site: Site): void { this.dialogs.openConfirmDeleteDialog(site); }
+  closeConfirmDeleteDialog(): void { this.dialogs.closeConfirmDeleteDialog(); }
 
-  openLoginTutorialDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isLoginTutorialDialogVisible$.next(true); }
+  openInputDialog(config: InputDialogConfig): void { this.dialogs.openInputDialog(config); }
+  closeInputDialog(value: string | null): void { this.dialogs.closeInputDialog(value); }
+
+  openLoginTutorialDialog(): void { this.dialogs.openLoginTutorialDialog(); }
   closeLoginTutorialDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableLoginTutorialGlobally(); }
-    this.isLoginTutorialDialogVisible$.next(false); this.restoreFocus();
+    if (disableGlobally) this.preferences.disableLoginTutorialGlobally();
+    this.dialogs.closeLoginTutorialDialog();
   }
 
-  isWelcomeDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowWelcomeDialogKey) === true; }
-  openWelcomeDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isWelcomeDialogVisible$.next(true); }
+  isWelcomeDialogGloballyDisabled(): boolean { return this.preferences.isWelcomeDialogGloballyDisabled(); }
+  openWelcomeDialog(): void { this.dialogs.openWelcomeDialog(); }
   closeWelcomeDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.saveToStorage(this.neverShowWelcomeDialogKey, true); }
-    this.isWelcomeDialogVisible$.next(false); this.restoreFocus();
+    if (disableGlobally) this.preferences.disableWelcomeDialogGlobally();
+    this.dialogs.closeWelcomeDialog();
   }
 
-  openGoogleLoginUnsupportedDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForUnsupportedLoginDialog$.next(site); this.isGoogleLoginUnsupportedDialogVisible$.next(true); }
-  closeGoogleLoginUnsupportedDialog(): void { this.isGoogleLoginUnsupportedDialogVisible$.next(false); this.siteForUnsupportedLoginDialog$.next(null); this.restoreFocus(); }
+  openGoogleLoginUnsupportedDialog(site: Site): void { this.dialogs.openGoogleLoginUnsupportedDialog(site); }
+  closeGoogleLoginUnsupportedDialog(): void { this.dialogs.closeGoogleLoginUnsupportedDialog(); }
 
-  openGrantPermissionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForGrantPermissionDialog$.next(site); this.isGrantPermissionDialogVisible$.next(true); }
+  openGrantPermissionDialog(site: Site): void { this.dialogs.openGrantPermissionDialog(site); }
   closeGrantPermissionDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableGrantPermissionDialogGlobally(); }
-    this.isGrantPermissionDialogVisible$.next(false); this.siteForGrantPermissionDialog$.next(null); this.restoreFocus();
+    if (disableGlobally) this.preferences.disableGrantPermissionDialogGlobally();
+    this.dialogs.closeGrantPermissionDialog();
   }
 
-  openInstallExtensionDialog(site: Site): void { this.saveFocus(); this.isDialogVisible = true; this.siteForInstallExtensionDialog$.next(site); this.isInstallExtensionDialogVisible$.next(true); }
+  openInstallExtensionDialog(site: Site): void { this.dialogs.openInstallExtensionDialog(site); }
   closeInstallExtensionDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableInstallExtensionDialogGlobally(); }
-    this.isInstallExtensionDialogVisible$.next(false); this.siteForInstallExtensionDialog$.next(null); this.restoreFocus();
+    if (disableGlobally) this.preferences.disableInstallExtensionDialogGlobally();
+    this.dialogs.closeInstallExtensionDialog();
   }
 
-  openThirdPartyCookiesBlockedDialog(): void { this.saveFocus(); this.isDialogVisible = true; this.isThirdPartyCookiesBlockedDialogVisible$.next(true); }
+  openThirdPartyCookiesBlockedDialog(): void { this.dialogs.openThirdPartyCookiesBlockedDialog(); }
   closeThirdPartyCookiesBlockedDialog(disableGlobally = false): void {
-    if (disableGlobally) { this.disableCookiesBlockedDialogGlobally(); }
-    this.isThirdPartyCookiesBlockedDialogVisible$.next(false); this.restoreFocus();
+    if (disableGlobally) this.preferences.disableCookiesBlockedDialogGlobally();
+    this.dialogs.closeThirdPartyCookiesBlockedDialog();
   }
-
-  private saveFocus(): void { this.focusedElementBeforeDialog = document.activeElement as HTMLElement; }
-  private restoreFocus(): void {
-    this.focusedElementBeforeDialog?.focus();
-    this.focusedElementBeforeDialog = null;
-    this.isDialogVisible = false;
-    setTimeout(() => this.processNextDialogInQueue(), 0);
-  }
-
-  private saveToStorage<T>(key: string, value: T): void { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('Error saving to localStorage', e); } }
-  private loadFromStorage<T>(key: string): T | null { try { const item = localStorage.getItem(key); return item ? JSON.parse(item) : null; } catch (e) { console.error('Error reading from localStorage', e); return null; } }
-
-  private hasViewedTutorial(url: string): boolean { const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? []; return viewedUrls.includes(url); }
-  private markTutorialAsViewed(url: string): void {
-    const viewedUrls = this.loadFromStorage<string[]>(this.viewedTutorialsKey) ?? [];
-    if (!viewedUrls.includes(url)) {
-      viewedUrls.push(url);
-      this.saveToStorage(this.viewedTutorialsKey, viewedUrls);
-    }
-  }
-
-  resetToHome(): void {
-    // 1. ניקוי תוכן דינאמי (עזרה, צור קשר וכו')
-    this.cleanupInjectedResources();
-    // 2. ניקוי הערוץ הנבחר (החזרת ה-Iframe למצב ריק/פלייסולדר)
-    this.selectedSiteSubject.next(null);
-    this.activeView$.next('site');
-
-    // 3. טיפול חכם ב-URL: שמירה על UTM וניקוי פרמטרי ניווט
-    const currentParams = new URLSearchParams(window.location.search);
-    const knownNavigationParams = ['name', 'url', 'category', 'view', 'section', 'source'];
-
-    const newParams = new URLSearchParams();
-    currentParams.forEach((value, key) => {
-      // אנחנו מוסיפים ל-URL החדש רק פרמטרים שהם לא ברשימת הניווט שלנו
-      if (!knownNavigationParams.includes(key)) {
-        newParams.set(key, value);
-      }
-    });
-
-    const queryString = newParams.toString();
-    const newUrl = window.location.pathname + (queryString ? '?' + queryString : '');
-
-    // עדכון הכתובת ללא רענון דף
-    history.pushState(null, '', newUrl);
-  }
-
-  private isLoginTutorialGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowLoginTutorialKey) === true; }
-  private disableLoginTutorialGlobally(): void { this.saveToStorage(this.neverShowLoginTutorialKey, true); }
-
-  private isGrantPermissionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowGrantPermissionDialogKey) === true; }
-  private disableGrantPermissionDialogGlobally(): void { this.saveToStorage(this.neverShowGrantPermissionDialogKey, true); }
-
-  private isInstallExtensionDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowInstallExtensionDialogKey) === true; }
-  private disableInstallExtensionDialogGlobally(): void { this.saveToStorage(this.neverShowInstallExtensionDialogKey, true); }
-
-  private isCookiesBlockedDialogGloballyDisabled(): boolean { return this.loadFromStorage<boolean>(this.neverShowCookiesBlockedDialogKey) === true; }
-  private disableCookiesBlockedDialogGlobally(): void { this.saveToStorage(this.neverShowCookiesBlockedDialogKey, true); }
 }
