@@ -20,6 +20,7 @@ import { ThirdPartyCookiesBlockedDialogComponent } from './components/third-part
 // Import services
 import { SiteDataService } from './core/services/site-data.service';
 import { UiStateService } from './core/services/ui-state.service';
+import { TitleService } from './core/services/ui/title.service';
 import { Site, Category } from './core/models/site.model';
 
 @Component({
@@ -48,8 +49,12 @@ import { Site, Category } from './core/models/site.model';
 export class AppComponent implements OnInit, AfterViewInit {
   private siteDataService = inject(SiteDataService);
   private uiStateService = inject(UiStateService);
+  private titleService = inject(TitleService);
 
   ngOnInit(): void {
+    // הגדרת כותרת ברירת המחדל בטעינה ראשונית
+    this.titleService.setDefaultTitle();
+
     this.uiStateService.checkAndAlertIfThirdPartyCookiesBlocked();
 
     this.siteDataService.categories$.pipe(

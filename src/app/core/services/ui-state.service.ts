@@ -1,5 +1,5 @@
 import { Injectable, inject, Injector } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Site } from '../models/site.model';
 import { SiteDataService } from './site-data.service';
@@ -11,6 +11,7 @@ import { UserPreferencesService } from './ui/user-preferences.service';
 import { DialogService } from './ui/dialog.service';
 import { NavigationService } from './ui/navigation.service';
 import { ContentLoaderService } from './ui/content-loader.service';
+import { TitleService } from './ui/title.service';
 import { InputDialogConfig, DataLoadingState, ActiveView } from './ui/ui-types';
 
 // Re-export types for compatibility with existing components
@@ -31,6 +32,7 @@ export class UiStateService {
   private dialogs = inject(DialogService);
   private navigation = inject(NavigationService);
   private contentLoader = inject(ContentLoaderService);
+  private titleService = inject(TitleService);
 
   private _siteDataService: SiteDataService | null = null;
 
@@ -132,6 +134,7 @@ export class UiStateService {
     this.activeView$.next('help');
     this.helpSection$.next(section);
     this.selectedSiteSubject.next(null);
+    this.titleService.setHelpTitle(section);
 
     if (!skipHistoryUpdate) {
       this.navigation.updateUrl({ view: 'help', section });
@@ -146,6 +149,7 @@ export class UiStateService {
 
   updateHelpUrl(section: string): void {
     this.navigation.updateUrl({ view: 'help', section }, false); // replaceState
+    this.titleService.setHelpTitle(section);
   }
 
   async loadCustomContentFromSource(
@@ -169,6 +173,7 @@ export class UiStateService {
       else this.activeView$.next('custom');
 
       this.selectedSiteSubject.next(null);
+      this.titleService.setCustomContentTitle(source);
 
       if (!skipHistoryUpdate) {
         this.navigation.updateUrl({ view: source, ...params });
@@ -180,7 +185,7 @@ export class UiStateService {
         page_location: window.location.href,
       });
 
-    } catch (error) {
+    } catch {
        this.activeView$.next('custom');
        // Error handled in contentLoader but view updated here
     }
@@ -195,6 +200,9 @@ export class UiStateService {
       this.preferences.saveToStorage(this.preferences.lastViewedSiteUrlKey, site.url);
       const catName = categoryName || this.siteDataService.getCategoryForSite(site);
 
+      // עדכון כותרת האתר לכלול את שם הערוץ
+      this.titleService.setSiteTitle(site.name);
+
       if (catName && !skipHistoryUpdate) {
         this.navigation.updateUrl({ name: site.name, url: site.url, category: catName });
       }
@@ -208,6 +216,9 @@ export class UiStateService {
       this.handleSiteTutorials(site);
 
     } else {
+      // חזרה לכותרת ברירת המחדל כשאין ערוץ נבחר
+      this.titleService.setDefaultTitle();
+
       // Just clear selection in URL if site is null
       if (!skipHistoryUpdate) {
           history.pushState(null, '', window.location.pathname);
@@ -252,6 +263,8 @@ export class UiStateService {
     const currentSite = this.selectedSiteSubject.getValue();
     if (currentSite && currentSite.url === originalUrl) {
       this.selectedSiteSubject.next(updatedSite);
+      // עדכון כותרת האתר גם כשמעדכנים ערוץ קיים
+      this.titleService.setSiteTitle(updatedSite.name);
     }
   }
 
@@ -263,6 +276,7 @@ export class UiStateService {
     this.contentLoader.cleanupInjectedResources();
     this.selectedSiteSubject.next(null);
     this.activeView$.next('site');
+    this.titleService.setDefaultTitle();
     this.navigation.resetUrlToHome();
   }
 
