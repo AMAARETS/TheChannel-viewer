@@ -1,15 +1,17 @@
-import { Component, Input, Output, EventEmitter, Renderer2, OnChanges, SimpleChanges, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, Renderer2, OnChanges, SimpleChanges, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule, NgStyle } from '@angular/common';
 import { Site, Category } from '../../../core/models/site.model';
 
 export interface ContextMenuData {
   site: Site;
   category: Category;
-  event: MouseEvent; // במצב עצמאי זה יכול להיות null או מדומה
+  event: MouseEvent;
   isFirst: boolean;
   isLast: boolean;
   isMuted: boolean;
 }
+
+type MenuView = 'main' | 'categories';
 
 @Component({
   selector: 'app-context-menu',
@@ -22,7 +24,7 @@ export interface ContextMenuData {
 export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Input() menuData: ContextMenuData | null = null;
   @Input() allCategories: Category[] = [];
-  @Input() isStandalone = false; // שדה חדש למצב עצמאי
+  @Input() isStandalone = false;
 
   @Output() closed = new EventEmitter<void>();
   @Output() editClicked = new EventEmitter<{ site: Site, category: Category }>();
@@ -36,31 +38,62 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
 
   position = { top: '0px', left: '0px', bottom: 'auto' };
   isOpeningUp = false;
+  currentView: MenuView = 'main';
+
   private globalClickListener: (() => void) | null = null;
 
-  constructor(private renderer: Renderer2) {}
+  constructor(
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['menuData'] && this.menuData) {
-      // אם זה לא מצב עצמאי, חשב מיקום והאזן לקליקים בחוץ
-      if (!this.isStandalone) {
-        this.calculatePosition(this.menuData.event);
-        if (!this.globalClickListener) {
-          this.globalClickListener = this.renderer.listen('document', 'click', () => {
-            this.close();
-          });
+    if (changes['menuData']) {
+      if (this.menuData) {
+        this.currentView = 'main';
+
+        // אם אנחנו במצב רגיל (לא עצמאי), נחשב מיקום ונאזין לקליקים בחוץ
+        if (!this.isStandalone) {
+          this.calculatePosition(this.menuData.event);
+          this.attachGlobalListener();
+        } else {
+          this.removeGlobalListener();
         }
       } else {
-        // במצב עצמאי, הסר מאזינים אם היו
         this.removeGlobalListener();
       }
-    } else if (!this.menuData) {
-      this.removeGlobalListener();
     }
   }
 
   ngOnDestroy(): void {
     this.removeGlobalListener();
+  }
+
+  showCategories(): void {
+    this.currentView = 'categories';
+    this.cdr.markForCheck();
+  }
+
+  showMain(): void {
+    this.currentView = 'main';
+    this.cdr.markForCheck();
+  }
+
+  private attachGlobalListener(): void {
+    this.removeGlobalListener();
+
+    // שימוש ב-setTimeout כדי למנוע מהקליק שפתח את התפריט לסגור אותו מיד
+    setTimeout(() => {
+      if (this.menuData && !this.globalClickListener) {
+        this.globalClickListener = this.renderer.listen('document', 'click', (event: Event) => {
+          // בדיקה שהקליק לא היה בתוך התפריט עצמו (אם propagation לא עבד)
+          const target = event.target as HTMLElement;
+          if (!target.closest('.context-menu')) {
+            this.close();
+          }
+        });
+      }
+    }, 0);
   }
 
   private removeGlobalListener(): void {
@@ -71,9 +104,12 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   }
 
   private calculatePosition(event: MouseEvent): void {
-    if (!event || !event.currentTarget) return;
+    if (!event || !event.target) return;
 
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    // שימוש ב-target כברירת מחדל אם currentTarget אבד (קורה ב-async events)
+    const targetElement = (event.currentTarget || event.target) as HTMLElement;
+    const rect = targetElement.getBoundingClientRect();
+
     const viewportHeight = window.innerHeight;
     const MENU_ESTIMATED_HEIGHT = 280;
     const MENU_ESTIMATED_WIDTH = 150;
@@ -82,14 +118,18 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     const leftPosition = rect.right - MENU_ESTIMATED_WIDTH - OFFSET_FROM_BUTTON;
     const buttonCenterY = rect.top + (rect.height / 2);
     const menuThirdHeight = MENU_ESTIMATED_HEIGHT / 3;
+
     let topPosition = buttonCenterY - menuThirdHeight;
 
-    if (topPosition < 0) {
+    // תיקון גלישה מלמעלה
+    if (topPosition < 10) {
       topPosition = 10;
     }
 
+    // תיקון גלישה מלמטה
     if (topPosition + MENU_ESTIMATED_HEIGHT > viewportHeight) {
       const availableSpace = viewportHeight - rect.bottom;
+      // אם אין מקום למטה, ננסה למקם מעל
       if (availableSpace < 50) {
         const overflow = (topPosition + MENU_ESTIMATED_HEIGHT) - viewportHeight;
         topPosition = topPosition - overflow - 10;
@@ -103,6 +143,7 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     };
 
     this.isOpeningUp = topPosition < buttonCenterY - menuThirdHeight;
+    this.cdr.markForCheck(); // עדכון התצוגה
   }
 
   close(): void {

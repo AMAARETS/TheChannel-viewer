@@ -17,7 +17,9 @@ export const MESSAGE_TYPES = {
   UNREAD_STATUS_UPDATE: 'THE_CHANNEL_UNREAD_STATUS_UPDATE',
   GET_MUTED_DOMAINS: 'THE_CHANNEL_GET_MUTED_DOMAINS',
   MUTED_DOMAINS_DATA: 'THE_CHANNEL_MUTED_DOMAINS_DATA',
-  TOGGLE_MUTE_DOMAIN: 'THE_CHANNEL_TOGGLE_MUTE_DOMAIN'
+  TOGGLE_MUTE_DOMAIN: 'THE_CHANNEL_TOGGLE_MUTE_DOMAIN',
+  // --- סוג הודעה חדש ---
+  SIDEBAR_ACTION: 'THE_CHANNEL_SIDEBAR_ACTION'
 };
 
 export interface AppSettings {
@@ -88,8 +90,9 @@ export class ExtensionCommunicationService {
       if (this.activeChannel !== CommsChannel.DIRECT) return;
       data = event.detail;
     } else if (event instanceof MessageEvent) {
+      // כאן מתבצעת הקבלה של הודעות מההורה (כמו UNREAD_STATUS_UPDATE)
+      // זה יעבוד גם במצב Standalone כל עוד ההורה שולח ל-Iframe
       if (this.activeChannel !== CommsChannel.IFRAME) return;
-      // *** תיקון: אפשור הודעות גם מלוקלהוסט לפיתוח ***
       if (event.origin !== 'https://mail.google.com' && !event.origin.includes('localhost')) return;
       data = event.data;
     } else {
@@ -141,12 +144,21 @@ export class ExtensionCommunicationService {
     if (this.activeChannel === CommsChannel.DIRECT) {
       window.dispatchEvent(new CustomEvent(CustomEventToExtension, { detail: message }));
     } else if (this.activeChannel === CommsChannel.IFRAME) {
-      // אם אנחנו בפיתוח לוקאלי בתוך אייפריים, ייתכן שצריך לשלוח לכתובת שונה,
-      // אבל בדרך כלל בפיתוח רצים בטאב נפרד (DIRECT) או בתוך ג'ימייל (IFRAME)
-      window.parent.postMessage(message, '*'); // שימוש ב-* לפיתוח קל יותר
+      window.parent.postMessage(message, '*');
     }
   }
 
+  // --- פונקציה חדשה לדיווח על פעולות בסרגל ---
+  public notifyParentSidebarAction(action: string, data: any): void {
+    this.sendMessageToExtension({
+      type: MESSAGE_TYPES.SIDEBAR_ACTION,
+      payload: {
+        action,
+        data
+      }
+    });
+  }
+  // ------------------------------------------
 
   public requestUnreadStatus(): void {
     if (this.isExtensionActive.value) {

@@ -23,6 +23,7 @@
   width: 100%; /* תופס את רוחב הקונטיינר */
   max-width: 250px; /* הגבלת רוחב שלא יתפרס מדי */
   margin: 0 auto;
+  overflow: hidden; /* מונע גלישה החוצה */
 }
 /* ----------------------- */
 
@@ -30,6 +31,9 @@
   padding: 6px 12px;
   cursor: pointer;
   white-space: nowrap;
+  display: flex; /* כדי ליישר את החץ */
+  align-items: center;
+  justify-content: space-between;
 }
 .context-menu-item:hover {
   background-color: #f1f3f4;
@@ -39,6 +43,8 @@
   cursor: not-allowed;
   background-color: transparent;
 }
+
+/* Normal Mode Submenu logic */
 .context-menu-item-wrapper {
   position: relative;
 }
@@ -67,14 +73,71 @@
   bottom: -5px;
 }
 
-/* התאמת תת-תפריט למצב עצמאי אם צריך (אופציונלי) */
-.context-menu.standalone-mode .context-submenu {
-  left: auto;
-  right: 100%; /* פתיחה לצד השני אם הוא במרכז המסך */
-}
-
 .context-divider {
   border: none;
   border-top: 1px solid #e0e0e0;
   margin: 4px 0;
+}
+
+/* --- New Styles for Standalone Categories View --- */
+
+.context-menu-item.has-arrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arrow-icon {
+  font-size: 10px;
+  color: #5f6368;
+}
+
+/* Submenu Header with Back Button */
+.submenu-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #5f6368;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  margin-left: 8px;
+  border-radius: 4px;
+  color: #5f6368;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn:hover {
+  background-color: #f1f3f4;
+  color: #202124;
+}
+
+/* Scrollable container for the categories list */
+.submenu-scroll-container {
+  max-height: 280px; /* גובה מקסימלי לרשימה */
+  overflow-y: auto;
+  /* עיצוב פס גלילה */
+  scrollbar-width: thin;
+  scrollbar-color: #dadce0 transparent;
+}
+
+.submenu-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.submenu-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.submenu-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #dadce0;
+  border-radius: 3px;
 }

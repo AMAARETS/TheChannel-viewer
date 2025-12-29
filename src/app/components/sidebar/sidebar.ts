@@ -31,7 +31,6 @@ import { ExtensionCommunicationService } from '../../core/services/extension-com
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  // Input חדש שקובע אם הסרגל במצב עצמאי (ללא דיאלוגים ותפריטים)
   @Input() isStandalone = false;
 
   siteDataService = inject(SiteDataService);
@@ -115,10 +114,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onSelectSite(event: { site: Site, category: Category }): void {
-    // במצב עצמאי, אנחנו רוצים לפתוח את הקישור בחלון חדש (אם זו הכוונה) או להישאר עם ההתנהגות הרגילה.
-    // מכיוון שאין MainContent במצב עצמאי, סביר שנרצה לפתוח בטאב חדש,
-    // אך אם זה מוטמע ב-Iframe, ייתכן שנרצה לשדר החוצה.
-    // כרגע נשאיר את זה רגיל (UiStateService) והמשתמש יחליט איך להשתמש בזה.
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('SELECT_SITE', {
+        site: event.site,
+        category: event.category.name
+      });
+      return;
+    }
     this.uiStateService.selectSite(event.site, event.category.name);
   }
 
@@ -129,14 +131,32 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onAddSiteFromAvailable(site: AvailableSite): void {
-    if (this.isStandalone) return; // חסום במצב עצמאי
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('ADD_SITE_FROM_AVAILABLE', { site });
+      this.searchBar.clearSearch();
+      return;
+    }
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite(site, categoryName);
     this.searchBar.clearSearch();
   }
 
+  // --- לוגיקה מעודכנת לתפריט ---
   onContextMenuOpen(data: ContextMenuOpenEvent): void {
-    if (this.isStandalone) return; // חסום במצב עצמאי
+    if (this.isStandalone) {
+      // חישוב המיקום האופטימלי לשליחה להורה
+      const adjustedPosition = this.calculateMenuPositionForParent(data.event);
+
+      this.extensionCommService.notifyParentSidebarAction('OPEN_CONTEXT_MENU', {
+        site: data.site,
+        category: data.category.name,
+        isFirst: data.isFirst,
+        isLast: data.isLast,
+        coordinates: { x: data.event.clientX, y: data.event.clientY }, // Raw coordinates
+        adjustedPosition: adjustedPosition // Calculated optimal coordinates
+      });
+      return;
+    }
 
     const mutedSet = new Set(this.getExtensionMutedDomainsSync());
     const isMuted = this.siteDataService.isSiteMuted(data.site.url, mutedSet);
@@ -144,6 +164,51 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.contextMenuData = {
         ...data,
         isMuted: isMuted
+    };
+  }
+
+  /**
+   * מחשב את המיקום הרצוי של התפריט בהתבסס על הכפתור שנלחץ,
+   * ומחזיר אובייקט מיקום מוכן לשימוש ע"י ההורה.
+   */
+  private calculateMenuPositionForParent(event: MouseEvent): { top: string, left: string } {
+    if (!event || !event.target) return { top: '0px', left: '0px' };
+
+    const targetElement = (event.currentTarget || event.target) as HTMLElement;
+    const rect = targetElement.getBoundingClientRect();
+    
+    // שימוש בנתונים קבועים או דינמיים של המסך הנוכחי (ה-Iframe)
+    const viewportHeight = window.innerHeight;
+    const MENU_ESTIMATED_HEIGHT = 280;
+    const MENU_ESTIMATED_WIDTH = 150;
+    const OFFSET_FROM_BUTTON = 25;
+
+    // חישוב Left (מימין לשמאל בגלל RTL, או משמאל לימין)
+    // הערה: ב-Standalone בדרך כלל נרצה שהתפריט יפתח צמוד לכפתור
+    const leftPosition = rect.right - MENU_ESTIMATED_WIDTH - OFFSET_FROM_BUTTON;
+    
+    // חישוב Top (ממורכז לכפתור)
+    const buttonCenterY = rect.top + (rect.height / 2);
+    const menuThirdHeight = MENU_ESTIMATED_HEIGHT / 3;
+    let topPosition = buttonCenterY - menuThirdHeight;
+
+    // תיקון גלישה מלמעלה
+    if (topPosition < 10) {
+      topPosition = 10;
+    }
+
+    // תיקון גלישה מלמטה
+    if (topPosition + MENU_ESTIMATED_HEIGHT > viewportHeight) {
+      const availableSpace = viewportHeight - rect.bottom;
+      if (availableSpace < 50) {
+        const overflow = (topPosition + MENU_ESTIMATED_HEIGHT) - viewportHeight;
+        topPosition = topPosition - overflow - 10;
+      }
+    }
+
+    return {
+      top: `${topPosition}px`,
+      left: `${leftPosition}px`
     };
   }
 
@@ -225,7 +290,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowAdvertisePage(): void {
-    if (this.isStandalone) return;
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('NAVIGATE', { view: 'advertise' });
+      return;
+    }
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_advertise',
       button_location: 'sidebar',
@@ -234,7 +302,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowContactPage(): void {
-    if (this.isStandalone) return;
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('NAVIGATE', { view: 'contact' });
+      return;
+    }
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_contact',
       button_location: 'sidebar',
@@ -243,7 +314,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowHelpPage(): void {
-    if (this.isStandalone) return;
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('NAVIGATE', { view: 'help' });
+      return;
+    }
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_help',
       button_location: 'sidebar',
@@ -265,7 +339,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   openAddSiteDialog(): void {
-    if (this.isStandalone) return; // חסום במצב עצמאי
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('OPEN_ADD_DIALOG', {});
+      return;
+    }
     this.analyticsService.trackButtonClick({
       button_name: 'open_add_channel_dialog',
       button_location: 'sidebar',
@@ -285,7 +362,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   onLogoClick(event: MouseEvent): void {
     if (this.isStandalone) {
-      event.preventDefault(); // במצב עצמאי, הלוגו לא עושה ניווט
+      event.preventDefault();
+      this.extensionCommService.notifyParentSidebarAction('NAVIGATE', { view: 'home' });
       return;
     }
 

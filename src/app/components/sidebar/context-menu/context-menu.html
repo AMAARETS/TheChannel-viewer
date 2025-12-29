@@ -5,24 +5,65 @@
        [class.standalone-mode]="isStandalone"
        (click)="$event.stopPropagation()" tabindex="0">
 
-    <div class="context-menu-item" (click)="onEdit(menuData.site, menuData.category, $event)" (keydown.enter)="onEdit(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">עריכת ערוץ</div>
-    <hr class="context-divider">
-    <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
-    <div class="context-menu-item" (click)="onCopyLink(menuData.site, menuData.category, $event)" (keydown.enter)="onCopyLink(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">העתק קישור</div>
+    <!-- VIEW 1: Main Menu -->
+    @if (currentView === 'main') {
+      <div class="menu-view-main">
+        <div class="context-menu-item" (click)="onEdit(menuData.site, menuData.category, $event)" (keydown.enter)="onEdit(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">עריכת ערוץ</div>
+        <hr class="context-divider">
+        <div class="context-menu-item" (click)="onDelete(menuData.site, $event)" (keydown.enter)="onDelete(menuData.site, $event)" tabindex="0" role="menuitem">מחיקת ערוץ</div>
+        <div class="context-menu-item" (click)="onCopyLink(menuData.site, menuData.category, $event)" (keydown.enter)="onCopyLink(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">העתק קישור</div>
 
-    <!-- Mute Option -->
-    <div class="context-menu-item" (click)="onToggleMute(menuData.site, $event)" (keydown.enter)="onToggleMute(menuData.site, $event)" tabindex="0" role="menuitem">
-      @if (menuData.isMuted) {
-        בטל השתקת התראות
-      } @else {
-        השתק התראות
-      }
-    </div>
+        <!-- Mute Option -->
+        <div class="context-menu-item" (click)="onToggleMute(menuData.site, $event)" (keydown.enter)="onToggleMute(menuData.site, $event)" tabindex="0" role="menuitem">
+          @if (menuData.isMuted) {
+            בטל השתקת התראות
+          } @else {
+            השתק התראות
+          }
+        </div>
 
-    <div class="context-menu-item-wrapper">
-      <div class="context-menu-item with-submenu" tabindex="0" role="menuitem">
-        העברה לקטגוריה
-        <div class="context-submenu">
+        <!-- Category Selection Logic -->
+        @if (isStandalone) {
+          <!-- Standalone Mode: Click to switch view -->
+          <hr class="context-divider">
+          <div class="context-menu-item has-arrow" (click)="showCategories()" tabindex="0" role="menuitem">
+            העברה לקטגוריה
+            <span class="arrow-icon">❮</span>
+          </div>
+        } @else {
+          <!-- Normal Mode: Hover for submenu -->
+          <div class="context-menu-item-wrapper">
+            <div class="context-menu-item with-submenu" tabindex="0" role="menuitem">
+              העברה לקטגוריה
+              <div class="context-submenu">
+                @for (cat of allCategories; track cat.name) {
+                  @if (cat.name !== menuData.category.name) {
+                    <div class="context-menu-item" (click)="onChangeCategory(menuData.site, menuData.category, cat)" (keydown.enter)="onChangeCategory(menuData.site, menuData.category, cat)" tabindex="0" role="menuitem">
+                      {{cat.name}}
+                    </div>
+                  }
+                }
+                <hr class="context-divider">
+                <div class="context-menu-item" (click)="onNewCategory(menuData.site, menuData.category)" (keydown.enter)="onNewCategory(menuData.site, menuData.category)" tabindex="0" role="menuitem">קטגוריה חדשה...</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <hr class="context-divider">
+        <div class="context-menu-item" [class.disabled]="menuData.isFirst" (click)="onMoveUp(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveUp(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למעלה</div>
+        <div class="context-menu-item" [class.disabled]="menuData.isLast" (click)="onMoveDown(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveDown(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למטה</div>
+      </div>
+    }
+
+    <!-- VIEW 2: Categories List (Only in Standalone Mode) -->
+    @if (currentView === 'categories') {
+      <div class="menu-view-categories">
+        <div class="submenu-header">
+          <button class="back-btn" (click)="showMain()" title="חזרה">➜</button>
+          <span>בחר קטגוריה</span>
+        </div>
+        <div class="submenu-scroll-container">
           @for (cat of allCategories; track cat.name) {
             @if (cat.name !== menuData.category.name) {
               <div class="context-menu-item" (click)="onChangeCategory(menuData.site, menuData.category, cat)" (keydown.enter)="onChangeCategory(menuData.site, menuData.category, cat)" tabindex="0" role="menuitem">
@@ -34,11 +75,7 @@
           <div class="context-menu-item" (click)="onNewCategory(menuData.site, menuData.category)" (keydown.enter)="onNewCategory(menuData.site, menuData.category)" tabindex="0" role="menuitem">קטגוריה חדשה...</div>
         </div>
       </div>
-    </div>
-
-    <hr class="context-divider">
-    <div class="context-menu-item" [class.disabled]="menuData.isFirst" (click)="onMoveUp(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveUp(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למעלה</div>
-    <div class="context-menu-item" [class.disabled]="menuData.isLast" (click)="onMoveDown(menuData.site, menuData.category, $event)" (keydown.enter)="onMoveDown(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">הזז למטה</div>
+    }
 
   </div>
 }
