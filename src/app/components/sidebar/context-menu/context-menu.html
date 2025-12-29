@@ -1,7 +1,8 @@
 @if (menuData) {
   <div class="context-menu"
-       [ngStyle]="position"
+       [ngStyle]="!isStandalone ? position : null"
        [class.opens-up]="isOpeningUp"
+       [class.standalone-mode]="isStandalone"
        (click)="$event.stopPropagation()" tabindex="0">
 
     <div class="context-menu-item" (click)="onEdit(menuData.site, menuData.category, $event)" (keydown.enter)="onEdit(menuData.site, menuData.category, $event)" tabindex="0" role="menuitem">עריכת ערוץ</div>

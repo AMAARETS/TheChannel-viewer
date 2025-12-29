@@ -5,10 +5,10 @@ import { Site, Category } from '../../../core/models/site.model';
 export interface ContextMenuData {
   site: Site;
   category: Category;
-  event: MouseEvent;
+  event: MouseEvent; // במצב עצמאי זה יכול להיות null או מדומה
   isFirst: boolean;
   isLast: boolean;
-  isMuted: boolean; // שדה חדש
+  isMuted: boolean;
 }
 
 @Component({
@@ -22,6 +22,8 @@ export interface ContextMenuData {
 export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Input() menuData: ContextMenuData | null = null;
   @Input() allCategories: Category[] = [];
+  @Input() isStandalone = false; // שדה חדש למצב עצמאי
+
   @Output() closed = new EventEmitter<void>();
   @Output() editClicked = new EventEmitter<{ site: Site, category: Category }>();
   @Output() deleteClicked = new EventEmitter<Site>();
@@ -30,7 +32,6 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Output() moveUpClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() moveDownClicked = new EventEmitter<{ site: Site, fromCategory: Category }>();
   @Output() copyLinkClicked = new EventEmitter<{ site: Site, category: Category }>();
-  // אירוע חדש ללחיצה על השתק/בטל השתקה
   @Output() toggleMuteClicked = new EventEmitter<Site>();
 
   position = { top: '0px', left: '0px', bottom: 'auto' };
@@ -41,11 +42,17 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['menuData'] && this.menuData) {
-      this.calculatePosition(this.menuData.event);
-      if (!this.globalClickListener) {
-        this.globalClickListener = this.renderer.listen('document', 'click', () => {
-          this.close();
-        });
+      // אם זה לא מצב עצמאי, חשב מיקום והאזן לקליקים בחוץ
+      if (!this.isStandalone) {
+        this.calculatePosition(this.menuData.event);
+        if (!this.globalClickListener) {
+          this.globalClickListener = this.renderer.listen('document', 'click', () => {
+            this.close();
+          });
+        }
+      } else {
+        // במצב עצמאי, הסר מאזינים אם היו
+        this.removeGlobalListener();
       }
     } else if (!this.menuData) {
       this.removeGlobalListener();
@@ -64,43 +71,37 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   }
 
   private calculatePosition(event: MouseEvent): void {
+    if (!event || !event.currentTarget) return;
+
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    const MENU_ESTIMATED_HEIGHT = 280; // הוגדל מעט בגלל הכפתור הנוסף
-    const MENU_ESTIMATED_WIDTH = 150; // רוחב משוער של התפריט
-    const OFFSET_FROM_BUTTON = 25; // מרווח נוסף לשמאל מסוף הכפתור
+    const MENU_ESTIMATED_HEIGHT = 280;
+    const MENU_ESTIMATED_WIDTH = 150;
+    const OFFSET_FROM_BUTTON = 25;
 
-    // חישוב מיקום אופקי - התפריט יפתח לשמאל עם מרווח
     const leftPosition = rect.right - MENU_ESTIMATED_WIDTH - OFFSET_FROM_BUTTON;
-
-    // חישוב מיקום אנכי - השליש העליון של התפריט מול אמצע הכפתור
     const buttonCenterY = rect.top + (rect.height / 2);
     const menuThirdHeight = MENU_ESTIMATED_HEIGHT / 3;
     let topPosition = buttonCenterY - menuThirdHeight;
 
-    // בדיקה אם התפריט חורג מהחלק העליון של המסך
     if (topPosition < 0) {
-      topPosition = 10; // מרווח קטן מהחלק העליון
+      topPosition = 10;
     }
 
-    // בדיקה אם התפריט חורג מהחלק התחתון של המסך (לפי גובה העמוד כולו)
     if (topPosition + MENU_ESTIMATED_HEIGHT > viewportHeight) {
-      // רק אם באמת אין מקום, נזיז את התפריט למעלה
       const availableSpace = viewportHeight - rect.bottom;
-      if (availableSpace < 50) { // אם יש פחות מ-50 פיקסלים מתחת לכפתור
+      if (availableSpace < 50) {
         const overflow = (topPosition + MENU_ESTIMATED_HEIGHT) - viewportHeight;
         topPosition = topPosition - overflow - 10;
       }
     }
 
-    // עדכון המיקום
     this.position = {
       top: `${topPosition}px`,
       bottom: 'auto',
       left: `${leftPosition}px`
     };
 
-    // עדכון הסטטוס של פתיחה למעלה
     this.isOpeningUp = topPosition < buttonCenterY - menuThirdHeight;
   }
 
@@ -123,7 +124,6 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     this.copyLinkClicked.emit({ site, category });
   }
 
-  // פונקציה חדשה לטיפול בהשתקה
   onToggleMute(site: Site, event: Event): void {
     event.stopPropagation();
     this.toggleMuteClicked.emit(site);

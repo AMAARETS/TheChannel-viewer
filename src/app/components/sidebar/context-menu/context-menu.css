@@ -1,6 +1,6 @@
 /* src/app/components/sidebar/context-menu/context-menu.component.css */
 .context-menu {
-  position: fixed;
+  position: fixed; /* ברירת מחדל למצב רגיל */
   background-color: #ffffff;
   border: 1px solid #dadce0;
   border-radius: 8px;
@@ -10,6 +10,22 @@
   padding: 4px 0;
   font-size: 14px;
 }
+
+/* --- תוספת למצב עצמאי --- */
+.context-menu.standalone-mode {
+  position: relative !important; /* מבטל את ה-fixed */
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  box-shadow: none; /* אפשר להשאיר צל או להוריד */
+  border: none; /* אפשר להשאיר גבול או להוריד */
+  width: 100%; /* תופס את רוחב הקונטיינר */
+  max-width: 250px; /* הגבלת רוחב שלא יתפרס מדי */
+  margin: 0 auto;
+}
+/* ----------------------- */
+
 .context-menu-item {
   padding: 6px 12px;
   cursor: pointer;
@@ -49,6 +65,12 @@
 .context-menu.opens-up .context-submenu {
   top: auto;
   bottom: -5px;
+}
+
+/* התאמת תת-תפריט למצב עצמאי אם צריך (אופציונלי) */
+.context-menu.standalone-mode .context-submenu {
+  left: auto;
+  right: 100%; /* פתיחה לצד השני אם הוא במרכז המסך */
 }
 
 .context-divider {
