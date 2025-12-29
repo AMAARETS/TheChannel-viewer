@@ -75,6 +75,9 @@ export class UiStateService {
   isSidebarCollapsed$ = new BehaviorSubject<boolean>(
     this.preferences.loadFromStorage(this.preferences.sidebarCollapsedKey) ?? false
   );
+
+  isSidebarVisible$ = new BehaviorSubject<boolean>(true);
+
   collapsedCategories$ = new BehaviorSubject<Record<string, boolean>>(
     this.preferences.loadFromStorage(this.preferences.collapsedCategoriesKey) ?? {}
   );

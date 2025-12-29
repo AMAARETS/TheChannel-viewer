@@ -51,7 +51,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
   private uiStateService = inject(UiStateService);
   private titleService = inject(TitleService);
 
+  isSidebarVisible$ = this.uiStateService.isSidebarVisible$;
+
   ngOnInit(): void {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('hideSidebar') === 'true') {
+      this.uiStateService.isSidebarVisible$.next(false);
+    }
+
     this.titleService.setDefaultTitle();
     this.uiStateService.checkAndAlertIfThirdPartyCookiesBlocked();
 
