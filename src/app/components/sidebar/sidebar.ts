@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ChangeDetectionStrategy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, BehaviorSubject, combineLatest, map, Subscription } from 'rxjs';
 
@@ -31,6 +31,9 @@ import { ExtensionCommunicationService } from '../../core/services/extension-com
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidebarComponent implements OnInit, OnDestroy {
+  // Input חדש שקובע אם הסרגל במצב עצמאי (ללא דיאלוגים ותפריטים)
+  @Input() isStandalone = false;
+
   siteDataService = inject(SiteDataService);
   uiStateService = inject(UiStateService);
   analyticsService = inject(AnalyticsService);
@@ -43,7 +46,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isSidebarCollapsed$ = this.uiStateService.isSidebarCollapsed$;
   activeSiteUrl$: Observable<string | null> = this.uiStateService.selectedSite$.pipe(map(s => s?.url ?? null));
   categoryCollapseState$: Observable<Record<string, boolean>> = this.uiStateService.collapsedCategories$;
-  mutedDomains$ = this.siteDataService.mutedDomains$; // הוספת המשתנה
+  mutedDomains$ = this.siteDataService.mutedDomains$;
 
   searchTerm$ = new BehaviorSubject<string>('');
   filteredCategories$!: Observable<Category[]>;
@@ -112,6 +115,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onSelectSite(event: { site: Site, category: Category }): void {
+    // במצב עצמאי, אנחנו רוצים לפתוח את הקישור בחלון חדש (אם זו הכוונה) או להישאר עם ההתנהגות הרגילה.
+    // מכיוון שאין MainContent במצב עצמאי, סביר שנרצה לפתוח בטאב חדש,
+    // אך אם זה מוטמע ב-Iframe, ייתכן שנרצה לשדר החוצה.
+    // כרגע נשאיר את זה רגיל (UiStateService) והמשתמש יחליט איך להשתמש בזה.
     this.uiStateService.selectSite(event.site, event.category.name);
   }
 
@@ -122,23 +129,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onAddSiteFromAvailable(site: AvailableSite): void {
+    if (this.isStandalone) return; // חסום במצב עצמאי
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite(site, categoryName);
     this.searchBar.clearSearch();
   }
 
   onContextMenuOpen(data: ContextMenuOpenEvent): void {
-    // בדיקה סינכרונית האם האתר מושתק לצורך בניית התפריט
+    if (this.isStandalone) return; // חסום במצב עצמאי
+
     const mutedSet = new Set(this.getExtensionMutedDomainsSync());
     const isMuted = this.siteDataService.isSiteMuted(data.site.url, mutedSet);
 
     this.contextMenuData = {
         ...data,
-        isMuted: isMuted // הוספת הסטטוס לנתוני התפריט
+        isMuted: isMuted
     };
   }
 
-  // פונקציית עזר לשליפת הערך הנוכחי (הכי עדכני)
   private getExtensionMutedDomainsSync(): Set<string> {
       let currentSet = new Set<string>();
       this.mutedDomains$.subscribe(set => currentSet = set).unsubscribe();
@@ -173,7 +181,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.onContextMenuClose();
   }
 
-  // פונקציה לטיפול בלחיצה על השתקה
   onToggleSiteMute(site: Site): void {
     if (!this.extensionCommService.isExtensionActiveValue) {
         this.toastService.show('אפשרות זו זמינה רק כאשר התוסף מותקן ופעיל', 'error');
@@ -218,6 +225,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowAdvertisePage(): void {
+    if (this.isStandalone) return;
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_advertise',
       button_location: 'sidebar',
@@ -226,6 +234,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowContactPage(): void {
+    if (this.isStandalone) return;
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_contact',
       button_location: 'sidebar',
@@ -234,6 +243,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onShowHelpPage(): void {
+    if (this.isStandalone) return;
     this.analyticsService.trackButtonClick({
       button_name: 'sidebar_help',
       button_location: 'sidebar',
@@ -255,6 +265,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   openAddSiteDialog(): void {
+    if (this.isStandalone) return; // חסום במצב עצמאי
     this.analyticsService.trackButtonClick({
       button_name: 'open_add_channel_dialog',
       button_location: 'sidebar',
@@ -273,7 +284,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onLogoClick(event: MouseEvent): void {
-    // בדיקה האם זו לחיצה רגילה (כפתור שמאלי ללא מקשי עזר)
+    if (this.isStandalone) {
+      event.preventDefault(); // במצב עצמאי, הלוגו לא עושה ניווט
+      return;
+    }
+
     const isNormalClick = event.button === 0 &&
                           !event.ctrlKey &&
                           !event.metaKey &&
@@ -281,15 +296,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
                           !event.altKey;
 
     if (isNormalClick) {
-      event.preventDefault(); // עצירת הטעינה מחדש של הדפדפן
+      event.preventDefault();
       this.uiStateService.resetToHome();
-
-      // ניקוי שדה החיפוש אם הוא פתוח
       this.searchTerm$.next('');
       if (this.searchBar) {
         this.searchBar.clearSearch();
       }
     }
-    // אם זה לא Normal Click (למשל קליק אמצעי או Ctrl+קליק), הדפדפן ימשיך כרגיל ל-href
   }
 }
