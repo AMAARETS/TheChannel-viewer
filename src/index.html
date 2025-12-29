@@ -7,8 +7,8 @@
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="הערוץ - כל הערוצים במקום אחד. הפלטפורמה המרכזית לצפייה בערוצי תוכן, חדשות, עדכונים, קניות, מוזיקה ותכנים תורניים במקום אחד נוח ונגיש.">
-    <meta name="keywords" content="הערוץ, ערוצים, חדשות, קניות, הומור, מוזיקה, צפייה ישירה, ריכוז ערוצים, TheChannel">
-    <meta name="author" content="TheChannel">
+    <meta name="keywords" content="הערוץ, ערוצים, חדשות, קניות, הומור, מוזיקה, צפייה ישירה, ריכוז, TheChannel, תוסף, ג'ימייל, תוסף הערוץ, הגיזרה, החתול השחור, מורשת מרן, מעיינות ונחלים, מיוזיק אונליין, צ'אטים, נטפרי, קבוצות צ'אט">
+    <meta name="author" content="Click&Go">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#ffffff">
 
@@ -26,30 +26,63 @@
     <meta property="twitter:title" content="הערוץ | כל הערוצים במקום אחד">
     <meta property="twitter:description" content="הפלטפורמה המרכזית לצפייה בערוצי תוכן, חדשות, עדכונים וקניות בצורה נוחה ומהירה.">
 
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "הערוץ",
+      "alternateName": "TheChannel",
+      "description": "הפלטפורמה המרכזית והנוחה לצפייה בערוצי תוכן, חדשות, עדכונים וקניות במקום אחד",
+      "url": "https://thechannel-viewer.clickandgo.cfd/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web Browser",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0",
+      "datePublished": "2024-01-01",
+      "dateModified": "2024-12-29",
+      "inLanguage": "he",
+      "author": {
+        "@type": "Organization",
+        "name": "TheChannel"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "TheChannel"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ILS",
+        "availability": "https://schema.org/InStock"
+      },
+      "screenshot": "https://thechannel-viewer.clickandgo.cfd/assets/image/1199x536.png",
+      "featureList": [
+        "צפייה בערוצי תוכן",
+        "חדשות ועדכונים",
+        "קניות מקוונות",
+        "מוזיקה ובידור",
+        "תכנים תורניים",
+        "ממשק נוח ונגיש",
+        "הגיזרה",
+        "החתול השחור",
+        "הומור",
+        "צאטים",
+        "נטפרי",
+        "הצאט החדש"
+      ]
+    }
+    </script>
+
     <!-- Font Optimization: Preconnect & Load directly -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
-    <!-- Google Tag Manager -->
-    <script>
-      (function(w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({
-          'gtm.start': new Date().getTime(),
-          event: 'gtm.js'
-        });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != 'dataLayer' ? '&l=' + l : '';
-        j.async = true;
-        j.src =
-          'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, 'script', 'dataLayer', 'GTM-WNW46K62');
-    </script>
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600&display=swap" as="style">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
-    <!-- End Google Tag Manager -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="manifest" href="manifest.webmanifest">
@@ -96,6 +129,26 @@
     <link rel="apple-touch-startup-image" href="../public/assets/icons/apple-splash-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
     <link rel="apple-touch-startup-image" href="../public/assets/icons/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
     <link rel="apple-touch-startup-image" href="../public/assets/icons/apple-splash-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+
+      <!-- Google Tag Manager -->
+    <script>
+      (function(w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+          'gtm.start': new Date().getTime(),
+          event: 'gtm.js'
+        });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-WNW46K62');
+    </script>
+
+    <!-- End Google Tag Manager -->
   </head>
   <body>
 

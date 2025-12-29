@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Help Page -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=help</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Help Page - Extension Section -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=help&amp;section=extension</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Help Page - Usage Section -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=help&amp;section=usage</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Help Page - FAQ Section -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=help&amp;section=faq</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Contact Page -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=contact</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Advertise Page -->
+  <url>
+    <loc>https://thechannel-viewer.clickandgo.cfd/?view=advertise</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
