@@ -169,7 +169,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   private loadAdScript(): void {
-    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@b8ce4ef/share.js?v=' + new Date().getTime();
+    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@7c1e470/share.js?v=' + new Date().getTime();
     const script = document.createElement('script');
     script.src = scriptSrc;
     script.async = true;
