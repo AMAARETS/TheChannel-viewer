@@ -165,7 +165,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   private loadAdScript(): void {
-    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@5581038/share.js?v=' + new Date().getTime();
+    const scriptSrc = 'https://cdn.jsdelivr.net/gh/AMAARETS/ads@d9c43bb/share.js?v=' + new Date().getTime();
     if (!document.querySelector(`script[src^="https://cdn.jsdelivr.net/gh/AMAARETS/ads"]`)) {
         const script = document.createElement('script');
         script.src = scriptSrc;
