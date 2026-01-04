@@ -11,6 +11,11 @@
         "name":"מורשת מרן אונליין",
         "url":"https://news.moreshet-maran.com/",
         "googleLoginSupported":false
+      },
+      {
+        "name":"שטייגען - עדכונים מעולם הישיבות",
+        "url":"https://ysiva.thechats.click/",
+        "googleLoginSupported":false
       }
     ]
   },
