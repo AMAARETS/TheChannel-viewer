@@ -114,6 +114,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onSelectSite(event: { site: Site, category: Category }): void {
+    // בחירת אתר לניווט - נשארת בטיפול ההורה במצב Standalone (כדי לנווט בחלון הראשי)
     if (this.isStandalone) {
       this.extensionCommService.notifyParentSidebarAction('SELECT_SITE', {
         site: event.site,
@@ -125,24 +126,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onToggleCategory(categoryName: string): void {
+    // שינוי לוגיקה: ביצוע הפעולה מקומית תמיד.
+    // ה-UiStateService ידאג לסנכרן את השינוי לתוסף אם הוא פעיל.
     const currentState = this.uiStateService.collapsedCategories$.getValue();
     const newState = { ...currentState, [categoryName]: !currentState[categoryName] };
     this.uiStateService.saveCollapsedCategories(newState);
   }
 
   onAddSiteFromAvailable(site: AvailableSite): void {
-    if (this.isStandalone) {
-      this.extensionCommService.notifyParentSidebarAction('ADD_SITE_FROM_AVAILABLE', { site });
-      this.searchBar.clearSearch();
-      return;
-    }
+    // שינוי לוגיקה: הוספה מקומית תמיד.
+    // ה-SiteDataService ידאג לסנכרן את הנתונים החדשים לתוסף אם הוא פעיל.
     const categoryName = site.category || 'כללי';
     this.siteDataService.addSite(site, categoryName);
     this.searchBar.clearSearch();
   }
 
-  // --- לוגיקה מעודכנת לתפריט ---
   onContextMenuOpen(data: ContextMenuOpenEvent): void {
+    // תפריט הקשר - נשאר בטיפול ההורה במצב Standalone (כדי לצייר אותו מעל הכל)
     if (this.isStandalone) {
       // חישוב המיקום האופטימלי לשליחה להורה
       const adjustedPosition = this.calculateMenuPositionForParent(data.event);
@@ -177,14 +177,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const targetElement = (event.currentTarget || event.target) as HTMLElement;
     const rect = targetElement.getBoundingClientRect();
     
-    // שימוש בנתונים קבועים או דינמיים של המסך הנוכחי (ה-Iframe)
     const viewportHeight = window.innerHeight;
     const MENU_ESTIMATED_HEIGHT = 280;
     const MENU_ESTIMATED_WIDTH = 150;
     const OFFSET_FROM_BUTTON = 25;
 
-    // חישוב Left (מימין לשמאל בגלל RTL, או משמאל לימין)
-    // הערה: ב-Standalone בדרך כלל נרצה שהתפריט יפתח צמוד לכפתור
+    // חישוב Left (מימין לשמאל בגלל RTL)
     const leftPosition = rect.right - MENU_ESTIMATED_WIDTH - OFFSET_FROM_BUTTON;
     
     // חישוב Top (ממורכז לכפתור)
@@ -286,6 +284,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onUpdateCategories(categories: Category[]): void {
+    // שינוי לוגיקה: עדכון מקומי תמיד (עבור גרירה ושחרור).
+    // ה-SiteDataService ידאג לסנכרן את הסדר החדש לתוסף אם הוא פעיל.
     this.siteDataService.updateCategories(categories);
   }
 
@@ -326,10 +326,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar(): void {
+    // שינוי גודל הסרגל הראשי - נשאר בטיפול ההורה במצב Standalone (כי הוא שולט ב-iframe)
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('TOGGLE_SIDEBAR', {});
+      return;
+    }
     this.uiStateService.toggleSidebar();
   }
 
   expandAndFocusSearch(): void {
+    if (this.isStandalone) {
+      this.extensionCommService.notifyParentSidebarAction('EXPAND_AND_FOCUS', {});
+      // בנפרד מכך, ננסה למקד מקומית אם הסרגל לא מכווץ, אבל לרוב התוסף יטפל בפתיחה
+      return;
+    }
     if (this.uiStateService.isSidebarCollapsed$.getValue()) {
       this.uiStateService.toggleSidebar();
       setTimeout(() => this.searchBar.focus(), 300);

@@ -11,6 +11,7 @@ import { ExtensionCommunicationService } from './extension-communication.service
 })
 export class SiteDataService {
   private readonly userCategoriesKey = 'userChannelCategories';
+  private readonly collapsedCategoriesKey = 'collapsedCategories';
   private readonly removedDefaultSitesKey = 'removedDefaultSites';
   private readonly oldStorageKey = 'userSites';
 
@@ -76,6 +77,9 @@ export class SiteDataService {
   window.addEventListener('storage', (event) => {
     if (event.key === this.userCategoriesKey && event.newValue) {
       this.categories$.next(JSON.parse(event.newValue));
+    }
+    if (event.key === this.collapsedCategoriesKey && event.newValue) {
+      this.uiStateService.collapsedCategories$.next(JSON.parse(event.newValue));
     }
   });
 }

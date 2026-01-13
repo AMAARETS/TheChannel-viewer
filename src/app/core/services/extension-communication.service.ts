@@ -18,7 +18,6 @@ export const MESSAGE_TYPES = {
   GET_MUTED_DOMAINS: 'THE_CHANNEL_GET_MUTED_DOMAINS',
   MUTED_DOMAINS_DATA: 'THE_CHANNEL_MUTED_DOMAINS_DATA',
   TOGGLE_MUTE_DOMAIN: 'THE_CHANNEL_TOGGLE_MUTE_DOMAIN',
-  // --- סוג הודעה חדש ---
   SIDEBAR_ACTION: 'THE_CHANNEL_SIDEBAR_ACTION'
 };
 
@@ -148,7 +147,7 @@ export class ExtensionCommunicationService {
     }
   }
 
-  // --- פונקציה חדשה לדיווח על פעולות בסרגל ---
+  // --- פונקציה לדיווח על פעולות בסרגל ---
   public notifyParentSidebarAction(action: string, data: any): void {
     this.sendMessageToExtension({
       type: MESSAGE_TYPES.SIDEBAR_ACTION,
