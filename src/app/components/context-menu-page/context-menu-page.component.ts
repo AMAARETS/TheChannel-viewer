@@ -85,6 +85,38 @@ export class ContextMenuPageComponent implements OnInit {
   }
 
   onAction(actionName: string, payload: any) {
+    // --- טיפול בפעולות מקומיות (ללא שליחה להורה) ---
+
+    // 1. השתקת התראות
+    if (actionName === 'Toggle Mute') {
+      // payload הוא אובייקט Site
+      this.siteDataService.toggleMuteForSite(payload);
+      return;
+    }
+
+    // 2. הזז למעלה
+    if (actionName === 'Move Up') {
+      // payload: { site, fromCategory }
+      this.siteDataService.moveSite(payload.site, payload.fromCategory.name, 'up');
+      return;
+    }
+
+    // 3. הזז למטה
+    if (actionName === 'Move Down') {
+      // payload: { site, fromCategory }
+      this.siteDataService.moveSite(payload.site, payload.fromCategory.name, 'down');
+      return;
+    }
+
+    // 4. העבר לקטגוריה קיימת
+    if (actionName === 'Change Category') {
+      // payload: { site, fromCategory, toCategory }
+      this.siteDataService.moveSiteToCategory(payload.site, payload.fromCategory.name, payload.toCategory.name);
+      return;
+    }
+
+    // --- שליחת שאר הפעולות להורה (עריכה, מחיקה, קטגוריה חדשה, העתקת קישור) ---
+    
     // מיפוי שם הפעולה מה-UI לסוג ההודעה בפרוטוקול
     let messageType = '';
 
@@ -98,18 +130,6 @@ export class ContextMenuPageComponent implements OnInit {
       case 'Copy Link':
         messageType = 'COPY_LINK';
         break;
-      case 'Toggle Mute':
-        messageType = 'TOGGLE_MUTE';
-        break;
-      case 'Move Up':
-        messageType = 'MOVE_SITE_UP';
-        break;
-      case 'Move Down':
-        messageType = 'MOVE_SITE_DOWN';
-        break;
-      case 'Change Category':
-        messageType = 'CHANGE_CATEGORY';
-        break;
       case 'New Category':
         messageType = 'NEW_CATEGORY';
         break;
@@ -118,7 +138,7 @@ export class ContextMenuPageComponent implements OnInit {
         return;
     }
 
-    // שימוש בפונקציה החדשה שיצרנו בשירות לשליחת ההודעה
+    // שימוש בפונקציה בשירות לשליחת ההודעה להורה
     this.extensionCommService.notifyParentSidebarAction(messageType, payload);
   }
 }
