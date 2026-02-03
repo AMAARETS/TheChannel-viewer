@@ -14,6 +14,13 @@
     "googleLoginSupported":false
   },
   {
+    "name":"מיי שמש",
+    "url":"https://myshemesh.co.il/",
+    "description":"עדכונים וחדשות מבית שמש",
+    "category":"חדשות",
+    "googleLoginSupported":false
+  },
+  {
     "name":"שטייגען - עדכונים מעולם הישיבות",
     "url":"https://ysiva.thechats.click/",
     "description":"עדכונים מעולם הישיבות ומהרחוב החרדי הלוהט - בשיתוף הגיזרה",

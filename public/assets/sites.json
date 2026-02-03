@@ -13,6 +13,13 @@
         "googleLoginSupported":false
       },
       {
+        "name":"מיי שמש",
+        "url":"https://myshemesh.co.il/",
+        "googleLoginSupported":false,
+        "dateAdded":"3-2-2025",
+        "view":true
+      },
+      {
         "name":"שטייגען - עדכונים מעולם הישיבות",
         "url":"https://ysiva.thechats.click/",
         "googleLoginSupported":false
