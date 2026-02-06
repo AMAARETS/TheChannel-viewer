@@ -21,6 +21,13 @@
     "googleLoginSupported":false
   },
   {
+    "name":"מוזיקה אקספרס",
+    "url":"https://music-express.chatfree.app/",
+    "description":"סרטונים מאירועים, מאחורי הקלעים, ועדכוני מוזיקה.",
+    "category":"מוזיקה",
+    "googleLoginSupported":false
+  },
+  {
     "name":"שטייגען - עדכונים מעולם הישיבות",
     "url":"https://ysiva.thechats.click/",
     "description":"עדכונים מעולם הישיבות ומהרחוב החרדי הלוהט - בשיתוף הגיזרה",

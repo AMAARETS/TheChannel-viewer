@@ -16,7 +16,8 @@
         "name":"מיי שמש",
         "url":"https://myshemesh.co.il/",
         "googleLoginSupported":false,
-        "dateAdded":"3-2-2025",
+        "dateAdded":"3-2-2026",
+        "dateEnd": "2-2-2027",
         "view":true
       },
       {
@@ -53,6 +54,14 @@
         "name": "מיוזיק אונליין",
         "url": "https://music.chatfree.app/",
         "googleLoginSupported": false
+      },
+      {
+        "name": "מוזיקה אקספרס",
+        "url": "https://music-express.chatfree.app/",
+        "googleLoginSupported": false,
+        "dateAdded":"6-2-2026",
+        "dateEnd": "5-12-2026",
+        "view":true
       }
     ]
   },
