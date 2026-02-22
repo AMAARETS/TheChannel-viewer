@@ -25,7 +25,8 @@
     "url":"https://music-express.chatfree.app/",
     "description":"סרטונים מאירועים, מאחורי הקלעים, ועדכוני מוזיקה.",
     "category":"מוזיקה",
-    "googleLoginSupported":false
+    "googleLoginSupported":false,
+    "view":false
   },
   {
     "name":"שטייגען - עדכונים מעולם הישיבות",
@@ -46,7 +47,7 @@
     "url": "https://torani.chatfree.app/",
     "description": "אתר בנושא תורה",
     "category": "תורני",
-    "googleLoginSupported": true
+    "view":false
   },
   {
     "name":"מורשת מרן אונליין",
