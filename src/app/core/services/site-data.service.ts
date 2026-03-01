@@ -34,16 +34,21 @@ export class SiteDataService {
   /**
    * בדיקת תקינות ערוץ: מסונן לפי תאריך ו-view אלא אם נוסף ידנית (isManual)
    */
-  private isSiteValid(site: Site, now: number): boolean {
-    if (site.view === false) return false;
+  private isSiteInvalidByServer(site: Site, now: number): boolean {
+    // 1. בדיקה אם השרת סימן אותו במפורש כלא להצגה
+    if (site.view === false) return true;
+
+    // 2. בדיקה אם יש תאריך תפוגה והוא עבר
     if (site.dateEnd) {
       const parts = site.dateEnd.split('-');
       if (parts.length === 3) {
+        // יצירת אובייקט תאריך לסוף היום המצוין
         const expiry = new Date(+parts[2], +parts[1] - 1, +parts[0], 23, 59, 59).getTime();
-        if (now > expiry) return false;
+        if (now > expiry) return true;
       }
     }
-    return true;
+
+    return false;
   }
 
   private loadInitialData(): void {
@@ -58,9 +63,9 @@ export class SiteDataService {
         // סינון ה-JSON-ים מהשרת לפני שהם נכנסים למערכת
         defaultCategories: data.defaultCategories.map(cat => ({
           ...cat,
-          sites: cat.sites.filter(s => this.isSiteValid(s, now))
+          sites: cat.sites.filter(s => this.isSiteInvalidByServer(s, now))
         })).filter(cat => cat.sites.length > 0),
-        availableSites: data.availableSites.filter(s => this.isSiteValid(s, now))
+        availableSites: data.availableSites.filter(s => this.isSiteInvalidByServer(s, now))
       })),
       tap(() => this.uiStateService.dataLoadingState$.next('loaded')),
       catchError(error => {
@@ -114,18 +119,18 @@ export class SiteDataService {
         this.uiStateService.saveCollapsedCategories(extensionResponse.settings.collapsedCategories);
       }
       if (extensionResponse.settings.removedDefaultSites) {
-          const removedSet = new Set(extensionResponse.settings.removedDefaultSites);
-          this.saveRemovedDefaultSites(removedSet);
+        const removedSet = new Set(extensionResponse.settings.removedDefaultSites);
+        this.saveRemovedDefaultSites(removedSet);
       }
     } else {
       userCategories = this.loadCategoriesFromStorage();
     }
 
     if (!userCategories) {
-        this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
+      this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
     } else {
-        const merged = this.mergeDefaultSites(userCategories, defaultCategories);
-        this.categories$.next(merged);
+      const merged = this.mergeDefaultSites(userCategories, defaultCategories);
+      this.categories$.next(merged);
     }
     this.saveCategories();
   }
@@ -133,52 +138,76 @@ export class SiteDataService {
   private loadCategoriesFromStorage(): Category[] | null {
     const savedCategoriesRaw = localStorage.getItem(this.userCategoriesKey);
     if (savedCategoriesRaw) {
-        try {
-            const parsed = JSON.parse(savedCategoriesRaw);
-            if (Array.isArray(parsed)) return parsed;
-        } catch (e) { console.error("Error parsing categories", e); }
+      try {
+        const parsed = JSON.parse(savedCategoriesRaw);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) { console.error("Error parsing categories", e); }
     }
 
     const oldSitesRaw = localStorage.getItem(this.oldStorageKey);
     if (oldSitesRaw) {
-        try {
-            const oldSites = JSON.parse(oldSitesRaw);
-            if (Array.isArray(oldSites) && oldSites.length > 0) {
-                localStorage.removeItem(this.oldStorageKey);
-                // ערוצים שעברו מיגראציה נחשבים לידניים כדי שלא יימחקו בטעות
-                return [{ name: 'הערוצים שלי', sites: oldSites.map((s: any) => ({...s, isManual: true})) }];
-            }
-        } catch(e) { console.error("Error parsing old sites", e); }
+      try {
+        const oldSites = JSON.parse(oldSitesRaw);
+        if (Array.isArray(oldSites) && oldSites.length > 0) {
+          localStorage.removeItem(this.oldStorageKey);
+          // ערוצים שעברו מיגראציה נחשבים לידניים כדי שלא יימחקו בטעות
+          return [{ name: 'הערוצים שלי', sites: oldSites.map((s: any) => ({ ...s, isManual: true })) }];
+        }
+      } catch (e) { console.error("Error parsing old sites", e); }
     }
     return null;
   }
 
   private mergeDefaultSites(userCategories: Category[], defaultCategories: Category[]): Category[] {
     const removedSites = this.getRemovedDefaultSites();
-    
-    // יצירת רשימה לבנה של כתובות תקינות מהשרת בלבד
-    const validSystemUrls = new Set(defaultCategories.flatMap(cat => cat.sites.map(s => s.url)));
+    const now = Date.now();
 
-    // סינון: ערוץ יישאר רק אם הוא ידני של המשתמש או שהוא קיים ברשימה התקינה מהשרת
+    // 1. בונים "רשימה שחורה" של כל ה-URLs שהשרת פוסל כרגע (תאריך עבר או view: false)
+    const serverBlacklist = new Set<string>();
+    defaultCategories.forEach(cat => {
+      cat.sites.forEach(site => {
+        if (this.isSiteInvalidByServer(site, now)) {
+          serverBlacklist.add(site.url);
+        }
+      });
+    });
+
+    // 2. סינון רשימת המשתמש
     const sanitizedUser = userCategories.map(cat => ({
       ...cat,
-      sites: cat.sites.filter(s => s.isManual === true || validSystemUrls.has(s.url))
+      sites: cat.sites.filter(site => {
+        // אם הערוץ "פסול" ע"י השרת ואינו ידני - מסירים אותו
+        if (serverBlacklist.has(site.url) && !site.isManual) {
+          return false;
+        }
+        // בכל מקרה אחר:
+        // - ערוץ ידני (isManual: true) נשאר תמיד
+        // - ערוץ שלא קיים בשרת בכלל נשאר (לפי הלוגיקה הקודמת שביקשת)
+        // - ערוץ שקיים בשרת והוא תקין נשאר
+        return true;
+      })
     })).filter(cat => cat.sites.length > 0);
 
+    // 3. הוספת ערוצים חדשים מהשרת (כאלו שהם תקינים והמשתמש עוד לא מכיר)
     const userSitesUrls = new Set(sanitizedUser.flatMap(cat => cat.sites.map(s => s.url)));
 
     defaultCategories.forEach(defaultCategory => {
-        defaultCategory.sites.forEach(defaultSite => {
-            if (!userSitesUrls.has(defaultSite.url) && !removedSites.has(defaultSite.url)) {
-                let targetCategory = sanitizedUser.find(c => c.name === defaultCategory.name);
-                if (!targetCategory) {
-                    targetCategory = { name: defaultCategory.name, sites: [] };
-                    sanitizedUser.push(targetCategory);
-                }
-                targetCategory.sites.push(defaultSite);
-            }
-        });
+      defaultCategory.sites.forEach(defaultSite => {
+        // תנאי להוספה: תקין בשרת, לא קיים אצל המשתמש, ולא נמחק ידנית בעבר
+        if (!this.isSiteInvalidByServer(defaultSite, now) &&
+          !userSitesUrls.has(defaultSite.url) &&
+          !removedSites.has(defaultSite.url)) {
+
+          let targetCategory = sanitizedUser.find(c => c.name === defaultCategory.name);
+          if (!targetCategory) {
+            targetCategory = { name: defaultCategory.name, sites: [] };
+            sanitizedUser.push(targetCategory);
+          }
+          targetCategory.sites.push(defaultSite);
+        }
+      });
     });
+
     return sanitizedUser;
   }
 
@@ -211,16 +240,16 @@ export class SiteDataService {
   }
 
   toggleMuteForSite(site: Site): void {
-      try {
-          const domain = new URL(site.url).hostname;
-          this.extensionCommService.toggleMuteDomain(domain);
-      } catch { console.error('Invalid URL for mute toggle', site.url); }
+    try {
+      const domain = new URL(site.url).hostname;
+      this.extensionCommService.toggleMuteDomain(domain);
+    } catch { console.error('Invalid URL for mute toggle', site.url); }
   }
 
   isSiteMuted(siteUrl: string, mutedSet: Set<string>): boolean {
-      try {
-          return mutedSet.has(new URL(siteUrl).hostname);
-      } catch { return false; }
+    try {
+      return mutedSet.has(new URL(siteUrl).hostname);
+    } catch { return false; }
   }
 
   addSite(newSite: Site, categoryName: string): boolean {
