@@ -26,7 +26,7 @@
     "description":"סרטונים מאירועים, מאחורי הקלעים, ועדכוני מוזיקה.",
     "category":"מוזיקה",
     "googleLoginSupported":false,
-    "view":false
+    "view":true
   },
   {
     "name":"שטייגען - עדכונים מעולם הישיבות",
