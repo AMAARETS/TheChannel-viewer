@@ -63,9 +63,9 @@ export class SiteDataService {
         // סינון ה-JSON-ים מהשרת לפני שהם נכנסים למערכת
         defaultCategories: data.defaultCategories.map(cat => ({
           ...cat,
-          sites: cat.sites.filter(s => this.isSiteInvalidByServer(s, now))
+          sites: cat.sites.filter(s => !this.isSiteInvalidByServer(s, now))
         })).filter(cat => cat.sites.length > 0),
-        availableSites: data.availableSites.filter(s => this.isSiteInvalidByServer(s, now))
+        availableSites: data.availableSites.filter(s => !this.isSiteInvalidByServer(s, now))
       })),
       tap(() => this.uiStateService.dataLoadingState$.next('loaded')),
       catchError(error => {
