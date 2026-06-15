@@ -13,7 +13,7 @@
         "googleLoginSupported":false
       },
       {
-        "name":"מיי שמש",
+        "name":"מיין שמש",
         "url":"https://myshemesh.co.il/",
         "googleLoginSupported":false,
         "dateAdded":"3-2-2026",
@@ -38,13 +38,14 @@
     ]
   },
   {
-    "name": "תורני",
+    "name": "טיפים",
     "sites": [
       {
-        "name": "היכל התורה",
-        "url": "https://torani.chatfree.app/",
-        "googleLoginSupported": true,
-        "view":false
+        "name": "ידיד נפש⚡ - טיפים לחיים",
+        "url": "https://yedid-nefesh.chatfree.app/",
+        "googleLoginSupported": false,
+        "dateAdded":"16-6-2026",
+        "view":true
       }
     ]
   },

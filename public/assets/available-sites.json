@@ -14,7 +14,7 @@
     "googleLoginSupported":false
   },
   {
-    "name":"מיי שמש",
+    "name":"מיין שמש",
     "url":"https://myshemesh.co.il/",
     "description":"עדכונים וחדשות מבית שמש",
     "category":"חדשות",
@@ -43,11 +43,11 @@
     "googleLoginSupported":false
   },
   {
-    "name": "היכל התורה",
-    "url": "https://torani.chatfree.app/",
-    "description": "אתר בנושא תורה",
-    "category": "תורני",
-    "view":false
+    "name": "ידיד נפש⚡ - טיפים לחיים",
+    "url": "https://yedid-nefesh.chatfree.app/",
+    "description": "טיפים, עצות ותובנות לחיים שלווים ונפש בריאה♥️",
+    "category": "טיפים",
+    "view":true
   },
   {
     "name":"מורשת מרן אונליין",
