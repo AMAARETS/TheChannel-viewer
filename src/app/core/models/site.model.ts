@@ -11,6 +11,7 @@ export interface Site {
 export interface Category {
   name: string;
   sites: Site[];
+  priority?: number; // סדר עדיפות להצגה — נמוך יותר = קודם יותר. משפיע רק על קטגוריות חדשות שהמשתמש עוד לא מכיר
 }
 
 export interface AvailableSite extends Site {

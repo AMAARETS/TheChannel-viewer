@@ -191,6 +191,8 @@ export class SiteDataService {
     // 3. הוספת ערוצים חדשים מהשרת (כאלו שהם תקינים והמשתמש עוד לא מכיר)
     const userSitesUrls = new Set(sanitizedUser.flatMap(cat => cat.sites.map(s => s.url)));
 
+    const newCategoriesToInsert: { category: Category; priority: number }[] = [];
+
     defaultCategories.forEach(defaultCategory => {
       defaultCategory.sites.forEach(defaultSite => {
         // תנאי להוספה: תקין בשרת, לא קיים אצל המשתמש, ולא נמחק ידנית בעבר
@@ -200,13 +202,31 @@ export class SiteDataService {
 
           let targetCategory = sanitizedUser.find(c => c.name === defaultCategory.name);
           if (!targetCategory) {
+            // קטגוריה חדשה לגמרי — נאסוף אותה לטיפול נפרד לפי priority
             targetCategory = { name: defaultCategory.name, sites: [] };
-            sanitizedUser.push(targetCategory);
+            newCategoriesToInsert.push({
+              category: targetCategory,
+              priority: defaultCategory.priority ?? Infinity
+            });
           }
           targetCategory.sites.push(defaultSite);
         }
       });
     });
+
+    // הכנסת הקטגוריות החדשות במיקום הנכון לפי priority
+    // priority הוא מיקום מוחלט: priority=2 → תמיד שני ברשימה, priority=3 → תמיד שלישי וכו'.
+    // קטגוריות ללא priority מתווספות בסוף.
+    newCategoriesToInsert.sort((a, b) => a.priority - b.priority);
+    for (const { category, priority } of newCategoriesToInsert) {
+      if (priority === Infinity) {
+        sanitizedUser.push(category);
+      } else {
+        // priority=N → אינדקס N-1. אם הרשימה קצרה יותר — מוסיפים בסוף
+        const insertAt = Math.min(priority - 1, sanitizedUser.length);
+        sanitizedUser.splice(insertAt, 0, category);
+      }
+    }
 
     return sanitizedUser;
   }
