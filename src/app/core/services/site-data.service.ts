@@ -61,6 +61,7 @@ export class SiteDataService {
     }).pipe(
       map(data => ({
         // סינון ה-JSON-ים מהשרת לפני שהם נכנסים למערכת
+        rawDefaultCategories: data.defaultCategories,
         defaultCategories: data.defaultCategories.map(cat => ({
           ...cat,
           sites: cat.sites.filter(s => !this.isSiteInvalidByServer(s, now))
@@ -72,12 +73,12 @@ export class SiteDataService {
         console.error("Failed to load site data", error);
         this.uiStateService.dataLoadingState$.next('error');
         this.toastService.show('אירעה שגיאה בטעינת הערוצים', 'error');
-        return of({ defaultCategories: [], availableSites: [] });
+        return of({ rawDefaultCategories: [], defaultCategories: [], availableSites: [] });
       })
-    ).subscribe(({ defaultCategories, availableSites }) => {
+    ).subscribe(({ rawDefaultCategories, defaultCategories, availableSites }) => {
       this.availableSites$.next(availableSites);
       this.defaultSites = defaultCategories.flatMap(cat => cat.sites);
-      this.loadUserCategoriesAndMerge(defaultCategories);
+      this.loadUserCategoriesAndMerge(defaultCategories, rawDefaultCategories);
     });
   }
 
@@ -106,7 +107,7 @@ export class SiteDataService {
     });
   }
 
-  private async loadUserCategoriesAndMerge(defaultCategories: Category[]): Promise<void> {
+  private async loadUserCategoriesAndMerge(defaultCategories: Category[], rawDefaultCategories: Category[] = []): Promise<void> {
     const extensionResponse = await this.extensionCommService.requestSettingsFromExtension();
     let userCategories: Category[] | null = null;
 
@@ -129,7 +130,7 @@ export class SiteDataService {
     if (!userCategories) {
       this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
     } else {
-      const merged = this.mergeDefaultSites(userCategories, defaultCategories);
+      const merged = this.mergeDefaultSites(userCategories, defaultCategories, rawDefaultCategories);
       this.categories$.next(merged);
     }
     this.saveCategories();
@@ -158,13 +159,15 @@ export class SiteDataService {
     return null;
   }
 
-  private mergeDefaultSites(userCategories: Category[], defaultCategories: Category[]): Category[] {
+  private mergeDefaultSites(userCategories: Category[], defaultCategories: Category[], rawDefaultCategories: Category[] = []): Category[] {
     const removedSites = this.getRemovedDefaultSites();
     const now = Date.now();
 
     // 1. בונים "רשימה שחורה" של כל ה-URLs שהשרת פוסל כרגע (תאריך עבר או view: false)
+    // חשוב: משתמשים בנתונים הגולמיים (לפני סינון) כדי שערוצים עם view:false ייכנסו לרשימה
+    const sourceForBlacklist = rawDefaultCategories.length > 0 ? rawDefaultCategories : defaultCategories;
     const serverBlacklist = new Set<string>();
-    defaultCategories.forEach(cat => {
+    sourceForBlacklist.forEach(cat => {
       cat.sites.forEach(site => {
         if (this.isSiteInvalidByServer(site, now)) {
           serverBlacklist.add(site.url);
