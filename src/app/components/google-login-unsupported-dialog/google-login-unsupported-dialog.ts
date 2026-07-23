@@ -2,6 +2,7 @@ import { Component, inject, ChangeDetectionStrategy, AfterViewChecked, ViewChild
 import { CommonModule } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { UiStateService } from '../../core/services/ui-state.service';
+import { NavigationService } from '../../core/services/ui/navigation.service';
 import { Site } from '../../core/models/site.model';
 import { Observable } from 'rxjs';
 
@@ -15,6 +16,7 @@ import { Observable } from 'rxjs';
 })
 export class GoogleLoginUnsupportedDialogComponent implements AfterViewChecked {
   uiStateService = inject(UiStateService);
+  private navigation = inject(NavigationService);
 
   isVisible$ = this.uiStateService.isGoogleLoginUnsupportedDialogVisible$;
   site$: Observable<Site | null> = this.uiStateService.siteForUnsupportedLoginDialog$;
@@ -32,5 +34,9 @@ export class GoogleLoginUnsupportedDialogComponent implements AfterViewChecked {
 
   closeDialog(): void {
     this.uiStateService.closeGoogleLoginUnsupportedDialog();
+  }
+
+  getNewTabUrl(url: string): string {
+    return this.navigation.addUtmParameters(url, 'newtab');
   }
 }

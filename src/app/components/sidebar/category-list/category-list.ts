@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject
 import { CommonModule, NgStyle } from '@angular/common';
 import { Category, Site } from '../../../core/models/site.model';
 import { ExtensionCommunicationService } from '../../../core/services/extension-communication.service';
+import { NavigationService } from '../../../core/services/ui/navigation.service';
 import { map, Observable } from 'rxjs';
 
 export interface ContextMenuOpenEvent {
@@ -32,6 +33,7 @@ export class CategoryListComponent implements OnInit {
   @Output() categoriesUpdated = new EventEmitter<Category[]>();
 
   private extensionCommService = inject(ExtensionCommunicationService);
+  private navigation = inject(NavigationService);
 
   // Set של דומיינים שלא נקראו, לחיפוש מהיר
   unreadDomainsSet$: Observable<Set<string>> | undefined;
@@ -63,6 +65,10 @@ export class CategoryListComponent implements OnInit {
 
   isCategoryCollapsed(categoryName: string): boolean {
     return this.collapsedState[categoryName] ?? false;
+  }
+
+  getNewTabUrl(url: string): string {
+    return this.navigation.addUtmParameters(url, 'newtab');
   }
 
   getFaviconUrl(url: string): string {

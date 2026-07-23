@@ -8,12 +8,12 @@ export class NavigationService {
   /**
    * מוסיף פרמטרי UTM ל-URL של האתר
    */
-  addUtmParameters(url: string): string {
+  addUtmParameters(url: string, medium = 'iframe'): string {
     try {
       const urlObj = new URL(url);
       const utmParams = {
         utm_source: 'haharuts',
-        utm_medium: 'iframe'
+        utm_medium: medium
       };
 
       Object.entries(utmParams).forEach(([key, value]) => {

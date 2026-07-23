@@ -9,7 +9,7 @@
         </div>
         <div class="dialog-actions">
           <button #closeButton class="btn-secondary" (click)="closeDialog()">סגור</button>
-          <a [href]="site.url" target="_blank" class="btn-primary-link" (click)="closeDialog()">פתח בכרטיסייה חדשה</a>
+          <a [href]="getNewTabUrl(site.url)" target="_blank" class="btn-primary-link" (click)="closeDialog()">פתח בכרטיסייה חדשה</a>
         </div>
       </div>
     }
