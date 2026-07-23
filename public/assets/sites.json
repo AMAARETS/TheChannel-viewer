@@ -40,13 +40,26 @@
   },
   {
     "name": "טיפים",
-    "priority": 2,
+    "priority": 3,
     "sites": [
       {
         "name": "ידיד נפש⚡ - טיפים לחיים",
         "url": "https://yedid-nefesh.chatfree.app/",
         "googleLoginSupported": false,
         "dateAdded":"16-6-2026",
+        "view": true
+      }
+    ]
+  },
+  {
+    "name": "קהילה",
+    "priority": 2,
+    "sites": [
+      {
+        "name": "הלוח online",
+        "url": "https://haluach.clickgodev.com/",
+        "googleLoginSupported": true,
+        "dateAdded":"24-7-2026",
         "view": true
       }
     ]

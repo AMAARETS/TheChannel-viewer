@@ -21,6 +21,13 @@
     "googleLoginSupported":false
   },
   {
+    "name":"הלוח online",
+    "url":"https://haluach.clickgodev.com/",
+    "description":"במה מרכזית לפרסום - צאו והתפרנסו זה מזה",
+    "category":"קהילה",
+    "googleLoginSupported":true
+  },
+  {
     "name":"מוזיקה אקספרס",
     "url":"https://music-express.chatfree.app/",
     "description":"סרטונים מאירועים, מאחורי הקלעים, ועדכוני מוזיקה.",
