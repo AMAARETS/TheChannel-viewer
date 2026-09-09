@@ -15,6 +15,15 @@ export class SiteDataService {
   private readonly removedDefaultSitesKey = 'removedDefaultSites';
   private readonly oldStorageKey = 'userSites';
 
+  /**
+   * מיפוי דומיינים שהוחלפו לערוץ קיים: url ישן -> url חדש.
+   * כשמשנים דומיין לערוץ קיים ב-sites.json יש להוסיף כאן שורה, כדי שמשתמשים
+   * שכבר שמרו את הערוץ (עם ה-url הישן) יעברו אליו במקום לקבל כפילות.
+   */
+  private readonly urlMigrations: Record<string, string> = {
+    'https://yedid-nefesh.chatfree.app/': 'https://yedid-nefesh.com/',
+  };
+
   private defaultSites: Site[] = [];
   private http = inject(HttpClient);
   private uiStateService = inject(UiStateService);
@@ -130,10 +139,29 @@ export class SiteDataService {
     if (!userCategories) {
       this.categories$.next(defaultCategories.filter(cat => cat.sites.length > 0));
     } else {
-      const merged = this.mergeDefaultSites(userCategories, defaultCategories, rawDefaultCategories);
+      const migratedUserCategories = this.migrateSiteUrls(userCategories);
+      const merged = this.mergeDefaultSites(migratedUserCategories, defaultCategories, rawDefaultCategories);
       this.categories$.next(merged);
     }
     this.saveCategories();
+  }
+
+  /**
+   * מעביר ערוצים שנשמרו אצל המשתמש עם url ישן ל-url החדש (לפי urlMigrations),
+   * ומסנן כפילות אם כבר נוצרה כפילות (ה-url הישן וגם החדש) מטעינה קודמת.
+   */
+  private migrateSiteUrls(categories: Category[]): Category[] {
+    return categories.map(cat => {
+      const seenUrls = new Set<string>();
+      const sites: Site[] = [];
+      for (const site of cat.sites) {
+        const migratedUrl = this.urlMigrations[site.url] ?? site.url;
+        if (seenUrls.has(migratedUrl)) continue;
+        seenUrls.add(migratedUrl);
+        sites.push(migratedUrl === site.url ? site : { ...site, url: migratedUrl });
+      }
+      return { ...cat, sites };
+    });
   }
 
   private loadCategoriesFromStorage(): Category[] | null {
@@ -255,7 +283,8 @@ export class SiteDataService {
 
   private getRemovedDefaultSites(): Set<string> {
     const removedRaw = localStorage.getItem(this.removedDefaultSitesKey);
-    return new Set<string>(removedRaw ? JSON.parse(removedRaw) : []);
+    const removedUrls: string[] = removedRaw ? JSON.parse(removedRaw) : [];
+    return new Set<string>(removedUrls.map(url => this.urlMigrations[url] ?? url));
   }
 
   private saveRemovedDefaultSites(removedSet: Set<string>): void {
